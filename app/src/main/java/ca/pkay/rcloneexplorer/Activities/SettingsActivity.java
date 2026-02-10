@@ -101,43 +101,41 @@ public class SettingsActivity extends AppCompatActivity implements SettingsFragm
 
     private void startSettingsFragment() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.flFragment, SettingsFragment.newInstance());
+        transaction.replace(R.id.flFragment, ca.pkay.rcloneexplorer.ui.screens.settings.SettingsFragment.newInstance());
         transaction.commit();
     }
 
     private void startGeneralSettingsFragment() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.flFragment, new GeneralPreferencesFragment(), SAVED_FRAGMENT);
+        transaction.replace(R.id.flFragment, new ca.pkay.rcloneexplorer.ui.screens.settings.general.GeneralSettingsFragment(), SAVED_FRAGMENT);
         transaction.addToBackStack(null);
         transaction.commit();
     }
 
     private void startFileAccessSettingsFragment() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.flFragment, FileAccessSettingsFragment.newInstance(), SAVED_FRAGMENT);
-        //todo:  for now, use the old one until i can fully migrate the new one.
-        //transaction.replace(R.id.flFragment, new FileAccessPreferencesFragment(), SAVED_FRAGMENT);
+        transaction.replace(R.id.flFragment, new ca.pkay.rcloneexplorer.ui.screens.settings.fileaccess.FileAccessFragment(), SAVED_FRAGMENT);
         transaction.addToBackStack(null);
         transaction.commit();
     }
 
     private void startLookAndFeelSettingsFragment() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.flFragment, new ThemingPreferencesFragment(), SAVED_FRAGMENT);
+        transaction.replace(R.id.flFragment, new ca.pkay.rcloneexplorer.ui.screens.settings.theming.ThemingFragment(), SAVED_FRAGMENT);
         transaction.addToBackStack(null);
         transaction.commit();
     }
 
     private void startNotificationSettingsFragment() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.flFragment, new NotificationPreferencesFragment(), SAVED_FRAGMENT);
+        transaction.replace(R.id.flFragment, new ca.pkay.rcloneexplorer.ui.screens.settings.notifications.NotificationSettingsFragment(), SAVED_FRAGMENT);
         transaction.addToBackStack(null);
         transaction.commit();
     }
 
     private void startLoggingSettingsActivity() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.flFragment, new LogPreferencesFragment(), SAVED_FRAGMENT);
+        transaction.replace(R.id.flFragment, new ca.pkay.rcloneexplorer.ui.screens.settings.logging.LoggingSettingsFragment(), SAVED_FRAGMENT);
         transaction.addToBackStack(null);
         transaction.commit();
     }

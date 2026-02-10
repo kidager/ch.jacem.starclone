@@ -410,6 +410,40 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onNegative(String tag) {
         findViewById(R.id.locked_config).setVisibility(View.GONE);
+        restoreConfigBackup();
+        startRemotesFragment();
+    }
+
+    private void backupCurrentConfig() {
+        File configFile = new File(getFilesDir(), "rclone.conf");
+        File backupFile = new File(getFilesDir(), "rclone.conf-backup");
+        if (configFile.exists()) {
+            try {
+                java.nio.file.Files.copy(configFile.toPath(), backupFile.toPath(),
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                FLog.e(TAG, "Failed to backup config", e);
+            }
+        }
+    }
+
+    private void restoreConfigBackup() {
+        File configFile = new File(getFilesDir(), "rclone.conf");
+        File backupFile = new File(getFilesDir(), "rclone.conf-backup");
+        if (backupFile.exists()) {
+            try {
+                java.nio.file.Files.copy(backupFile.toPath(), configFile.toPath(),
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                backupFile.delete();
+            } catch (IOException e) {
+                FLog.e(TAG, "Failed to restore config backup", e);
+            }
+        }
+    }
+
+    private void deleteConfigBackup() {
+        File backupFile = new File(getFilesDir(), "rclone.conf-backup");
+        backupFile.delete();
     }
 
     public void importConfigFile() {
@@ -526,6 +560,7 @@ public class MainActivity extends AppCompatActivity
         protected void onPreExecute() {
             super.onPreExecute();
             findViewById(R.id.locked_config).setVisibility(View.GONE);
+            backupCurrentConfig();
             loadingDialog = new LoadingDialog()
                     .setTitle(R.string.copying_rclone_config)
                     .setCanCancel(false);
@@ -600,6 +635,7 @@ public class MainActivity extends AppCompatActivity
                         break;
                 }
                 Toasty.error(context, errorMessage, Toast.LENGTH_LONG, true).show();
+                restoreConfigBackup();
                 return;
             }
 
@@ -618,6 +654,7 @@ public class MainActivity extends AppCompatActivity
             if (rclone.isConfigEncrypted()) {
                 askForConfigPassword();
             } else {
+                deleteConfigBackup();
                 AppShortcutsHelper.removeAllAppShortcuts(context);
                 AppShortcutsHelper.populateAppShortcuts(context, rclone.getRemotes());
                 startRemotesFragment();
@@ -839,6 +876,7 @@ public class MainActivity extends AppCompatActivity
                 askForConfigPassword();
             } else {
                 findViewById(R.id.locked_config).setVisibility(View.GONE);
+                deleteConfigBackup();
                 AppShortcutsHelper.removeAllAppShortcuts(context);
                 AppShortcutsHelper.populateAppShortcuts(context, rclone.getRemotes());
             }

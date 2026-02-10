@@ -13,16 +13,16 @@ android {
     defaultConfig {
         generatedDensities = []
         vectorDrawables.generatedDensities = []
-        applicationId 'de.felixnuesse.extract'
+        applicationId 'ch.jacem.starclone'
         minSdkVersion 23
-        compileSdk 34
-        targetSdkVersion 34
-        versionCode 410 // last digit is reserved for ABI, only ever end on 0!
-        versionName '2.5.6'
+        compileSdk 35
+        targetSdkVersion 35
+        versionCode 100 // last digit is reserved for ABI, only ever end on 0!
+        versionName '0.1.0'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "java.lang.String", "CLI", System.getenv('RCX_BUILD_CLI') ? System.getenv('RCX_BUILD_CLI') : "\"c03129b6-b09f-9cb4-8fcd-7f143b8f94ef\""
         buildConfigField "java.lang.String", "VCP_AUTHORITY", "\"" + applicationId + ".vcp\"";
-        setProperty("archivesBaseName",  "roundsync_v"+versionName)
+        setProperty("archivesBaseName",  "starclone_v"+versionName)
 
         externalNativeBuild {
             ndkBuild {
@@ -33,6 +33,10 @@ android {
 
     buildFeatures {
         viewBinding true
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.14"
     }
 
     buildTypes {
@@ -120,8 +124,8 @@ android {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-DEBUG"
             buildConfigField "java.lang.String", "VCP_AUTHORITY", "\"" + defaultConfig.applicationId + ".debug.vcp\"";
-            resValue("string", "app_name", "RS Debug")
-            resValue("string", "app_short_name", "RS Debug")
+            resValue("string", "app_name", "StarClone Debug")
+            resValue("string", "app_short_name", "StarClone Debug")
         }
     }
 
@@ -155,6 +159,20 @@ repositories {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.appcompat:appcompat:1.6.1'
+
+    // Compose
+    def composeBom = platform('androidx.compose:compose-bom:2024.12.01')
+    implementation composeBom
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.compose.material:material-icons-extended'
+    implementation 'androidx.activity:activity-compose:1.9.3'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7'
+    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.8.7'
+    implementation 'androidx.navigation:navigation-compose:2.8.5'
+    implementation 'io.coil-kt:coil-compose:2.7.0'
+    debugImplementation 'androidx.compose.ui:ui-tooling'
     implementation 'androidx.vectordrawable:vectordrawable:1.1.0'
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'

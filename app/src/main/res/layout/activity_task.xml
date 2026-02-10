@@ -4,36 +4,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context="ca.pkay.rcloneexplorer.Activities.TaskActivity">
-
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingStart="6dp"
-        android:paddingEnd="6dp"
+        android:background="@android:color/transparent"
         app:elevation="0dp">
 
-        <com.google.android.material.card.MaterialCardView
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="4dp"
-            app:cardCornerRadius="@dimen/cardCornerRadius"
-            style="@style/MainViewToolbar"
-            app:cardElevation="2dp"
-            app:strokeWidth="0dp">
-
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:theme="@style/MainViewToolbar"
-                style="@style/MainViewToolbar"
-                android:orientation="horizontal" />
-
-        </com.google.android.material.card.MaterialCardView>
+            android:layout_height="?attr/actionBarSize" />
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -60,7 +44,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        android:tint="@color/white"
         app:srcCompat="@drawable/ic_twotone_save_24" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

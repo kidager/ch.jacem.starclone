@@ -7,36 +7,26 @@
     android:orientation="vertical"
     android:theme="@style/SecondaryCardStyle">
 
-
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingStart="6dp"
-        android:paddingEnd="6dp"
+        android:background="@android:color/transparent"
         app:elevation="0dp">
 
-        <com.google.android.material.card.MaterialCardView
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="4dp"
-            app:cardBackgroundColor="?attr/colorPrimary"
-            android:theme="@style/MainViewToolbar"
-            app:cardCornerRadius="36dp"
-            app:cardElevation="2dp"
-            app:strokeWidth="0dp">
+            android:layout_height="wrap_content">
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal" />
+                android:layout_height="?attr/actionBarSize" />
 
             <RelativeLayout
                 android:id="@+id/previous_dir"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="?attr/actionBarSize"
                 android:orientation="vertical">
 
                 <ImageView
@@ -76,7 +66,7 @@
                     android:background="@color/dividerColor" />
             </RelativeLayout>
 
-        </com.google.android.material.card.MaterialCardView>
+        </FrameLayout>
 
     </com.google.android.material.appbar.AppBarLayout>
 

@@ -279,7 +279,7 @@ public class FileExplorerFragment extends Fragment implements   FileExplorerRecy
 
         RecyclerView recyclerView = view.findViewById(R.id.file_explorer_list);
         recyclerViewLinearLayoutManager = new LinearLayoutManager(context);
-        recyclerView.setItemAnimator(new LandingAnimator());
+        recyclerView.setItemAnimator(null);
         recyclerView.setLayoutManager(recyclerViewLinearLayoutManager);
         View emptyFolderView = view.findViewById(R.id.empty_folder_view);
         View noSearchResultsView = view.findViewById(R.id.no_search_results_view);
@@ -333,6 +333,9 @@ public class FileExplorerFragment extends Fragment implements   FileExplorerRecy
 
         searchBar = ((FragmentActivity) context).findViewById(R.id.search_bar);
         searchButton = ((FragmentActivity) context).findViewById(R.id.searchButton);
+        // Show the search container (hidden by default in toolbar)
+        View searchContainer = searchBar.getParent() instanceof View ? (View) searchBar.getParent() : null;
+        if (searchContainer != null) searchContainer.setVisibility(View.VISIBLE);
         searchButton.setOnClickListener(click -> searchClicked());
         searchButton.setVisibility(View.VISIBLE);
 

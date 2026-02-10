@@ -18,27 +18,21 @@ import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
 import android.text.InputType;
 import android.text.TextUtils;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.SubMenu;
 import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.compose.ui.platform.ComposeView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.navigation.NavigationView;
 
 import org.json.JSONException;
 
@@ -48,8 +42,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -64,10 +56,8 @@ import ca.pkay.rcloneexplorer.Dialogs.InputDialog;
 import ca.pkay.rcloneexplorer.Dialogs.LoadingDialog;
 import ca.pkay.rcloneexplorer.Fragments.FileExplorerFragment;
 import ca.pkay.rcloneexplorer.Fragments.LogFragment;
-import ca.pkay.rcloneexplorer.Fragments.PermissionFragment;
 import ca.pkay.rcloneexplorer.Fragments.RemotesFragment;
 import ca.pkay.rcloneexplorer.Fragments.TasksFragment;
-import ca.pkay.rcloneexplorer.Fragments.TriggerFragment;
 import ca.pkay.rcloneexplorer.Items.RemoteItem;
 import ca.pkay.rcloneexplorer.R;
 import ca.pkay.rcloneexplorer.Rclone;
@@ -75,37 +65,39 @@ import ca.pkay.rcloneexplorer.RemoteConfig.RemoteConfigHelper;
 import ca.pkay.rcloneexplorer.RuntimeConfiguration;
 import ca.pkay.rcloneexplorer.Services.StreamingService;
 import ca.pkay.rcloneexplorer.Services.TriggerService;
+import ca.pkay.rcloneexplorer.Settings.FileAccessSettingsFragment;
+import ca.pkay.rcloneexplorer.Settings.GeneralPreferencesFragment;
+import ca.pkay.rcloneexplorer.Settings.LogPreferencesFragment;
+import ca.pkay.rcloneexplorer.Settings.NotificationPreferencesFragment;
+import ca.pkay.rcloneexplorer.Settings.SettingsFragment;
+import ca.pkay.rcloneexplorer.Settings.ThemingPreferencesFragment;
+import ca.pkay.rcloneexplorer.ui.navigation.BottomNavTab;
+import ca.pkay.rcloneexplorer.ui.navigation.MainActivityNavKt;
 import ca.pkay.rcloneexplorer.util.ActivityHelper;
 import ca.pkay.rcloneexplorer.util.FLog;
 import ca.pkay.rcloneexplorer.util.PermissionManager;
-import ca.pkay.rcloneexplorer.util.SharedPreferencesUtil;
 import de.felixnuesse.extract.updates.UpdateChecker;
 import es.dmoral.toasty.Toasty;
 import java9.util.stream.Stream;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener,
-        RemotesFragment.OnRemoteClickListener,
+        implements RemotesFragment.OnRemoteClickListener,
         RemotesFragment.AddRemoteToNavDrawer,
-        InputDialog.OnPositive {
+        InputDialog.OnPositive,
+        SettingsFragment.OnSettingCategorySelectedListener {
 
     private static final String TAG = "MainActivity";
     public static final String MAIN_ACTIVITY_START_LOG = "MAIN_ACTIVITY_START_LOG";
     public static final String MAIN_ACTIVITY_START_IMPORT = "MAIN_ACTIVITY_START_IMPORT";
     public static final String MAIN_ACTIVITY_START_EXPORT = "MAIN_ACTIVITY_START_EXPORT";
-    private static final int READ_REQUEST_CODE = 42; // code when opening rclone config file
-    private static final int REQUEST_PERMISSION_CODE = 62; // code when requesting permissions
-    private static final int REQUEST_PERMISSION_CODE_POST_NOTIFICATIONS = 63;
-    private static final int SETTINGS_CODE = 71; // code when coming back from settings
-    private static final int WRITE_REQUEST_CODE = 81; // code when exporting config
+    private static final int READ_REQUEST_CODE = 42;
+    private static final int SETTINGS_CODE = 71;
+    private static final int WRITE_REQUEST_CODE = 81;
     private final String FILE_EXPLORER_FRAGMENT_TAG = "ca.pkay.rcexplorer.MAIN_ACTIVITY_FILE_EXPLORER_TAG";
-    private NavigationView navigationView;
-    private DrawerLayout drawer;
     private Rclone rclone;
     private Fragment fragment;
     private Context context;
-    private HashMap<Integer, RemoteItem> drawerPinnedRemoteIds;
-    private int availableDrawerPinnedRemoteId;
+    private BottomNavTab currentTab = BottomNavTab.REMOTES;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,27 +108,27 @@ public class MainActivity extends AppCompatActivity
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         boolean allPermissionsGranted = (new PermissionManager(this)).hasAllRequiredPermissions();
         boolean completedIntroOnce = OnboardingActivity.Companion.completedIntro(this);
-        if(!allPermissionsGranted || !completedIntroOnce) {
+        if (!allPermissionsGranted || !completedIntroOnce) {
             startActivity(new Intent(this, OnboardingActivity.class));
             finish();
         }
 
-
         context = this;
-        drawerPinnedRemoteIds = new HashMap<>();
-        availableDrawerPinnedRemoteId = 2;
         setContentView(R.layout.activity_main);
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBar actionbar = getSupportActionBar();
         if (actionbar != null) {
-            actionbar.setDisplayHomeAsUpEnabled(true);
-            actionbar.setHomeAsUpIndicator(R.drawable.ic_menu);
+            actionbar.setDisplayHomeAsUpEnabled(false);
         }
 
-        drawer = findViewById(R.id.drawer_layout);
-        navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+        // Set up Compose bottom navigation
+        ComposeView bottomNavCompose = findViewById(R.id.bottom_nav_compose);
+        MainActivityNavKt.setupBottomNav(bottomNavCompose, this, tab -> {
+            onTabSelected(tab);
+            return null;
+        });
 
         rclone = new Rclone(this);
 
@@ -147,7 +139,7 @@ public class MainActivity extends AppCompatActivity
 
         int lastVersionCode = sharedPreferences.getInt(getString(R.string.pref_key_version_code), -1);
         String lastVersionName = sharedPreferences.getString(getString(R.string.pref_key_version_name), "");
-        int currentVersionCode = BuildConfig.VERSION_CODE / 10; // drop ABI flag digit
+        int currentVersionCode = BuildConfig.VERSION_CODE / 10;
         String currentVersionName = BuildConfig.VERSION_NAME;
 
         if (lastVersionCode < currentVersionCode || !lastVersionName.equals(currentVersionName)) {
@@ -187,32 +179,18 @@ public class MainActivity extends AppCompatActivity
             startRemotesFragment();
         }
 
-        if(MAIN_ACTIVITY_START_LOG.equals(intent.getAction())){
+        if (MAIN_ACTIVITY_START_LOG.equals(intent.getAction())) {
             startLogFragment();
         }
 
-        //todo: Migrate import and export out of the main activity
-        if(MAIN_ACTIVITY_START_IMPORT.equals(intent.getAction())){
+        if (MAIN_ACTIVITY_START_IMPORT.equals(intent.getAction())) {
             startConfigImportFlow();
         }
 
-        //todo: Migrate import and export out of the main activity
-        if(MAIN_ACTIVITY_START_EXPORT.equals(intent.getAction())){
+        if (MAIN_ACTIVITY_START_EXPORT.equals(intent.getAction())) {
             startConfigExportFlow();
         }
 
-        findViewById(R.id.navAbout).setOnClickListener(v -> {
-            Intent aboutIntent = new Intent(this, AboutActivity.class);
-            startActivity(aboutIntent);
-        });
-
-        findViewById(R.id.navSettings).setOnClickListener(v -> {
-            Intent settingsIntent = new Intent(this, SettingsActivity.class);
-            tryStartActivityForResult(this, settingsIntent, SETTINGS_CODE);
-        });
-
-        pinRemotesToDrawer();
-        updatePermissionFragmentVisibility();
         TriggerService triggerService = new TriggerService(context);
         triggerService.queueTrigger();
 
@@ -222,10 +200,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        updatePermissionFragmentVisibility();
-        if(MAIN_ACTIVITY_START_LOG.equals(getIntent().getAction())){
+        if (MAIN_ACTIVITY_START_LOG.equals(getIntent().getAction())) {
             startLogFragment();
-            navigationView.setCheckedItem(R.id.nav_logs);
         }
     }
 
@@ -240,25 +216,28 @@ public class MainActivity extends AppCompatActivity
         super.attachBaseContext(RuntimeConfiguration.attach(this, newBase));
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home && !(fragment instanceof FileExplorerFragment)) {
-            drawer.openDrawer(GravityCompat.START);
-            return true;
-        } else {
-            return super.onOptionsItemSelected(item);
+    private void onTabSelected(BottomNavTab tab) {
+        currentTab = tab;
+        switch (tab) {
+            case REMOTES:
+                startRemotesFragment();
+                break;
+            case TASKS:
+                startTasksFragment();
+                break;
+            case LOGS:
+                startLogFragment();
+                break;
+            case SETTINGS:
+                startSettingsFragment();
+                break;
         }
-    }
-
-    public void openNavigationDrawer() {
-        drawer.openDrawer(GravityCompat.START);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        // result from file picker (for importing config file)
         if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             Uri uri;
             if (data != null) {
@@ -293,7 +272,6 @@ public class MainActivity extends AppCompatActivity
         for (int i = 0; i < permissions.length; i++) {
             switch (permissions[i]) {
                 case Manifest.permission.WRITE_EXTERNAL_STORAGE:
-                    // add/remove path aliases, depending on availability
                     RefreshLocalAliases refresh = new RefreshLocalAliases();
                     if (refresh.isRequired()) {
                         refresh.execute();
@@ -305,7 +283,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // TODO: document deletion on exit
         File dir = getExternalCacheDir();
         if (dir != null && dir.isDirectory()) {
             String[] children = dir.list();
@@ -317,127 +294,53 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        boolean superOnBackPressed = true;
-
-        // Always hide search icon when fragments go back
-        View searchButton = this.findViewById(R.id.searchButton);
-        searchButton.setVisibility(View.INVISIBLE);
-
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else if (fragment != null) {
-            if(fragment instanceof FileExplorerFragment){
-                if (((FileExplorerFragment) fragment).onBackButtonPressed()) {
-                    return;
-                } else {
-                    fragment = null;
-                }
-            } else if(fragment instanceof TasksFragment){
-                startRemotesFragment();
-                superOnBackPressed=false;
-            } else if(fragment instanceof TriggerFragment){
-                startRemotesFragment();
-                superOnBackPressed=false;
+        if (fragment instanceof FileExplorerFragment) {
+            if (((FileExplorerFragment) fragment).onBackButtonPressed()) {
+                return;
+            } else {
+                fragment = null;
             }
+        } else if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            getSupportFragmentManager().popBackStack();
+            return;
+        } else if (currentTab != BottomNavTab.REMOTES) {
+            onTabSelected(BottomNavTab.REMOTES);
+            return;
         }
-        if(superOnBackPressed){
-            super.onBackPressed();
-        }
+        super.onBackPressed();
     }
 
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        // Handle navigation view item clicks here.
-
-        // Always hide search icon when fragments go back
-        View searchButton = this.findViewById(R.id.searchButton);
-        searchButton.setVisibility(View.INVISIBLE);
-
-        int id = item.getItemId();
-        navigationView.setCheckedItem(id);
-        if (drawerPinnedRemoteIds.containsKey(id)) {
-            startPinnedRemote(drawerPinnedRemoteIds.get(id));
-            return true;
-        }
-
-        // set the last used fragment on each call.
-        switch (id) {
-            case R.id.nav_remotes:
-            case R.id.nav_tasks:
-            case R.id.nav_trigger:
-            case R.id.nav_logs:
-            case R.id.nav_permissions:
-                SharedPreferencesUtil.Companion.setLastOpenFragment(this, id);
-                break;
-            case R.id.nav_import:
-            case R.id.nav_export:
-                SharedPreferencesUtil.Companion.setLastOpenFragment(this, R.id.nav_remotes);
-                break;
-        }
-        startFragmentById(id);
-
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
-    }
-
-    private void startFragmentById(int id){
-        switch (id) {
-            case R.id.nav_remotes:
-                startRemotesFragment();
-                break;
-            case R.id.nav_tasks:
-                startTasksFragment();
-                break;
-            case R.id.nav_trigger:
-                startTriggerFragment();
-                break;
-            case R.id.nav_logs:
-                startLogFragment();
-                break;
-            case R.id.nav_permissions:
-                startPermissionFragment();
-                break;
-        }
-    }
-
-    private void startConfigExportFlow() {
+    public void startConfigExportFlow() {
         if (rclone.isConfigFileCreated()) {
             exportConfigFile();
         } else {
-            Toasty.info(this,  getString(R.string.no_config_found), Toast.LENGTH_SHORT, true).show();
+            Toasty.info(this, getString(R.string.no_config_found), Toast.LENGTH_SHORT, true).show();
         }
     }
 
-    private void startConfigImportFlow() {
+    public void startConfigImportFlow() {
         Uri configUri;
         if (rclone.isConfigFileCreated()) {
             warnUserAboutOverwritingConfiguration();
-        } else if(null != (configUri = rclone.searchExternalConfig())) {
+        } else if (null != (configUri = rclone.searchExternalConfig())) {
             askUseExternalConfig(configUri);
         } else {
             importConfigFile();
         }
     }
 
-    private void startTasksFragment(){
-        startFragment(TasksFragment.newInstance());
-    }
-
-    private void startTriggerFragment() {
-        startFragment(TriggerFragment.newInstance());
+    private void startTasksFragment() {
+        startFragment(ca.pkay.rcloneexplorer.ui.screens.tasks.TasksFragment.newInstance());
     }
 
     private void startLogFragment() {
-        startFragment(LogFragment.newInstance());
-    }
-
-    private void startPermissionFragment() {
-        startFragment(PermissionFragment.Companion.newInstance());
+        startFragment(ca.pkay.rcloneexplorer.ui.screens.logs.LogsFragment.newInstance());
     }
 
     private void startFragment(Fragment fragmentToStart) {
+        View appBar = findViewById(R.id.appBar);
+        if (appBar != null) appBar.setVisibility(View.VISIBLE);
+
         fragment = fragmentToStart;
         FragmentManager fragmentManager = getSupportFragmentManager();
 
@@ -450,48 +353,8 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void pinRemotesToDrawer() {
-        Menu menu = navigationView.getMenu();
-        MenuItem existingMenu = menu.findItem(1);
-        if (existingMenu != null) {
-            return;
-        }
-
-        SubMenu subMenu = menu.addSubMenu(R.id.drawer_pinned_header, 1, Menu.NONE, R.string.nav_drawer_pinned_header);
-
-        List<RemoteItem> remoteItems = rclone.getRemotes();
-        Collections.sort(remoteItems);
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        Set<String> renamedRemotes = sharedPreferences.getStringSet(getString(R.string.pref_key_renamed_remotes), new HashSet<>());
-        for(RemoteItem item : remoteItems) {
-            if(renamedRemotes.contains(item.getName())) {
-                String displayName = sharedPreferences.getString(
-                        getString(R.string.pref_key_renamed_remote_prefix, item.getName()), item.getName());
-                item.setDisplayName(displayName);
-            }
-        }
-        for (RemoteItem remoteItem : remoteItems) {
-            if (remoteItem.isDrawerPinned()) {
-                MenuItem menuItem = subMenu.add(R.id.nav_pinned, availableDrawerPinnedRemoteId, Menu.NONE, remoteItem.getDisplayName());
-                drawerPinnedRemoteIds.put(availableDrawerPinnedRemoteId, remoteItem);
-                availableDrawerPinnedRemoteId++;
-                menuItem.setIcon(remoteItem.getRemoteIcon());
-            }
-        }
-    }
-
     public void startRemotesFragment() {
-        fragment = RemotesFragment.newInstance();
-        FragmentManager fragmentManager = getSupportFragmentManager();
-
-        for (int i = 0; i < fragmentManager.getBackStackEntryCount(); i++) {
-            fragmentManager.popBackStack();
-        }
-
-        if (!isFinishing()) {
-            fragmentManager.beginTransaction().replace(R.id.flFragment, fragment).commitAllowingStateLoss();
-        }
-        navigationView.setCheckedItem(R.id.nav_remotes);
+        startFragment(ca.pkay.rcloneexplorer.ui.screens.remotes.RemotesFragment.newInstance());
     }
 
     private void warnUserAboutOverwritingConfiguration() {
@@ -501,7 +364,7 @@ public class MainActivity extends AppCompatActivity
         builder.setPositiveButton(R.string.continue_statement, (dialogInterface, i) -> {
             dialogInterface.cancel();
             Uri configUri;
-            if(null != (configUri = rclone.searchExternalConfig())){
+            if (null != (configUri = rclone.searchExternalConfig())) {
                 askUseExternalConfig(configUri);
             } else {
                 importConfigFile();
@@ -512,7 +375,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void askUseExternalConfig(final Uri uri) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this, R.style.RoundedCornersDialog);
         builder.setTitle(R.string.config_use_external_question);
         builder.setMessage(context.getString(R.string.config_import_external_explain, uri.toString()));
         builder.setPositiveButton(R.string.continue_statement, (dialogInterface, i) -> {
@@ -537,9 +400,6 @@ public class MainActivity extends AppCompatActivity
                 .show(getSupportFragmentManager(), "input dialog");
     }
 
-    /*
-     * Input Dialog callback
-     */
     @Override
     public void onPositive(String tag, String input) {
         new DecryptConfig().execute(input);
@@ -549,7 +409,6 @@ public class MainActivity extends AppCompatActivity
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*");
-
         tryStartActivityForResult(this, intent, READ_REQUEST_CODE);
     }
 
@@ -559,8 +418,7 @@ public class MainActivity extends AppCompatActivity
         intent.setType("text/*");
         SimpleDateFormat date = new SimpleDateFormat("yyyy-MM-dd_HHmmss");
         String localTime = date.format(Calendar.getInstance().getTime());
-
-        intent.putExtra(Intent.EXTRA_TITLE, getString(R.string.app_name)+"-backup-"+localTime+".zip");
+        intent.putExtra(Intent.EXTRA_TITLE, getString(R.string.app_name) + "-backup-" + localTime + ".zip");
         tryStartActivityForResult(this, intent, WRITE_REQUEST_CODE);
     }
 
@@ -576,14 +434,18 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void updatePermissionFragmentVisibility() {
-        Menu navMenu = navigationView.getMenu();
-        if((new PermissionManager(this).hasAllPermissions())) {
-            navMenu.findItem(R.id.nav_permissions).setVisible(false);
-        } else {
-            navMenu.findItem(R.id.nav_permissions).setVisible(true);
-        }
+    public void openNavigationDrawer() {
+        // No-op: drawer removed, using bottom navigation
+    }
 
+    @Override
+    public void addRemoteToNavDrawer() {
+        // No-op: drawer removed, pinning will be handled in Compose remotes list
+    }
+
+    @Override
+    public void removeRemoteFromNavDrawer() {
+        // No-op: drawer removed, pinning will be handled in Compose remotes list
     }
 
     @Override
@@ -591,7 +453,43 @@ public class MainActivity extends AppCompatActivity
         startRemote(remote, true);
     }
 
+    private void startSettingsFragment() {
+        startFragment(ca.pkay.rcloneexplorer.ui.screens.settings.SettingsFragment.newInstance());
+    }
+
+    @Override
+    public void onSettingCategoryClicked(int category) {
+        Fragment settingsSubFragment = null;
+        switch (category) {
+            case SettingsFragment.GENERAL_SETTINGS:
+                settingsSubFragment = new ca.pkay.rcloneexplorer.ui.screens.settings.general.GeneralSettingsFragment();
+                break;
+            case SettingsFragment.FILE_ACCESS_SETTINGS:
+                settingsSubFragment = new ca.pkay.rcloneexplorer.ui.screens.settings.fileaccess.FileAccessFragment();
+                break;
+            case SettingsFragment.LOOK_AND_FEEL_SETTINGS:
+                settingsSubFragment = new ca.pkay.rcloneexplorer.ui.screens.settings.theming.ThemingFragment();
+                break;
+            case SettingsFragment.LOGGING_SETTINGS:
+                settingsSubFragment = new ca.pkay.rcloneexplorer.ui.screens.settings.logging.LoggingSettingsFragment();
+                break;
+            case SettingsFragment.NOTIFICATION_SETTINGS:
+                settingsSubFragment = new ca.pkay.rcloneexplorer.ui.screens.settings.notifications.NotificationSettingsFragment();
+                break;
+        }
+        if (settingsSubFragment != null) {
+            fragment = settingsSubFragment;
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.flFragment, settingsSubFragment)
+                    .addToBackStack(null)
+                    .commitAllowingStateLoss();
+        }
+    }
+
     private void startRemote(RemoteItem remote, boolean addToBackStack) {
+        View appBar = findViewById(R.id.appBar);
+        if (appBar != null) appBar.setVisibility(View.VISIBLE);
+
         fragment = FileExplorerFragment.newInstance(remote);
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.flFragment, fragment, FILE_EXPLORER_FRAGMENT_TAG);
@@ -601,54 +499,6 @@ public class MainActivity extends AppCompatActivity
         transaction.commit();
 
         AppShortcutsHelper.reportAppShortcutUsage(this, remote.getName());
-        //navigationView.getMenu().getItem(0).setChecked(false);
-    }
-
-    private void startPinnedRemote(RemoteItem remoteItem) {
-        if (fragment != null && fragment instanceof FileExplorerFragment) {
-            FragmentManager fragmentManager = getSupportFragmentManager();
-
-            // this is the case when remote gets started from a shortcut
-            // therefore back should exit the app, and not go into remotes screen
-            if (fragmentManager.getBackStackEntryCount() == 0) {
-                startRemote(remoteItem, false);
-            } else {
-                for (int i = 0; i < fragmentManager.getBackStackEntryCount(); i++) {
-                    fragmentManager.popBackStack();
-                }
-
-                startRemote(remoteItem, true);
-            }
-        } else {
-            startRemote(remoteItem, true);
-        }
-
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-    }
-
-    @Override
-    public void addRemoteToNavDrawer() {
-        Menu menu = navigationView.getMenu();
-
-        // remove all items and add them again so that it's in alpha order
-        menu.removeItem(1);
-        drawerPinnedRemoteIds.clear();
-        availableDrawerPinnedRemoteId = 1;
-
-        pinRemotesToDrawer();
-    }
-
-    @Override
-    public void removeRemoteFromNavDrawer() {
-        Menu menu = navigationView.getMenu();
-
-        // remove all items and add them again so that it's in alpha order
-        menu.removeItem(1);
-        drawerPinnedRemoteIds.clear();
-        availableDrawerPinnedRemoteId = 1;
-
-        pinRemotesToDrawer();
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -665,7 +515,6 @@ public class MainActivity extends AppCompatActivity
         private int statusCode = FAILURE_UNSPECIFIED;
         private LoadingDialog loadingDialog;
 
-
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -676,20 +525,15 @@ public class MainActivity extends AppCompatActivity
             loadingDialog.show(getSupportFragmentManager(), "loading dialog");
         }
 
-        //todo: Check shared preferences if they will be overridden by the onPostExecute
-        //todo: This assumes that zip-files are uncorrupted. That means that if the rclone.conf is valid,
-        //todo: but the jsons are not, we import half a configuration package.
-
         @Override
         protected Boolean doInBackground(Uri... uris) {
-
             ContentResolver resolver = context.getContentResolver();
             String mime = resolver.getType(uris[0]);
 
-            if(mime.equals("application/zip")) {
+            if (mime.equals("application/zip")) {
                 try {
                     boolean validRclone = rclone.copyConfigFileFromZip(uris[0]);
-                    if(!validRclone) {
+                    if (!validRclone) {
                         statusCode = FAILURE_ZIP_INVALID_CONF;
                         return false;
                     }
@@ -716,7 +560,7 @@ public class MainActivity extends AppCompatActivity
 
             try {
                 boolean validRclone = rclone.copyConfigFile(uris[0]);
-                if(validRclone) {
+                if (validRclone) {
                     statusCode = SUCCESS_IMPORT;
                     return true;
                 }
@@ -753,7 +597,7 @@ public class MainActivity extends AppCompatActivity
             }
 
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-            if(sharedPreferences.getBoolean(getString(R.string.pref_key_enable_saf), false)){
+            if (sharedPreferences.getBoolean(getString(R.string.pref_key_enable_saf), false)) {
                 RemoteConfigHelper.enableSaf(context);
             }
 
@@ -765,12 +609,10 @@ public class MainActivity extends AppCompatActivity
             editor.apply();
 
             if (rclone.isConfigEncrypted()) {
-                pinRemotesToDrawer(); // this will clear any previous pinned remotes
                 askForConfigPassword();
             } else {
                 AppShortcutsHelper.removeAllAppShortcuts(context);
                 AppShortcutsHelper.populateAppShortcuts(context, rclone.getRemotes());
-                pinRemotesToDrawer();
                 startRemotesFragment();
             }
         }
@@ -779,7 +621,6 @@ public class MainActivity extends AppCompatActivity
     private class RefreshLocalAliases extends AsyncTask<Void, Void, Boolean> {
 
         private String EMULATED = "5d44cd8d-397c-4107-b79b-17f2b6a071e8";
-
         private LoadingDialog loadingDialog;
 
         private boolean isPermissable(File file) {
@@ -796,7 +637,7 @@ public class MainActivity extends AppCompatActivity
             String[] externalVolumes = null;
             String persisted = PreferenceManager.getDefaultSharedPreferences(context)
                     .getString(getString(R.string.pref_key_accessible_storage_locations), null);
-            if(null != persisted) {
+            if (null != persisted) {
                 externalVolumes = persisted.split("\\|");
             }
             String[] current = Stream.of(context.getExternalFilesDirs(null))
@@ -806,11 +647,11 @@ public class MainActivity extends AppCompatActivity
                     .map(File::getAbsolutePath)
                     .toArray(String[]::new);
 
-            if(Arrays.deepEquals(externalVolumes, current)) {
+            if (Arrays.deepEquals(externalVolumes, current)) {
                 FLog.d(TAG, "Storage volumes not changed, no refresh required");
                 return false;
             } else {
-                FLog.d(TAG, "Storage volumnes changed, refresh required");
+                FLog.d(TAG, "Storage volumes changed, refresh required");
                 externalVolumes = current;
                 persisted = TextUtils.join("|", current);
                 PreferenceManager.getDefaultSharedPreferences(context).edit()
@@ -822,7 +663,7 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            if(isFinishing() || isDestroyed() || getSupportFragmentManager().isStateSaved()) {
+            if (isFinishing() || isDestroyed() || getSupportFragmentManager().isStateSaved()) {
                 FLog.w(TAG, "Invalid state, stopping drive refresh");
                 cancel(true);
                 return;
@@ -846,7 +687,7 @@ public class MainActivity extends AppCompatActivity
             Set<String> generated = pref.getStringSet(getString(R.string.pref_key_local_alias_remotes), new HashSet<>());
             Set<String> renamed = pref.getStringSet(getString(R.string.pref_key_renamed_remotes), new HashSet<>());
             SharedPreferences.Editor editor = pref.edit();
-            for(String remote : generated) {
+            for (String remote : generated) {
                 rclone.deleteRemote(remote);
                 renamed.remove(remote);
                 editor.remove(getString(R.string.pref_key_renamed_remote_prefix, remote));
@@ -854,8 +695,7 @@ public class MainActivity extends AppCompatActivity
             editor.putStringSet(getString(R.string.pref_key_renamed_remotes), renamed);
             editor.apply();
             File[] dirs = context.getExternalFilesDirs(null);
-            for(File file : dirs) {
-                // May be null if the path is currently not available
+            for (File file : dirs) {
                 if (null == file) {
                     continue;
                 }
@@ -864,11 +704,10 @@ public class MainActivity extends AppCompatActivity
                         File root = getVolumeRoot(file);
                         if (root.canRead()) {
                             addLocalRemote(root);
-                        } else if (file.canRead()){
+                        } else if (file.canRead()) {
                             addLocalRemote(file);
                         }
                     } catch (NullPointerException | IOException e) {
-                        // ignored, this is not a valid file
                         FLog.w(TAG, "doInBackground: could not read file", e);
                     }
                 }
@@ -889,8 +728,8 @@ public class MainActivity extends AppCompatActivity
             String path = file.getAbsolutePath();
             int levelsUp = 0;
             int index = path.length();
-            while(levelsUp++ <= 3) {
-                index = path.lastIndexOf('/', index-1);
+            while (levelsUp++ <= 3) {
+                index = path.lastIndexOf('/', index - 1);
             }
             return new File(path.substring(0, index));
         }
@@ -958,7 +797,6 @@ public class MainActivity extends AppCompatActivity
             Dialogs.dismissSilently(loadingDialog);
             AppShortcutsHelper.removeAllAppShortcuts(context);
             AppShortcutsHelper.populateAppShortcuts(context, rclone.getRemotes());
-            pinRemotesToDrawer();
 
             if (fragment instanceof RemotesFragment) {
                 startRemotesFragment();

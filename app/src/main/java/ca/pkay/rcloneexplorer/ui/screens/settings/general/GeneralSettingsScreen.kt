@@ -38,7 +38,9 @@ import ca.pkay.rcloneexplorer.Items.RemoteItem
 import ca.pkay.rcloneexplorer.R
 import ca.pkay.rcloneexplorer.Rclone
 import ca.pkay.rcloneexplorer.ui.components.StarCloneListItem
-import de.felixnuesse.extract.settings.language.LanguagePicker
+import java.util.Locale
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 
 @Composable
 fun GeneralSettingsScreen() {
@@ -64,7 +66,13 @@ fun GeneralSettingsScreen() {
     var allowIdle by remember { mutableStateOf(prefs.getBoolean(idleKey, true)) }
     var wifiOnly by remember { mutableStateOf(prefs.getBoolean(wifiKey, false)) }
     var useProxy by remember { mutableStateOf(prefs.getBoolean(proxyKey, false)) }
-    var proxyProtocol by remember { mutableStateOf(prefs.getString(proxyProtocolKey, "http") ?: "http") }
+    val validProtocols = listOf("http", "https", "socks5")
+    var proxyProtocol by remember {
+        val saved = prefs.getString(proxyProtocolKey, "http") ?: "http"
+        val validated = if (saved in validProtocols) saved else "http"
+        if (validated != saved) prefs.edit().putString(proxyProtocolKey, validated).apply()
+        mutableStateOf(validated)
+    }
     var proxyHost by remember { mutableStateOf(prefs.getString(proxyHostKey, "example.com") ?: "example.com") }
     var proxyPort by remember { mutableStateOf(prefs.getInt(proxyPortKey, 8080)) }
     var proxyUser by remember { mutableStateOf(prefs.getString(proxyUserKey, "") ?: "") }
@@ -74,6 +82,7 @@ fun GeneralSettingsScreen() {
     var showShortcutDialog by remember { mutableStateOf(false) }
     var showThumbnailSizeDialog by remember { mutableStateOf(false) }
     var showProtocolDialog by remember { mutableStateOf(false) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf<EditDialogConfig?>(null) }
 
     LazyColumn(
@@ -92,11 +101,18 @@ fun GeneralSettingsScreen() {
 
         // Language
         item {
-            val currentLang = remember { LanguagePicker(context).getCurrentLocale()?.displayLanguage ?: "System" }
+            val currentLocale = remember {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    context.resources.configuration.locales.get(0)
+                } else {
+                    @Suppress("DEPRECATION")
+                    context.resources.configuration.locale
+                }
+            }
             StarCloneListItem(
                 headlineText = stringResource(R.string.pref_locale),
-                supportingText = currentLang,
-                onClick = { LanguagePicker(context).showPicker() },
+                supportingText = currentLocale?.displayLanguage ?: "System",
+                onClick = { showLanguageDialog = true },
             )
         }
 
@@ -274,13 +290,12 @@ fun GeneralSettingsScreen() {
 
     // Protocol dialog
     if (showProtocolDialog) {
-        val protocols = listOf("http", "https", "socks5")
         AlertDialog(
             onDismissRequest = { showProtocolDialog = false },
             title = { Text(stringResource(R.string.pref_proxy_protocol_dlg_title)) },
             text = {
                 Column {
-                    protocols.forEach { protocol ->
+                    validProtocols.forEach { protocol ->
                         StarCloneListItem(
                             headlineText = protocol,
                             trailingContent = {
@@ -300,6 +315,49 @@ fun GeneralSettingsScreen() {
             },
             confirmButton = {
                 TextButton(onClick = { showProtocolDialog = false }) { Text("Cancel") }
+            },
+        )
+    }
+
+    // Language dialog
+    if (showLanguageDialog) {
+        val localeTags = remember { context.resources.getStringArray(R.array.locales).toList() }
+        val locales = remember { localeTags.map { Locale.forLanguageTag(it) } }
+        val currentLocale = remember {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                context.resources.configuration.locales.get(0)
+            } else {
+                @Suppress("DEPRECATION")
+                context.resources.configuration.locale
+            }
+        }
+
+        AlertDialog(
+            onDismissRequest = { showLanguageDialog = false },
+            title = { Text(stringResource(R.string.pref_locale_dlg_title)) },
+            text = {
+                Column {
+                    locales.forEachIndexed { index, locale ->
+                        StarCloneListItem(
+                            headlineText = locale.displayLanguage,
+                            trailingContent = {
+                                RadioButton(
+                                    selected = currentLocale?.language == locale.language,
+                                    onClick = null,
+                                )
+                            },
+                            onClick = {
+                                AppCompatDelegate.setApplicationLocales(
+                                    LocaleListCompat.create(locale),
+                                )
+                                showLanguageDialog = false
+                            },
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showLanguageDialog = false }) { Text("Cancel") }
             },
         )
     }

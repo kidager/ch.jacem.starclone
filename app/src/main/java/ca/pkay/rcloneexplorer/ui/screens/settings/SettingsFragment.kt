@@ -1,6 +1,7 @@
 package ca.pkay.rcloneexplorer.ui.screens.settings
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -33,14 +34,22 @@ class SettingsFragment : Fragment() {
                     onCategoryClick = { category ->
                         clickListener?.onSettingCategoryClicked(category)
                     },
-                    onImport = {
-                        (activity as? MainActivity)?.startConfigImportFlow()
-                    },
-                    onExport = {
-                        (activity as? MainActivity)?.startConfigExportFlow()
-                    },
+                    onImport = { triggerMainActivityAction(MainActivity.MAIN_ACTIVITY_START_IMPORT) },
+                    onExport = { triggerMainActivityAction(MainActivity.MAIN_ACTIVITY_START_EXPORT) },
                 )
             }
+        }
+    }
+
+    private fun triggerMainActivityAction(action: String) {
+        val activity = activity ?: return
+        if (activity is MainActivity) {
+            when (action) {
+                MainActivity.MAIN_ACTIVITY_START_IMPORT -> activity.startConfigImportFlow()
+                MainActivity.MAIN_ACTIVITY_START_EXPORT -> activity.startConfigExportFlow()
+            }
+        } else {
+            startActivity(Intent(activity, MainActivity::class.java).setAction(action))
         }
     }
 

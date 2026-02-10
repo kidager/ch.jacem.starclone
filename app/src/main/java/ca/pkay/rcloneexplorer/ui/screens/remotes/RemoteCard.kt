@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -50,6 +51,7 @@ fun RemoteCard(
                 painter = painterResource(id = remote.remoteIcon),
                 contentDescription = remote.typeReadable,
                 modifier = Modifier.size(40.dp),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {

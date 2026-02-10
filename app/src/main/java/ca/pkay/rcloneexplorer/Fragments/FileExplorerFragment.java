@@ -129,7 +129,6 @@ public class FileExplorerFragment extends Fragment implements   FileExplorerRecy
     private final String SAVED_MOVE_START_PATH = "ca.pkay.rcexplorer.FILE_EXPLORER_FRAG_MOVE_START_PATH";
     private final String SAVED_SYNC_DIRECTION = "ca.pkay.rcexplorer.FILE_EXPLORER_FRAG_SYNC_DIRECTION";
     private final String SAVED_SYNC_REMOTE_PATH = "ca.pkay.rcexplorer.FILE_EXPLORER_FRAG_SYNC_REMOTE_PATH";
-    private String originalToolbarTitle;
     private Stack<String> pathStack;
     private Map<String, Integer> directoryPosition;
     private DirectoryObject directoryObject;
@@ -231,7 +230,6 @@ public class FileExplorerFragment extends Fragment implements   FileExplorerRecy
             renameItem = savedInstanceState.getParcelable(SAVED_RENAME_ITEM);
         }
 
-        originalToolbarTitle = ((FragmentActivity) context).getTitle().toString();
         setTitle();
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -1117,7 +1115,6 @@ public class FileExplorerFragment extends Fragment implements   FileExplorerRecy
         breadcrumbView.clearCrumbs();
         breadcrumbView.setVisibility(View.GONE);
         searchBar.setVisibility(View.INVISIBLE);
-        ((FragmentActivity) context).setTitle(originalToolbarTitle);
         showNavDrawerButtonInToolbar();
         prefChangeListener = null;
         isRunning = false;

@@ -25,6 +25,10 @@ public class InputDialog extends DialogFragment {
         void onPositive(String tag, String input);
     }
 
+    public interface OnNegative {
+        void onNegative(String tag);
+    }
+
     private final String SAVED_TITLE = "ca.pkay.rcexplorer.InputDialog.TITLE";
     private final String SAVED_TITLE_ID = "ca.pkay.rcexplorer.InputDialog.TITLE_ID";
     private final String SAVED_MESSAGE = "ca.pkay.rcexplorer.InputDialog.MESSAGE";
@@ -51,6 +55,7 @@ public class InputDialog extends DialogFragment {
     private int inputHintId;
     private String tag;
     private OnPositive onPositiveListener;
+    private OnNegative onNegativeListener;
 
     public InputDialog() {}
 
@@ -98,7 +103,9 @@ public class InputDialog extends DialogFragment {
         }
         if (negativeTextId > 1) {
             builder.setNegativeButton(negativeTextId, (dialog, which) -> {
-
+                if (onNegativeListener != null) {
+                    onNegativeListener.onNegative(tag);
+                }
             });
         }
         if (filledText != null) {
@@ -142,6 +149,9 @@ public class InputDialog extends DialogFragment {
 
         if (context instanceof OnPositive) {
             onPositiveListener = (OnPositive) context;
+        }
+        if (context instanceof OnNegative) {
+            onNegativeListener = (OnNegative) context;
         }
     }
 

@@ -84,6 +84,7 @@ public class MainActivity extends AppCompatActivity
         implements RemotesFragment.OnRemoteClickListener,
         RemotesFragment.AddRemoteToNavDrawer,
         InputDialog.OnPositive,
+        InputDialog.OnNegative,
         SettingsFragment.OnSettingCategorySelectedListener {
 
     private static final String TAG = "MainActivity";
@@ -391,18 +392,24 @@ public class MainActivity extends AppCompatActivity
 
     private void askForConfigPassword() {
         findViewById(R.id.locked_config).setVisibility(View.VISIBLE);
-        new InputDialog()
+        InputDialog dialog = new InputDialog()
                 .setTitle(R.string.config_password_protected)
                 .setMessage(R.string.please_enter_password)
                 .setNegativeButton(R.string.cancel)
                 .setPositiveButton(R.string.okay_confirmation)
-                .setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)
-                .show(getSupportFragmentManager(), "input dialog");
+                .setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        dialog.setCancelable(false);
+        dialog.show(getSupportFragmentManager(), "input dialog");
     }
 
     @Override
     public void onPositive(String tag, String input) {
         new DecryptConfig().execute(input);
+    }
+
+    @Override
+    public void onNegative(String tag) {
+        findViewById(R.id.locked_config).setVisibility(View.GONE);
     }
 
     public void importConfigFile() {

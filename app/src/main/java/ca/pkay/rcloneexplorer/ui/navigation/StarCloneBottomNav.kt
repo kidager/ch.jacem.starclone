@@ -1,6 +1,7 @@
 package ca.pkay.rcloneexplorer.ui.navigation
 
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
@@ -13,7 +14,10 @@ fun StarCloneBottomNav(
     onTabSelected: (BottomNavTab) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    NavigationBar(modifier = modifier) {
+    NavigationBar(
+        modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) {
         BottomNavTab.entries.forEach { tab ->
             NavigationBarItem(
                 icon = { Icon(imageVector = tab.icon, contentDescription = tab.label) },

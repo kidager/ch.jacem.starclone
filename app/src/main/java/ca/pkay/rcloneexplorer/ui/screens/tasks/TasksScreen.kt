@@ -114,7 +114,7 @@ fun TasksScreen(
                     } else {
                         items(
                             items = viewModel.triggers,
-                            key = { "trigger_${it.id}" },
+                            key = { "trigger_${it.id}_${it.isEnabled}" },
                         ) { trigger ->
                             val targetTask = viewModel.tasks.find { it.id == trigger.triggerTarget }
                             TriggerCard(

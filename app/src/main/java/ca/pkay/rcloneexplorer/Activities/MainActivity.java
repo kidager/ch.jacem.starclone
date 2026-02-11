@@ -159,7 +159,12 @@ public class MainActivity extends AppCompatActivity
                 transaction.replace(R.id.flFragment, fragment, FILE_EXPLORER_FRAGMENT_TAG);
                 transaction.commit();
             } else {
-                startRemotesFragment();
+                String savedTab = savedInstanceState.getString("currentTab");
+                if (savedTab != null) {
+                    onTabSelected(BottomNavTab.valueOf(savedTab));
+                } else {
+                    startRemotesFragment();
+                }
             }
         } else if (bundle != null && bundle.containsKey(AppShortcutsHelper.APP_SHORTCUT_REMOTE_NAME)) {
             String remoteName = bundle.getString(AppShortcutsHelper.APP_SHORTCUT_REMOTE_NAME);
@@ -199,6 +204,12 @@ public class MainActivity extends AppCompatActivity
         if (MAIN_ACTIVITY_START_LOG.equals(getIntent().getAction())) {
             startLogFragment();
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("currentTab", currentTab.name());
     }
 
     @Override

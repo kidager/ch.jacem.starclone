@@ -3,7 +3,7 @@ package de.felixnuesse.extract.updates
 import android.content.Context
 import android.os.Build
 import androidx.preference.PreferenceManager
-import ca.pkay.rcloneexplorer.R
+import ch.jacem.starclone.R
 import de.felixnuesse.extract.updates.workmanager.UpdateManager
 
 

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
-    tools:context="ca.pkay.rcloneexplorer.Activities.MainActivity">
+    tools:context="ch.jacem.starclone.Activities.MainActivity">
 
     <include
         layout="@layout/app_bar_main"

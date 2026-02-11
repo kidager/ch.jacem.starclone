@@ -6,8 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
 import androidx.appcompat.widget.TooltipCompat
-import ca.pkay.rcloneexplorer.R
-import ca.pkay.rcloneexplorer.databinding.CustomuiCrumbviewBinding
+import ch.jacem.starclone.R
+import ch.jacem.starclone.databinding.CustomuiCrumbviewBinding
 
 
 class CrumbView : LinearLayout {

@@ -28,8 +28,8 @@
 -dontwarn okhttp3.internal.platform.ConscryptPlatform
 
 # keep model classes
-# -keep public class ca.pkay.rcloneexplorer.RcloneRcd.*
--keep class ca.pkay.rcloneexplorer.** { *; }
+# -keep public class ch.jacem.starclone.RcloneRcd.*
+-keep class ch.jacem.starclone.** { *; }
 
 
 -dontwarn org.bouncycastle.jsse.BCSSLParameters

@@ -1,10 +1,10 @@
 package de.felixnuesse.extract.notifications.implementations
 
 import android.content.Context
-import ca.pkay.rcloneexplorer.Items.FileItem
-import ca.pkay.rcloneexplorer.R
-import ca.pkay.rcloneexplorer.notifications.prototypes.WorkerNotification
-import ca.pkay.rcloneexplorer.notifications.support.StatusObject
+import ch.jacem.starclone.Items.FileItem
+import ch.jacem.starclone.R
+import ch.jacem.starclone.notifications.prototypes.WorkerNotification
+import ch.jacem.starclone.notifications.support.StatusObject
 
 class DownloadWorkerNotification(var context: Context) : WorkerNotification(context) {
 

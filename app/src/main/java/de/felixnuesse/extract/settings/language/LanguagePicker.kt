@@ -7,7 +7,7 @@ import android.widget.ArrayAdapter
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
-import ca.pkay.rcloneexplorer.R
+import ch.jacem.starclone.R
 import java.util.Locale
 
 

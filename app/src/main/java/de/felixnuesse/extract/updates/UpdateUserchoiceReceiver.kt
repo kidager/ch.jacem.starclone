@@ -10,8 +10,8 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import androidx.preference.PreferenceManager
-import ca.pkay.rcloneexplorer.BuildConfig
-import ca.pkay.rcloneexplorer.R
+import ch.jacem.starclone.BuildConfig
+import ch.jacem.starclone.R
 import de.felixnuesse.extract.extensions.tag
 import de.felixnuesse.extract.notifications.AppUpdateNotification
 import java.io.File

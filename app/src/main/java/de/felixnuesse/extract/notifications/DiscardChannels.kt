@@ -9,8 +9,8 @@ class DiscardChannels {
         fun discard(context: Context) {
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                notificationManager.deleteNotificationChannel("ca.pkay.rcexplorer.UPLOAD_CHANNEL")
-                notificationManager.deleteNotificationChannel("ca.pkay.rcexplorer.DOWNLOAD_CHANNEL")
+                notificationManager.deleteNotificationChannel("ch.jacem.starclone.UPLOAD_CHANNEL")
+                notificationManager.deleteNotificationChannel("ch.jacem.starclone.DOWNLOAD_CHANNEL")
             }
 
         }

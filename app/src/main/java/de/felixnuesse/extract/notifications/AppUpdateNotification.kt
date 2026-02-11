@@ -10,8 +10,8 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import ca.pkay.rcloneexplorer.R
-import ca.pkay.rcloneexplorer.util.PermissionManager
+import ch.jacem.starclone.R
+import ch.jacem.starclone.util.PermissionManager
 import de.felixnuesse.extract.extensions.tag
 import de.felixnuesse.extract.updates.UpdateUserchoiceReceiver
 import de.felixnuesse.extract.updates.UpdateUserchoiceReceiver.Companion.ACTION_DOWNLOAD

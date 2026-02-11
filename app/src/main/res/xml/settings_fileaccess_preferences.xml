@@ -11,7 +11,7 @@
         android:title="@string/pref_enable_local_alias_title"
         app:summary="@string/pref_enable_local_alias_summary" />
     <SwitchPreference
-        android:defaultValue="false"
+        android:defaultValue="true"
         android:key="@string/pref_key_enable_vcp"
         android:title="@string/pref_saf_virtual_content_provider_enable"
         app:summary="@string/pref_saf_virtual_content_provider_summary" />

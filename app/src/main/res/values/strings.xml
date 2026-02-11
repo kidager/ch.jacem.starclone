@@ -128,6 +128,8 @@
     <string name="filename">Filename</string>
     <string name="modified_time">Modification time</string>
     <string name="size">Size</string>
+    <string name="path">Path</string>
+    <string name="type">Type</string>
     <string name="md5" translatable="false">MD5</string>
     <string name="sha1" translatable="false">SHA1</string>
     <string name="tap_to_calculate">Tap to calculate</string>
@@ -196,10 +198,10 @@
     <string name="app_not_configured">Round Sync is not configured</string>
     <string name="open_app_to_configure">Please open the app to set it up first</string>
     <string name="error_retrieving_files">Error retrieving files</string>
-    <string name="background_service_broadcast" translatable="false">ca.pkay.rcexplorer.BACKGROUND_SERVICE_BROADCAST</string>
-    <string name="background_service_broadcast_data_remote" translatable="false">ca.pkay.rcexplorer.BACKGROUND_SERVICE_BROADCAST_DATA_REMOTE</string>
-    <string name="background_service_broadcast_data_path" translatable="false">ca.pkay.rcexplorer.BACKGROUND_SERVICE_BROADCAST_DATA_PATH</string>
-    <string name="background_service_broadcast_data_path2" translatable="false">ca.pkay.rcexplorer.BACKGROUND_SERVICE_BROADCAST_DATA_PATH2</string>
+    <string name="background_service_broadcast" translatable="false">ch.jacem.starclone.BACKGROUND_SERVICE_BROADCAST</string>
+    <string name="background_service_broadcast_data_remote" translatable="false">ch.jacem.starclone.BACKGROUND_SERVICE_BROADCAST_DATA_REMOTE</string>
+    <string name="background_service_broadcast_data_path" translatable="false">ch.jacem.starclone.BACKGROUND_SERVICE_BROADCAST_DATA_PATH</string>
+    <string name="background_service_broadcast_data_path2" translatable="false">ch.jacem.starclone.BACKGROUND_SERVICE_BROADCAST_DATA_PATH2</string>
     <string name="sync_service_notification_channel_description">Background service for sync</string>
     <string name="moving_info">Moving…</string>
     <string name="deleting_info">Deleting…</string>
@@ -316,13 +318,13 @@
     <string name="config_use_external_question">Import found configuration?</string>
     <string name="config_import_external_explain">Automatically import from %1$s</string>
     <string name="pref_header_file_access">File Access</string>
-    <string name="pref_saf_enable">Enable SAF Client Preview</string>
-    <string name="pref_saf_summary">EXPERIMENTAL: Access SD cards and other external storage devices</string>
-    <string name="pref_saf_add_permission">Add Storage</string>
+    <string name="pref_saf_enable">SAF client (local-saf remote)</string>
+    <string name="pref_saf_summary">Creates a local-saf remote to access SD cards and storage from other apps via SAF</string>
+    <string name="pref_saf_add_permission">Add storage location</string>
     <string name="pref_saf_permission_label_primary">Internal Storage (%1$s)</string>
     <string name="pref_saf_permission_label_external">External Storage (%1$s)</string>
-    <string name="pref_saf_virtual_content_provider_enable">Enable Content Provider Preview</string>
-    <string name="pref_saf_virtual_content_provider_summary">EXPERIMENTAL: Allows other apps to work with rclone remotes</string>
+    <string name="pref_saf_virtual_content_provider_enable">Expose remotes to other apps</string>
+    <string name="pref_saf_virtual_content_provider_summary">Makes rclone remotes available in the system file picker and other apps</string>
     <string name="pref_saf_vcp_local_pretend_enable">Declare as local provider</string>
     <string name="pref_saf_vcp_local_pretend_summary">Allows some apps such as Google Docs to access files</string>
     <string name="pref_saf_vcp_grant_all_enable">Allow all apps to access your remotes</string>
@@ -362,7 +364,7 @@
     </plurals>
     <string name="move_operation_failed">Move operation failed</string>
     <string name="pref_open_all_files_setting_label">Grant MANAGE_EXTERNAL_STORAGE permission</string>
-    <string name="pref_open_all_files_setting_summary">EXPERIMENTAL: Works only on Android R (Android 11)</string>
+    <string name="pref_open_all_files_setting_summary">Required on Android 11+ for rclone to access local storage paths</string>
     <string name="no_app_found_for_this_link">No app found for this link</string>
     <string name="documentsui_missing">System component for files (com.android.documentsui) missing</string>
 

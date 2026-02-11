@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.preference.PreferenceManager
 import ch.jacem.starclone.R
 import ch.jacem.starclone.ui.components.StarCloneListItem
-import de.felixnuesse.extract.updates.UpdateChecker
+import ch.jacem.starclone.extract.updates.UpdateChecker
 
 @Composable
 fun NotificationSettingsScreen() {

@@ -9,8 +9,8 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import ch.jacem.starclone.R
 import ch.jacem.starclone.util.FLog
-import de.felixnuesse.extract.extensions.tag
-import de.felixnuesse.extract.settings.preferences.ButtonPreference
+import ch.jacem.starclone.extract.extensions.tag
+import ch.jacem.starclone.extract.settings.preferences.ButtonPreference
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader

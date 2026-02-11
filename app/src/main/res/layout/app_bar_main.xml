@@ -70,7 +70,7 @@
             </LinearLayout>
         </androidx.appcompat.widget.Toolbar>
 
-        <de.felixnuesse.ui.BreadcrumbView
+        <ch.jacem.starclone.ui.views.BreadcrumbView
             android:id="@+id/breadcrumb_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

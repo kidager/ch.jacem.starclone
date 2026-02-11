@@ -26,8 +26,8 @@ import ch.jacem.starclone.notifications.support.StatusObject
 import ch.jacem.starclone.util.FLog
 import ch.jacem.starclone.util.SyncLog
 import ch.jacem.starclone.util.WifiConnectivitiyUtil
-import de.felixnuesse.extract.extensions.tag
-import de.felixnuesse.extract.notifications.implementations.DownloadWorkerNotification
+import ch.jacem.starclone.extract.extensions.tag
+import ch.jacem.starclone.extract.notifications.implementations.DownloadWorkerNotification
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -37,9 +37,9 @@ import java.io.InterruptedIOException
 import kotlin.random.Random
 import android.util.Log
 import androidx.work.Data
-import de.felixnuesse.extract.notifications.implementations.DeleteWorkerNotification
-import de.felixnuesse.extract.notifications.implementations.MoveWorkerNotification
-import de.felixnuesse.extract.notifications.implementations.UploadWorkerNotification
+import ch.jacem.starclone.extract.notifications.implementations.DeleteWorkerNotification
+import ch.jacem.starclone.extract.notifications.implementations.MoveWorkerNotification
+import ch.jacem.starclone.extract.notifications.implementations.UploadWorkerNotification
 
 
 class EphemeralWorker (private var mContext: Context, workerParams: WorkerParameters): Worker(mContext, workerParams) {

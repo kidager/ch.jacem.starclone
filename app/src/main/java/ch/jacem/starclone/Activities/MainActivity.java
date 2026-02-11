@@ -73,7 +73,7 @@ import ch.jacem.starclone.ui.navigation.MainActivityNavKt;
 import ch.jacem.starclone.util.ActivityHelper;
 import ch.jacem.starclone.util.FLog;
 import ch.jacem.starclone.util.PermissionManager;
-import de.felixnuesse.extract.updates.UpdateChecker;
+import ch.jacem.starclone.extract.updates.UpdateChecker;
 import es.dmoral.toasty.Toasty;
 import java9.util.stream.Stream;
 

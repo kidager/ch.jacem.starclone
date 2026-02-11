@@ -1,0 +1,44 @@
+package ch.jacem.starclone.extract.notifications.implementations
+
+import android.content.Context
+import ch.jacem.starclone.Items.FileItem
+import ch.jacem.starclone.R
+import ch.jacem.starclone.notifications.GenericSyncNotification
+import ch.jacem.starclone.notifications.prototypes.WorkerNotification
+import ch.jacem.starclone.notifications.support.StatusObject
+
+class MoveWorkerNotification(var context: Context) : WorkerNotification(context) {
+
+    override val CHANNEL_ID = "ch.jacem.starclone.extract.move_service"
+
+    override val initialTitle = string(R.string.worker_move_initialtitle)
+    override val serviceOngoingTitle = initialTitle
+    override val serviceFailed = string(R.string.worker_move_failed)
+    override val serviceCancelled = "unused"
+    override val serviceSuccess = string(R.string.worker_move_success)
+
+    // use only a single channel
+    override val CHANNEL_SUCCESS_ID = CHANNEL_ID
+    override val CHANNEL_FAIL_ID = CHANNEL_ID
+
+    override val channel_ongoing_title = string(R.string.move_service_notification_title)
+    override val channel_ongoing_description =string(R.string.move_service_notification_description)
+    override val channel_success_title = channel_ongoing_title
+    override val channel_success_description = channel_ongoing_description
+    override val channel_failed_title = channel_ongoing_title
+    override val channel_failed_description = channel_ongoing_description
+
+    override val PERSISTENT_NOTIFICATION_ID = 43
+
+    override val SUMMARY_ID = 44
+
+    override fun generateSuccessMessage(statusObject: StatusObject, fileItem: FileItem): String {
+        val count = maxOf(statusObject.getDeletions(), 1)
+        return mContext.resources.getQuantityString(
+                R.plurals.worker_move_success_message,
+                count,
+                fileItem.name
+        )
+    }
+
+}

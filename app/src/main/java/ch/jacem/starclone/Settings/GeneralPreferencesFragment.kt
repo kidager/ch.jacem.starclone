@@ -17,9 +17,9 @@ import ch.jacem.starclone.Items.RemoteItem
 import ch.jacem.starclone.R
 import ch.jacem.starclone.Rclone
 import ch.jacem.starclone.util.FLog
-import de.felixnuesse.extract.extensions.TAG
-import de.felixnuesse.extract.settings.language.LanguagePicker
-import de.felixnuesse.extract.settings.preferences.FilesizePreference
+import ch.jacem.starclone.extract.extensions.TAG
+import ch.jacem.starclone.extract.settings.language.LanguagePicker
+import ch.jacem.starclone.extract.settings.preferences.FilesizePreference
 import es.dmoral.toasty.Toasty
 
 class GeneralPreferencesFragment : PreferenceFragmentCompat() {

@@ -1,7 +1,7 @@
 package ch.jacem.starclone.rclone
 
 import android.util.Log
-import de.felixnuesse.extract.extensions.tag
+import ch.jacem.starclone.extract.extensions.tag
 import org.json.JSONObject
 import java.util.Objects
 

@@ -41,7 +41,7 @@ import ch.jacem.starclone.R;
 import ch.jacem.starclone.Rclone;
 import ch.jacem.starclone.RecyclerViewAdapters.FileExplorerRecyclerViewAdapter;
 import ch.jacem.starclone.util.ActivityHelper;
-import de.felixnuesse.ui.BreadcrumbView;
+import ch.jacem.starclone.ui.views.BreadcrumbView;
 import es.dmoral.toasty.Toasty;
 import jp.wasabeef.recyclerview.animators.LandingAnimator;
 

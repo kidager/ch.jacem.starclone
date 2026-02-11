@@ -15,11 +15,11 @@ import androidx.preference.PreferenceManager
 import ch.jacem.starclone.R
 import ch.jacem.starclone.util.PermissionManager
 import com.github.appintro.AppIntro2
-import de.felixnuesse.extract.onboarding.IdentifiableAppIntroFragment
-import de.felixnuesse.extract.onboarding.IdentifiableSwitchAppIntroFragment
-import de.felixnuesse.extract.onboarding.SlideLeaveInterface
-import de.felixnuesse.extract.onboarding.SlideSwitchCallback
-import de.felixnuesse.extract.updates.UpdateChecker
+import ch.jacem.starclone.extract.onboarding.IdentifiableAppIntroFragment
+import ch.jacem.starclone.extract.onboarding.IdentifiableSwitchAppIntroFragment
+import ch.jacem.starclone.extract.onboarding.SlideLeaveInterface
+import ch.jacem.starclone.extract.onboarding.SlideSwitchCallback
+import ch.jacem.starclone.extract.updates.UpdateChecker
 
 
 class OnboardingActivity : AppIntro2(), SlideLeaveInterface, SlideSwitchCallback {

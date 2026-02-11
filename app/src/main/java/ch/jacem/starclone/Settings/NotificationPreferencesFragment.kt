@@ -9,8 +9,8 @@ import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import ch.jacem.starclone.R
-import de.felixnuesse.extract.settings.preferences.ButtonPreference
-import de.felixnuesse.extract.updates.UpdateChecker
+import ch.jacem.starclone.extract.settings.preferences.ButtonPreference
+import ch.jacem.starclone.extract.updates.UpdateChecker
 import es.dmoral.toasty.Toasty
 
 

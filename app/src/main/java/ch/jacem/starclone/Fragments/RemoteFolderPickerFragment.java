@@ -56,7 +56,7 @@ import ch.jacem.starclone.RecyclerViewAdapters.FileExplorerRecyclerViewAdapter;
 import ch.jacem.starclone.Services.ThumbnailsLoadingService;
 import ch.jacem.starclone.util.FLog;
 import ch.jacem.starclone.util.LargeParcel;
-import de.felixnuesse.ui.BreadcrumbView;
+import ch.jacem.starclone.ui.views.BreadcrumbView;
 import es.dmoral.toasty.Toasty;
 import jp.wasabeef.recyclerview.animators.LandingAnimator;
 

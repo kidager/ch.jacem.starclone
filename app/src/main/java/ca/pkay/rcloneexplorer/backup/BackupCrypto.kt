@@ -83,22 +83,43 @@ object BackupCrypto {
 
     /**
      * Encrypts a plain rclone.conf using rclone's native encryption format.
+     * Uses `rclone config encryption set` with `--password-command` for non-interactive operation.
      * The result is portable to any rclone client.
      */
     fun encryptConfigWithRclone(context: Context, plainConfig: ByteArray, password: String): ByteArray {
         val rcloneBin = context.applicationInfo.nativeLibraryDir + "/librclone.so"
         val tempFile = File(context.filesDir, "rclone.conf-encrypt-tmp")
+        val passFile = File(context.filesDir, "rclone-pass-tmp")
 
         try {
             tempFile.writeBytes(plainConfig)
+            passFile.writeText(password)
+            passFile.setReadable(true, true)
 
-            // Add a dummy remote — this triggers rclone to save (encrypted) the config
-            runRclone(rcloneBin, tempFile.absolutePath, password, "config", "create", "_backup_enc_", "local")
-            // Remove the dummy remote — another save, still encrypted
-            runRclone(rcloneBin, tempFile.absolutePath, password, "config", "delete", "_backup_enc_")
+            val command = arrayOf(
+                rcloneBin,
+                "--config", tempFile.absolutePath,
+                "--password-command", "cat ${passFile.absolutePath}",
+                "config", "encryption", "set",
+            )
 
-            return tempFile.readBytes()
+            val process = Runtime.getRuntime().exec(command)
+            process.waitFor()
+
+            if (process.exitValue() != 0) {
+                val error = process.errorStream.bufferedReader().readText()
+                FLog.e(TAG, "rclone config encryption set failed: $error")
+                throw IllegalStateException("Failed to encrypt config: $error")
+            }
+
+            val result = tempFile.readBytes()
+            if (!isRcloneEncrypted(result)) {
+                throw IllegalStateException("Config was not encrypted by rclone")
+            }
+
+            return result
         } finally {
+            passFile.delete()
             tempFile.delete()
         }
     }
@@ -141,21 +162,4 @@ object BackupCrypto {
         }
     }
 
-    private fun runRclone(
-        rcloneBin: String,
-        configPath: String,
-        password: String,
-        vararg args: String,
-    ) {
-        val command = arrayOf(rcloneBin, "--config", configPath, "--ask-password=false") + args
-        val env = arrayOf("RCLONE_CONFIG_PASS=$password")
-
-        val process = Runtime.getRuntime().exec(command, env)
-        process.waitFor()
-
-        if (process.exitValue() != 0) {
-            val error = process.errorStream.bufferedReader().readText()
-            FLog.e(TAG, "rclone command failed: ${args.toList()} — $error")
-        }
-    }
 }

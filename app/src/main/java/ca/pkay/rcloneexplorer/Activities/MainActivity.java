@@ -219,6 +219,7 @@ public class MainActivity extends AppCompatActivity
 
     private void onTabSelected(BottomNavTab tab) {
         currentTab = tab;
+        MainActivityNavKt.syncSelectedTab(tab);
         switch (tab) {
             case REMOTES:
                 startRemotesFragment();

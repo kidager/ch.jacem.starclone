@@ -12,6 +12,10 @@ import ca.pkay.rcloneexplorer.ui.theme.StarCloneTheme
 
 private var selectedTab by mutableStateOf(BottomNavTab.REMOTES)
 
+fun syncSelectedTab(tab: BottomNavTab) {
+    selectedTab = tab
+}
+
 fun setupBottomNav(
     composeView: ComposeView,
     owner: LifecycleOwner,

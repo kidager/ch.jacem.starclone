@@ -39,7 +39,10 @@ fun RemoteCard(
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
-            .combinedClickable(onClick = onClick),
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onOptionsClick,
+            ),
     ) {
         Row(
             modifier = Modifier

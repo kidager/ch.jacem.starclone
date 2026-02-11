@@ -55,9 +55,6 @@ import ca.pkay.rcloneexplorer.Dialogs.Dialogs;
 import ca.pkay.rcloneexplorer.Dialogs.InputDialog;
 import ca.pkay.rcloneexplorer.Dialogs.LoadingDialog;
 import ca.pkay.rcloneexplorer.Fragments.FileExplorerFragment;
-import ca.pkay.rcloneexplorer.Fragments.LogFragment;
-import ca.pkay.rcloneexplorer.Fragments.RemotesFragment;
-import ca.pkay.rcloneexplorer.Fragments.TasksFragment;
 import ca.pkay.rcloneexplorer.Items.RemoteItem;
 import ca.pkay.rcloneexplorer.R;
 import ca.pkay.rcloneexplorer.Rclone;
@@ -81,9 +78,7 @@ import es.dmoral.toasty.Toasty;
 import java9.util.stream.Stream;
 
 public class MainActivity extends AppCompatActivity
-        implements RemotesFragment.OnRemoteClickListener,
-        RemotesFragment.AddRemoteToNavDrawer,
-        InputDialog.OnPositive,
+        implements InputDialog.OnPositive,
         InputDialog.OnNegative,
         SettingsFragment.OnSettingCategorySelectedListener {
 
@@ -480,17 +475,6 @@ public class MainActivity extends AppCompatActivity
         // No-op: drawer removed, using bottom navigation
     }
 
-    @Override
-    public void addRemoteToNavDrawer() {
-        // No-op: drawer removed, pinning will be handled in Compose remotes list
-    }
-
-    @Override
-    public void removeRemoteFromNavDrawer() {
-        // No-op: drawer removed, pinning will be handled in Compose remotes list
-    }
-
-    @Override
     public void onRemoteClick(RemoteItem remote) {
         startRemote(remote, true);
     }
@@ -843,9 +827,7 @@ public class MainActivity extends AppCompatActivity
             AppShortcutsHelper.removeAllAppShortcuts(context);
             AppShortcutsHelper.populateAppShortcuts(context, rclone.getRemotes());
 
-            if (fragment instanceof RemotesFragment) {
-                startRemotesFragment();
-            }
+            startRemotesFragment();
         }
     }
 

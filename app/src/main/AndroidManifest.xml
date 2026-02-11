@@ -127,6 +127,9 @@
         </provider>
 
         <activity
+            android:name=".Activities.BackupActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
             android:name=".Activities.AboutActivity"
             android:label="@string/title_activity_about"
             android:theme="@style/AppTheme.NoActionBar" />

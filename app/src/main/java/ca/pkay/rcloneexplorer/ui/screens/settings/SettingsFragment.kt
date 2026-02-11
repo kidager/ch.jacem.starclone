@@ -7,7 +7,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
-import ca.pkay.rcloneexplorer.Activities.MainActivity
+import ca.pkay.rcloneexplorer.Activities.BackupActivity
 import ca.pkay.rcloneexplorer.R
 import ca.pkay.rcloneexplorer.Settings.SettingsFragment as OldSettingsFragment
 import ca.pkay.rcloneexplorer.ui.theme.StarCloneTheme
@@ -34,23 +34,17 @@ class SettingsFragment : Fragment() {
                     onCategoryClick = { category ->
                         clickListener?.onSettingCategoryClicked(category)
                     },
-                    onImport = { triggerMainActivityAction(MainActivity.MAIN_ACTIVITY_START_IMPORT) },
-                    onExport = { triggerMainActivityAction(MainActivity.MAIN_ACTIVITY_START_EXPORT) },
+                    onImport = { launchBackup("import") },
+                    onExport = { launchBackup("export") },
                 )
             }
         }
     }
 
-    private fun triggerMainActivityAction(action: String) {
-        val activity = activity ?: return
-        if (activity is MainActivity) {
-            when (action) {
-                MainActivity.MAIN_ACTIVITY_START_IMPORT -> activity.startConfigImportFlow()
-                MainActivity.MAIN_ACTIVITY_START_EXPORT -> activity.startConfigExportFlow()
-            }
-        } else {
-            startActivity(Intent(activity, MainActivity::class.java).setAction(action))
-        }
+    private fun launchBackup(mode: String) {
+        startActivity(Intent(requireContext(), BackupActivity::class.java).apply {
+            putExtra(BackupActivity.EXTRA_MODE, mode)
+        })
     }
 
     override fun onResume() {

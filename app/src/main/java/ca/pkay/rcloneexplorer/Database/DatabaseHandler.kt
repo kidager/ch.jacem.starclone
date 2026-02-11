@@ -118,6 +118,18 @@ class DatabaseHandler(context: Context?) :
         return taskToStore
     }
 
+    fun upsertTask(task: Task): Task {
+        val db = writableDatabase
+        val rowId = db.insertWithOnConflict(
+            Task.TABLE_NAME, null,
+            getTaskContentValuesWithID(task),
+            SQLiteDatabase.CONFLICT_REPLACE,
+        )
+        db.close()
+        task.id = rowId
+        return task
+    }
+
     fun updateTask(taskToUpdate: Task) {
         val db = writableDatabase
         db.update(
@@ -254,6 +266,18 @@ class DatabaseHandler(context: Context?) :
         return triggerToStore
     }
 
+    fun upsertTrigger(trigger: Trigger): Trigger {
+        val db = writableDatabase
+        val rowId = db.insertWithOnConflict(
+            Trigger.TABLE_NAME, null,
+            getTriggerContentValuesWithID(trigger),
+            SQLiteDatabase.CONFLICT_REPLACE,
+        )
+        db.close()
+        trigger.id = rowId
+        return trigger
+    }
+
     fun updateTrigger(triggerToUpdate: Trigger) {
         val db = writableDatabase
         db.update(
@@ -374,6 +398,18 @@ class DatabaseHandler(context: Context?) :
         db.close()
         filterToStore.id = newRowId
         return filterToStore
+    }
+
+    fun upsertFilter(filter: Filter): Filter {
+        val db = writableDatabase
+        val rowId = db.insertWithOnConflict(
+            Filter.TABLE_NAME, null,
+            getFilterContentValuesWithID(filter),
+            SQLiteDatabase.CONFLICT_REPLACE,
+        )
+        db.close()
+        filter.id = rowId
+        return filter
     }
 
     fun updateFilter(filterToUpdate: Filter) {

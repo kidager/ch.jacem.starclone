@@ -1,8 +1,8 @@
 package ca.pkay.rcloneexplorer.RemoteConfig
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
-import android.util.TypedValue
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -10,29 +10,48 @@ import android.widget.SearchView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.fragment.app.Fragment
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import ca.pkay.rcloneexplorer.Activities.MainActivity
 import ca.pkay.rcloneexplorer.R
 import ca.pkay.rcloneexplorer.Rclone
-import ca.pkay.rcloneexplorer.RemoteConfig.ProviderListFragment.Companion.newProviderListConfig
-import ca.pkay.rcloneexplorer.RemoteConfig.ProviderListFragment.ProviderSelectedListener
 import ca.pkay.rcloneexplorer.RuntimeConfiguration
 import ca.pkay.rcloneexplorer.rclone.Provider
+import ca.pkay.rcloneexplorer.ui.screens.remoteconfig.AuthScreen
+import ca.pkay.rcloneexplorer.ui.screens.remoteconfig.ProviderListScreen
+import ca.pkay.rcloneexplorer.ui.screens.remoteconfig.RemoteConfigFormScreen
+import ca.pkay.rcloneexplorer.ui.theme.StarCloneTheme
 import ca.pkay.rcloneexplorer.util.ActivityHelper
 import es.dmoral.toasty.Toasty
-import org.json.JSONException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-
-class RemoteConfig : AppCompatActivity(), ProviderSelectedListener {
-
-    private val OUTSTATE_TITLE = "ca.pkay.rcexplorer.remoteConfig.TITLE"
-    private var mFragment: Fragment? = null
-    private lateinit var mSearchBar: SearchView
-    private var mSearchIcon: MenuItem? = null
+class RemoteConfig : AppCompatActivity() {
 
     companion object {
         const val CONFIG_EDIT_CODE = 139
         const val CONFIG_EDIT_TARGET = "CONFIG_EDIT_TARGET"
     }
+
+    private enum class Screen { ProviderList, ConfigForm, Auth }
+
+    private var currentScreen by mutableStateOf(Screen.ProviderList)
+    private var searchQuery by mutableStateOf("")
+    private var showAdvanced by mutableStateOf(false)
+    private var selectedProvider by mutableStateOf<Provider?>(null)
+    private var isEdit by mutableStateOf(false)
+    private var existingValues by mutableStateOf<Map<String, String>>(emptyMap())
+    private var useOauth by mutableStateOf(false)
+    private var providers by mutableStateOf<List<Provider>>(emptyList())
+    private var isAuthenticating by mutableStateOf(false)
+
+    private lateinit var mSearchBar: SearchView
+    private var mSearchIcon: MenuItem? = null
+    private var mAdvancedIcon: MenuItem? = null
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(RuntimeConfiguration.attach(this, newBase))
@@ -40,91 +59,141 @@ class RemoteConfig : AppCompatActivity(), ProviderSelectedListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        applyTheme()
+        ActivityHelper.applyTheme(this)
         setContentView(R.layout.activity_remote_config)
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
-        val actionBar = supportActionBar
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true)
-            actionBar.setDisplayShowHomeEnabled(true)
-        }
-
-        val fragmentTransaction = supportFragmentManager.beginTransaction()
-        if (savedInstanceState != null) {
-            mFragment = supportFragmentManager.findFragmentByTag("new config")
-            fragmentTransaction.replace(R.id.flFragment, getCurrentFragment(), "new config")
-            fragmentTransaction.commit()
-            val title = savedInstanceState.getString(OUTSTATE_TITLE)
-            if (title != null) {
-                supportActionBar!!.title = title
-            }
-            return
-        }
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
 
         mSearchBar = findViewById(R.id.search)
 
-        mFragment = newProviderListConfig()
-        fragmentTransaction.replace(R.id.flFragment, getCurrentFragment(), "config list")
-        fragmentTransaction.commit()
-        val shouldEdit = intent.getStringExtra(CONFIG_EDIT_TARGET)
-        if (shouldEdit != null) {
-            if (shouldEdit.isNotEmpty()) {
-                val rclone = Rclone(this)
-                val config = rclone.getConfig(intent.getStringExtra(CONFIG_EDIT_TARGET))
-                if (config != null) {
-                    try {
-                        val provider = rclone.getProvider(config["type"])
-                        mFragment = DynamicRemoteConfigFragment(provider.name, config)
-                        startConfig(provider)
-                    } catch (e: JSONException) {
-                        throw RuntimeException(e)
-                    }
+        val rclone = Rclone(this)
+        providers = rclone.providers ?: emptyList()
+
+        val editTarget = intent.getStringExtra(CONFIG_EDIT_TARGET)
+        if (!editTarget.isNullOrEmpty()) {
+            val config = rclone.getConfig(editTarget)
+            if (config != null) {
+                val provider = rclone.getProvider(config["type"])
+                if (provider != null) {
+                    selectedProvider = provider
+                    isEdit = true
+                    existingValues = config.toMap()
+                    useOauth = isOauthProvider(provider.name)
+                    currentScreen = Screen.ConfigForm
+                    supportActionBar?.title = provider.getNameCapitalized()
                 }
             }
         }
 
         mSearchBar.setOnCloseListener {
             toggleSearch(false)
-            return@setOnCloseListener true
+            true
         }
-
         mSearchBar.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextChange(newText: String): Boolean {
-                if(isProviderlist()) {
-                    (getCurrentFragment() as ProviderListFragment).setSearchterm(newText)
-                }
-                if(isDynamicRemoteConfigFragment()) {
-                    (getCurrentFragment() as DynamicRemoteConfigFragment).setSearchterm(newText)
-                }
+                searchQuery = newText
                 return true
             }
-
-            override fun onQueryTextSubmit(query: String): Boolean {
-                return true
-            }
+            override fun onQueryTextSubmit(query: String): Boolean = true
         })
 
+        findViewById<ComposeView>(R.id.compose_view).setContent {
+            StarCloneTheme {
+                when {
+                    isAuthenticating -> AuthScreen(
+                        onCancel = {
+                            // Auth cancellation handled by the coroutine
+                            finish()
+                        },
+                    )
+                    currentScreen == Screen.ProviderList -> ProviderListScreen(
+                        providers = providers,
+                        searchQuery = searchQuery,
+                        onProviderSelected = ::onProviderSelected,
+                        preselection = selectedProvider?.name,
+                    )
+                    currentScreen == Screen.ConfigForm -> {
+                        selectedProvider?.let { provider ->
+                            RemoteConfigFormScreen(
+                                provider = provider,
+                                isEdit = isEdit,
+                                existingValues = existingValues,
+                                useOauth = useOauth,
+                                searchQuery = searchQuery,
+                                showAdvanced = showAdvanced,
+                                onSave = ::onSaveRemote,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun onProviderSelected(provider: Provider) {
+        toggleSearch(false)
+        selectedProvider = provider
+        useOauth = isOauthProvider(provider.name)
+        currentScreen = Screen.ConfigForm
+        supportActionBar?.title = provider.getNameCapitalized()
+        invalidateOptionsMenu()
+    }
+
+    private fun onSaveRemote(remoteName: String, options: Map<String, String>) {
+        val optionList = ArrayList<String>()
+        optionList.add(remoteName)
+        optionList.add(selectedProvider!!.name)
+
+        if (isEdit && useOauth) {
+            optionList.add("config_refresh_token")
+            optionList.add("false")
+        }
+        for ((key, value) in options) {
+            optionList.add(key)
+            optionList.add(value)
+        }
+
+        if (isEdit) {
+            RemoteConfigHelper.updateAndWait(this, optionList)
+            finish()
+            return
+        }
+
+        if (useOauth) {
+            isAuthenticating = true
+            val context = this
+            val rclone = Rclone(this)
+            CoroutineScope(Dispatchers.IO).launch {
+                val success = OauthHelper.createOptionsWithOauth(optionList, rclone, context)
+                withContext(Dispatchers.Main) {
+                    if (!success) {
+                        Toasty.error(context, getString(R.string.error_creating_remote), Toast.LENGTH_SHORT, true).show()
+                    } else {
+                        Toasty.success(context, getString(R.string.remote_creation_success), Toast.LENGTH_SHORT, true).show()
+                    }
+                    val intent = Intent(context, MainActivity::class.java)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(intent)
+                }
+            }
+        } else {
+            RemoteConfigHelper.setupAndWait(this, optionList)
+            finish()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.remote_config_menu, menu)
-        mSearchIcon = menu?.findItem(R.id.app_bar_search);
-        return true
-    }
+        mSearchIcon = menu?.findItem(R.id.app_bar_search)
 
-    private fun toggleSearch(show: Boolean) {
-        if(show) {
-            mSearchBar.visibility = View.VISIBLE
-            mSearchBar.requestFocus()
-            mSearchBar.isFocusable = true
-            mSearchBar.isIconified = false
-            mSearchBar.requestFocusFromTouch()
-            mSearchIcon?.isVisible = false
-        } else {
-            mSearchBar.visibility = View.GONE
-            mSearchIcon?.isVisible = true
+        if (currentScreen == Screen.ConfigForm) {
+            menuInflater.inflate(R.menu.fragment_config_menu, menu)
+            mAdvancedIcon = menu?.findItem(R.id.action_toggle_advanced)
         }
+        return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -133,114 +202,60 @@ class RemoteConfig : AppCompatActivity(), ProviderSelectedListener {
                 toggleSearch(true)
                 true
             }
-
+            R.id.action_toggle_advanced -> {
+                showAdvanced = !showAdvanced
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        if (supportActionBar != null) {
-            val title = supportActionBar!!.title
-            if (title != null) {
-                outState.putString(OUTSTATE_TITLE, title.toString())
-            }
+    private fun toggleSearch(show: Boolean) {
+        if (show) {
+            mSearchBar.visibility = View.VISIBLE
+            mSearchBar.requestFocus()
+            mSearchBar.isFocusable = true
+            mSearchBar.isIconified = false
+            mSearchBar.requestFocusFromTouch()
+            mSearchIcon?.isVisible = false
+        } else {
+            mSearchBar.visibility = View.GONE
+            mSearchBar.setQuery("", false)
+            searchQuery = ""
+            mSearchIcon?.isVisible = true
         }
     }
+
     override fun onSupportNavigateUp(): Boolean {
         handleBackAction()
         return true
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        super.onBackPressed()
         handleBackAction()
     }
 
     private fun handleBackAction() {
-        if(mSearchBar.visibility == View.VISIBLE) {
+        if (mSearchBar.visibility == View.VISIBLE) {
             toggleSearch(false)
             return
         }
-
-        if (mFragment is ProviderListFragment) {
-            finish()
-        } else if (mFragment is DynamicRemoteConfigFragment) {
-            if ((mFragment as DynamicRemoteConfigFragment).isEditConfig()) {
-                finish()
-            } else {
-                var title: String? = null
-                if (supportActionBar != null) {
-                    title = supportActionBar!!.title.toString()
-                }
-                startProviderlist(title)
+        when {
+            currentScreen == Screen.ProviderList -> finish()
+            currentScreen == Screen.ConfigForm && isEdit -> finish()
+            currentScreen == Screen.ConfigForm -> {
+                currentScreen = Screen.ProviderList
+                supportActionBar?.setTitle(R.string.title_activity_remote_config)
+                showAdvanced = false
+                searchQuery = ""
+                invalidateOptionsMenu()
             }
-        } else {
-            startProviderlist()
+            else -> finish()
         }
     }
 
-    override fun onProviderSelected(provider: Provider) {
-        if (provider == null) {
-            Toasty.error(this, getString(R.string.nothing_selected), Toast.LENGTH_SHORT, true)
-                .show()
-            return
-        }
-        toggleSearch(false)
-        mFragment = DynamicRemoteConfigFragment(provider.name)
-        startConfig(provider)
-    }
-
-    private fun applyTheme() {
-        ActivityHelper.applyTheme(this)
-        val typedValue = TypedValue()
-        theme.resolveAttribute(R.attr.colorPrimaryDark, typedValue, true)
-        window.statusBarColor = typedValue.data
-    }
-
-    private fun startConfig(provider: Provider) {
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.flFragment, getCurrentFragment(), "new config")
-        transaction.commit()
-        if (supportActionBar != null) {
-            supportActionBar!!.title = provider.getNameCapitalized()
-        }
-    }
-
-    private fun startProviderlist() {
-        startProviderlist(null)
-    }
-    private fun startProviderlist(preselection: String?) {
-        mFragment = newProviderListConfig(preselection)
-        val fragmentTransaction = supportFragmentManager.beginTransaction()
-        fragmentTransaction.replace(R.id.flFragment, getCurrentFragment(), "config list")
-        fragmentTransaction.commit()
-        if (supportActionBar != null) {
-            supportActionBar!!.setTitle(R.string.title_activity_remote_config)
-        }
-    }
-
-    private fun isProviderlist(): Boolean {
-        if (mFragment is ProviderListFragment) {
-            return true
-        }
-        return false
-    }
-    private fun isDynamicRemoteConfigFragment(): Boolean {
-        if (mFragment is DynamicRemoteConfigFragment) {
-            return true
-        }
-        return false
-    }
-
-
-    /**
-     * This defauls to the provider list
-     */
-    private fun getCurrentFragment(): Fragment {
-        if(mFragment == null) {
-            return newProviderListConfig()
-        }
-        return mFragment!!
+    private fun isOauthProvider(name: String): Boolean {
+        return name in listOf("box", "dropbox", "pcloud", "yandex", "drive", "google photos", "onedrive")
     }
 }

@@ -23,6 +23,7 @@ import ca.pkay.rcloneexplorer.notifications.GenericSyncNotification
 import ca.pkay.rcloneexplorer.notifications.ReportNotifications
 import ca.pkay.rcloneexplorer.notifications.SyncServiceNotifications
 import ca.pkay.rcloneexplorer.notifications.SyncServiceNotifications.Companion.GROUP_ID
+import ca.pkay.rcloneexplorer.notifications.support.ErrorObject
 import ca.pkay.rcloneexplorer.notifications.support.StatusObject
 import ca.pkay.rcloneexplorer.util.FLog
 import ca.pkay.rcloneexplorer.util.SyncLog
@@ -129,8 +130,7 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
             return Result.failure()
         }
 
-        // Indicate whether the work finished successfully with the Result
-        return Result.success()
+        return if (failureReason == FAILURE_REASON.NO_FAILURE) Result.success() else Result.failure()
     }
 
     override fun onStopped() {
@@ -202,7 +202,9 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
                         ))
                     } catch (e: JSONException) {
                         FLog.e(TAG, "SyncService-Error: the offending line: $line")
-                        //FLog.e(TAG, "onHandleIntent: error reading json", e)
+                        if (line.isNotBlank()) {
+                            statusObject.mErrorList.add(ErrorObject("rclone", line.trim()))
+                        }
                     }
                 }
             } catch (e: InterruptedIOException) {
@@ -212,6 +214,10 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
             }
             try {
                 localProcessReference.waitFor()
+                if (localProcessReference.exitValue() != 0) {
+                    FLog.e(TAG, "rclone exited with code ${localProcessReference.exitValue()}")
+                    failureReason = FAILURE_REASON.RCLONE_ERROR
+                }
             } catch (e: InterruptedException) {
                 FLog.e(TAG, "onHandleIntent: error waiting for process", e)
             }

@@ -36,6 +36,7 @@ import java.io.InputStreamReader
 import java.io.InterruptedIOException
 import kotlin.random.Random
 import android.util.Log
+import androidx.work.Data
 import de.felixnuesse.extract.notifications.implementations.DeleteWorkerNotification
 import de.felixnuesse.extract.notifications.implementations.MoveWorkerNotification
 import de.felixnuesse.extract.notifications.implementations.UploadWorkerNotification
@@ -58,6 +59,12 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
         const val MOVE_TARGETPATH = "MOVE_TARGETPATH"
 
         const val DELETE_FILE = "DELETE_FILE"
+
+        const val PROGRESS_PERCENT = "progress_percent"
+        const val PROGRESS_CONTENT = "progress_content"
+        const val PROGRESS_SPEED = "progress_speed"
+        const val PROGRESS_FILENAME = "progress_filename"
+        const val PROGRESS_TYPE = "progress_type"
     }
 
     internal enum class FAILURE_REASON {
@@ -183,15 +190,22 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
 
     override fun onStopped() {
         super.onStopped()
-        SyncLog.info(mContext, mTitle, mContext.getString(R.string.operation_sync_cancelled))
-        SyncLog.info(mContext, mTitle, statusObject.toString())
-        failureReason = FAILURE_REASON.CANCELLED
+        // Only log/notify cancellation if work actually started (process was launched)
+        if (sRcloneProcess != null) {
+            SyncLog.info(mContext, mTitle, mContext.getString(R.string.operation_sync_cancelled))
+            SyncLog.info(mContext, mTitle, statusObject.toString())
+            failureReason = FAILURE_REASON.CANCELLED
+        }
         finishWork()
     }
 
     private fun finishWork() {
         sRcloneProcess?.destroy()
-        mContext.unregisterReceiver(connectivityChangeBroadcastReceiver)
+        try {
+            mContext.unregisterReceiver(connectivityChangeBroadcastReceiver)
+        } catch (_: IllegalArgumentException) {
+            // Receiver was never registered (worker stopped before doWork ran)
+        }
         postSync()
     }
 
@@ -231,6 +245,16 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
                             statusObject.notificationPercent,
                             ongoingNotificationID
                         ))
+
+                        val currentFileName = statusObject.mStats.optJSONArray("transferring")
+                            ?.optJSONObject(0)?.optString("name", "") ?: ""
+                        setProgressAsync(Data.Builder()
+                            .putInt(PROGRESS_PERCENT, statusObject.notificationPercent)
+                            .putString(PROGRESS_CONTENT, statusObject.notificationContent)
+                            .putString(PROGRESS_SPEED, statusObject.getSpeed())
+                            .putString(PROGRESS_FILENAME, currentFileName)
+                            .putString(PROGRESS_TYPE, inputData.getString(EPHEMERAL_TYPE) ?: "")
+                            .build())
                     } catch (e: JSONException) {
                         Log.e(tag(), "Error: the offending line: $line")
                         if (line.isNotBlank()) {
@@ -263,6 +287,10 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
             return
         }
         if (silentRun) {
+            return
+        }
+        // Don't post notifications if no work was actually started
+        if (sRcloneProcess == null && failureReason == FAILURE_REASON.NO_FAILURE) {
             return
         }
 

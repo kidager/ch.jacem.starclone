@@ -16,6 +16,7 @@ import de.felixnuesse.extract.notifications.implementations.UploadWorkerNotifica
 class EphemeralTaskManager(private var mContext: Context) {
 
     companion object {
+        const val TAG_EPHEMERAL = "ephemeral_transfer"
 
         fun queueDownload(
             context: Context,
@@ -107,6 +108,7 @@ class EphemeralTaskManager(private var mContext: Context) {
         val uploadWorkRequest = OneTimeWorkRequestBuilder<EphemeralWorker>()
         uploadWorkRequest.setInputData(inputData)
         uploadWorkRequest.addTag(tag)
+        uploadWorkRequest.addTag(TAG_EPHEMERAL)
         WorkManager.getInstance(mContext).enqueue(uploadWorkRequest.build())
     }
 

@@ -35,9 +35,10 @@ class DeleteWorkerNotification(var context: Context) : WorkerNotification(contex
 
 
     override fun generateSuccessMessage(statusObject: StatusObject, fileItem: FileItem): String {
+        val count = maxOf(statusObject.getDeletions(), 1)
         return mContext.resources.getQuantityString(
                 R.plurals.worker_deleting_success_message,
-                statusObject.getDeletions(),
+                count,
                 fileItem.name
         )
     }

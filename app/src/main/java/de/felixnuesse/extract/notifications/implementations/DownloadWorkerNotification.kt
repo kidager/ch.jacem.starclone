@@ -31,17 +31,11 @@ class DownloadWorkerNotification(var context: Context) : WorkerNotification(cont
     override val SUMMARY_ID = 390
 
     override fun generateSuccessMessage(statusObject: StatusObject, fileItem: FileItem): String {
-
-        val transfers = statusObject.getTotalTransfers()
-        val message = if (transfers <= 1 && !fileItem.isDir) {
-            statusObject.getTransfers().toString()
-        } else {
-            fileItem.name
-        }
+        val transfers = maxOf(statusObject.getTotalTransfers(), 1)
         return mContext.resources.getQuantityString(
                 R.plurals.worker_download_success_message,
                 transfers,
-                message
+                fileItem.name
         )
     }
 

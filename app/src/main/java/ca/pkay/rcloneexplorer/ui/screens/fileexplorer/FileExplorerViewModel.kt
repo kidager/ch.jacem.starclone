@@ -102,26 +102,34 @@ class FileExplorerViewModel(application: Application) : AndroidViewModel(applica
 
     private fun observeTransferProgress() {
         viewModelScope.launch {
+            var previousRunningIds = emptySet<String>()
             WorkManager.getInstance(context)
                 .getWorkInfosByTagFlow(EphemeralTaskManager.TAG_EPHEMERAL)
                 .collect { workInfos ->
-                    activeTransfers = workInfos
-                        .filter { it.state == WorkInfo.State.RUNNING }
-                        .mapNotNull { info ->
-                            val progress = info.progress
-                            val percent = progress.getInt(EphemeralWorker.PROGRESS_PERCENT, -1)
-                            if (percent < 0) return@mapNotNull null
-                            val typeStr = progress.getString(EphemeralWorker.PROGRESS_TYPE) ?: ""
-                            val type = try { Type.valueOf(typeStr) } catch (_: Exception) { return@mapNotNull null }
-                            TransferProgress(
-                                id = info.id.toString(),
-                                type = type,
-                                percent = percent,
-                                content = progress.getString(EphemeralWorker.PROGRESS_CONTENT) ?: "",
-                                speed = progress.getString(EphemeralWorker.PROGRESS_SPEED) ?: "",
-                                fileName = progress.getString(EphemeralWorker.PROGRESS_FILENAME) ?: "",
-                            )
-                        }
+                    val runningInfos = workInfos.filter { it.state == WorkInfo.State.RUNNING }
+                    val currentRunningIds = runningInfos.map { it.id.toString() }.toSet()
+
+                    // Refresh file list when any transfer finishes
+                    if (previousRunningIds.isNotEmpty() && previousRunningIds.any { it !in currentRunningIds }) {
+                        fetchDirectory(silent = true)
+                    }
+                    previousRunningIds = currentRunningIds
+
+                    activeTransfers = runningInfos.mapNotNull { info ->
+                        val progress = info.progress
+                        val percent = progress.getInt(EphemeralWorker.PROGRESS_PERCENT, -1)
+                        if (percent < 0) return@mapNotNull null
+                        val typeStr = progress.getString(EphemeralWorker.PROGRESS_TYPE) ?: ""
+                        val type = try { Type.valueOf(typeStr) } catch (_: Exception) { return@mapNotNull null }
+                        TransferProgress(
+                            id = info.id.toString(),
+                            type = type,
+                            percent = percent,
+                            content = progress.getString(EphemeralWorker.PROGRESS_CONTENT) ?: "",
+                            speed = progress.getString(EphemeralWorker.PROGRESS_SPEED) ?: "",
+                            fileName = progress.getString(EphemeralWorker.PROGRESS_FILENAME) ?: "",
+                        )
+                    }
                 }
         }
     }

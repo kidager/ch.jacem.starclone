@@ -50,10 +50,13 @@ class FileExplorerViewModel(application: Application) : AndroidViewModel(applica
         private set
     var isLoading by mutableStateOf(false)
         private set
+    var isRefreshing by mutableStateOf(false)
+        private set
     var error by mutableStateOf<String?>(null)
         private set
     var sortOrder by mutableIntStateOf(SortDialog.ALPHA_ASCENDING)
         private set
+    var showSortDialog by mutableStateOf(false)
 
     // Selection state
     var selectedFiles by mutableStateOf<Set<FileItem>>(emptySet())
@@ -67,6 +70,12 @@ class FileExplorerViewModel(application: Application) : AndroidViewModel(applica
         private set
     var moveStartPath: String? = null
         private set
+
+    // Dialog state
+    var showCloudFilesDialog by mutableStateOf<Int?>(null)
+    var showSyncDirectionDialog by mutableStateOf(false)
+    var showServeDialog by mutableStateOf(false)
+    var syncRemotePath: String? = null
 
     // Search
     var isInSearchMode by mutableStateOf(false)
@@ -134,10 +143,11 @@ class FileExplorerViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
-    fun fetchDirectory(silent: Boolean = false) {
+    fun fetchDirectory(silent: Boolean = false, refresh: Boolean = false) {
         fetchJob?.cancel()
         fetchJob = viewModelScope.launch {
-            if (!silent) isLoading = true
+            if (refresh) isRefreshing = true
+            else if (!silent) isLoading = true
             error = null
 
             val result = withContext(Dispatchers.IO) {
@@ -145,10 +155,14 @@ class FileExplorerViewModel(application: Application) : AndroidViewModel(applica
             }
 
             isLoading = false
+            isRefreshing = false
 
             if (result == null) {
-                if (!silent) {
-                    error = context.getString(R.string.error_getting_dir_content)
+                val rcloneError = rclone.lastError
+                error = if (!rcloneError.isNullOrBlank()) {
+                    rcloneError
+                } else {
+                    context.getString(R.string.error_getting_dir_content)
                 }
                 return@launch
             }
@@ -229,7 +243,11 @@ class FileExplorerViewModel(application: Application) : AndroidViewModel(applica
     }
 
     fun refresh() {
-        fetchDirectory(silent = true)
+        fetchDirectory(refresh = files.isNotEmpty())
+    }
+
+    fun consumeError() {
+        error = null
     }
 
     // --- File operations ---

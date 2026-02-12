@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -28,9 +29,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.compose.ui.platform.ComposeView;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.PreferenceManager;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -43,7 +43,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -54,22 +53,18 @@ import ch.jacem.starclone.Database.json.SharedPreferencesBackup;
 import ch.jacem.starclone.Dialogs.Dialogs;
 import ch.jacem.starclone.Dialogs.InputDialog;
 import ch.jacem.starclone.Dialogs.LoadingDialog;
-import ch.jacem.starclone.Fragments.FileExplorerFragment;
 import ch.jacem.starclone.Items.RemoteItem;
 import ch.jacem.starclone.R;
 import ch.jacem.starclone.Rclone;
 import ch.jacem.starclone.RemoteConfig.RemoteConfigHelper;
 import ch.jacem.starclone.RuntimeConfiguration;
-import ch.jacem.starclone.Services.StreamingService;
 import ch.jacem.starclone.Services.TriggerService;
-import ch.jacem.starclone.Settings.FileAccessSettingsFragment;
-import ch.jacem.starclone.Settings.GeneralPreferencesFragment;
-import ch.jacem.starclone.Settings.LogPreferencesFragment;
-import ch.jacem.starclone.Settings.NotificationPreferencesFragment;
-import ch.jacem.starclone.Settings.SettingsFragment;
-import ch.jacem.starclone.Settings.ThemingPreferencesFragment;
 import ch.jacem.starclone.ui.navigation.BottomNavTab;
 import ch.jacem.starclone.ui.navigation.MainActivityNavKt;
+import ch.jacem.starclone.ui.navigation.MainPagerAdapter;
+import ch.jacem.starclone.ui.screens.processes.ProcessesFragment;
+import ch.jacem.starclone.ui.screens.remotes.RemotesContainerFragment;
+import ch.jacem.starclone.ui.screens.settings.SettingsContainerFragment;
 import ch.jacem.starclone.util.ActivityHelper;
 import ch.jacem.starclone.util.FLog;
 import ch.jacem.starclone.util.PermissionManager;
@@ -79,21 +74,21 @@ import java9.util.stream.Stream;
 
 public class MainActivity extends AppCompatActivity
         implements InputDialog.OnPositive,
-        InputDialog.OnNegative,
-        SettingsFragment.OnSettingCategorySelectedListener {
+        InputDialog.OnNegative {
 
     private static final String TAG = "MainActivity";
     public static final String MAIN_ACTIVITY_START_LOG = "MAIN_ACTIVITY_START_LOG";
     public static final String MAIN_ACTIVITY_START_IMPORT = "MAIN_ACTIVITY_START_IMPORT";
     public static final String MAIN_ACTIVITY_START_EXPORT = "MAIN_ACTIVITY_START_EXPORT";
+    public static final String MAIN_ACTIVITY_START_PROCESSES = "MAIN_ACTIVITY_START_PROCESSES";
+    public static final String EXTRA_HIGHLIGHT_WORKER_ID = "EXTRA_HIGHLIGHT_WORKER_ID";
     private static final int READ_REQUEST_CODE = 42;
     private static final int SETTINGS_CODE = 71;
     private static final int WRITE_REQUEST_CODE = 81;
-    private final String FILE_EXPLORER_FRAGMENT_TAG = "ch.jacem.starclone.MAIN_ACTIVITY_FILE_EXPLORER_TAG";
     private Rclone rclone;
-    private Fragment fragment;
     private Context context;
-    private BottomNavTab currentTab = BottomNavTab.REMOTES;
+    private ViewPager2 viewPager;
+    private MainPagerAdapter pagerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,12 +114,62 @@ public class MainActivity extends AppCompatActivity
             actionbar.setDisplayHomeAsUpEnabled(false);
         }
 
+        // Set up ViewPager2
+        viewPager = findViewById(R.id.viewPager);
+        pagerAdapter = new MainPagerAdapter(this);
+        viewPager.setAdapter(pagerAdapter);
+        viewPager.setOffscreenPageLimit(BottomNavTab.values().length - 1);
+        viewPager.setUserInputEnabled(true);
+
+        // Restore saved page after recreation (e.g., theme change)
+        if (savedInstanceState != null) {
+            int savedPage = savedInstanceState.getInt("currentPage", 0);
+            viewPager.setCurrentItem(savedPage, false);
+        }
+
+        // Sync ViewPager2 page changes → bottom nav and fade toolbar during swipe
+        View appBarLayout = findViewById(R.id.appBar);
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                BottomNavTab tab = BottomNavTab.values()[position];
+                MainActivityNavKt.syncSelectedTab(tab);
+            }
+
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                // Fade the toolbar during swipe transitions
+                if (positionOffset == 0f) {
+                    appBarLayout.setAlpha(1f);
+                } else {
+                    // Fade out quickly during the first 30% of the swipe
+                    float alpha = Math.max(0f, 1f - positionOffset * 3.3f);
+                    appBarLayout.setAlpha(alpha);
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                if (state == ViewPager2.SCROLL_STATE_IDLE) {
+                    appBarLayout.setAlpha(1f);
+                }
+            }
+        });
+
         // Set up Compose bottom navigation
         ComposeView bottomNavCompose = findViewById(R.id.bottom_nav_compose);
-        MainActivityNavKt.setupBottomNav(bottomNavCompose, this, tab -> {
-            onTabSelected(tab);
-            return null;
-        });
+        MainActivityNavKt.setupBottomNav(bottomNavCompose, this,
+            tab -> {
+                // Tab selected → move ViewPager2
+                viewPager.setCurrentItem(tab.ordinal(), false);
+                return null;
+            },
+            tab -> {
+                // Tab reselected → reset container
+                onTabReselected(tab);
+                return null;
+            }
+        );
 
         rclone = new Rclone(this);
 
@@ -144,44 +189,30 @@ public class MainActivity extends AppCompatActivity
                 AppShortcutsHelper.populateAppShortcuts(this, rclone.getRemotes());
             }
 
-            startRemotesFragment();
-
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putInt(getString(R.string.pref_key_version_code), currentVersionCode);
             editor.putString(getString(R.string.pref_key_version_name), currentVersionName);
             editor.apply();
         } else if (rclone.isConfigEncrypted()) {
             askForConfigPassword();
-        } else if (savedInstanceState != null) {
-            fragment = getSupportFragmentManager().findFragmentByTag(FILE_EXPLORER_FRAGMENT_TAG);
-            if (fragment instanceof FileExplorerFragment) {
-                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                transaction.replace(R.id.flFragment, fragment, FILE_EXPLORER_FRAGMENT_TAG);
-                transaction.commit();
-            } else {
-                String savedTab = savedInstanceState.getString("currentTab");
-                if (savedTab != null) {
-                    onTabSelected(BottomNavTab.valueOf(savedTab));
-                } else {
-                    startRemotesFragment();
-                }
-            }
         } else if (bundle != null && bundle.containsKey(AppShortcutsHelper.APP_SHORTCUT_REMOTE_NAME)) {
             String remoteName = bundle.getString(AppShortcutsHelper.APP_SHORTCUT_REMOTE_NAME);
             RemoteItem remoteItem = rclone.getRemoteItemFromName(remoteName);
             if (remoteItem != null) {
                 AppShortcutsHelper.reportAppShortcutUsage(this, remoteItem.getName());
-                startRemote(remoteItem, false);
+                startRemote(remoteItem);
             } else {
                 Toasty.error(this, getString(R.string.remote_not_found), Toast.LENGTH_SHORT, true).show();
                 finish();
             }
-        } else {
-            startRemotesFragment();
         }
 
         if (MAIN_ACTIVITY_START_LOG.equals(intent.getAction())) {
-            startLogFragment();
+            viewPager.setCurrentItem(BottomNavTab.LOGS.ordinal(), false);
+        }
+
+        if (MAIN_ACTIVITY_START_PROCESSES.equals(intent.getAction())) {
+            navigateToProcesses(intent.getStringExtra(EXTRA_HIGHLIGHT_WORKER_ID));
         }
 
         if (MAIN_ACTIVITY_START_IMPORT.equals(intent.getAction())) {
@@ -202,14 +233,36 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         if (MAIN_ACTIVITY_START_LOG.equals(getIntent().getAction())) {
-            startLogFragment();
+            viewPager.setCurrentItem(BottomNavTab.LOGS.ordinal(), false);
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (MAIN_ACTIVITY_START_PROCESSES.equals(intent.getAction())) {
+            navigateToProcesses(intent.getStringExtra(EXTRA_HIGHLIGHT_WORKER_ID));
+        }
+    }
+
+    public void navigateToProcesses(String highlightWorkerId) {
+        viewPager.setCurrentItem(BottomNavTab.PROCESSES.ordinal(), true);
+        MainActivityNavKt.syncSelectedTab(BottomNavTab.PROCESSES);
+        if (highlightWorkerId != null) {
+            viewPager.post(() -> {
+                Fragment page = getPageFragment(BottomNavTab.PROCESSES.ordinal());
+                if (page instanceof ProcessesFragment) {
+                    ((ProcessesFragment) page).highlightProcess(highlightWorkerId);
+                }
+            });
         }
     }
 
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString("currentTab", currentTab.name());
+        outState.putInt("currentPage", viewPager.getCurrentItem());
     }
 
     @Override
@@ -223,23 +276,17 @@ public class MainActivity extends AppCompatActivity
         super.attachBaseContext(RuntimeConfiguration.attach(this, newBase));
     }
 
-    private void onTabSelected(BottomNavTab tab) {
-        currentTab = tab;
-        MainActivityNavKt.syncSelectedTab(tab);
-        switch (tab) {
-            case REMOTES:
-                startRemotesFragment();
-                break;
-            case TASKS:
-                startTasksFragment();
-                break;
-            case LOGS:
-                startLogFragment();
-                break;
-            case SETTINGS:
-                startSettingsFragment();
-                break;
+    private void onTabReselected(BottomNavTab tab) {
+        Fragment page = getPageFragment(tab.ordinal());
+        if (page instanceof RemotesContainerFragment) {
+            ((RemotesContainerFragment) page).resetToRemotesList();
+        } else if (page instanceof SettingsContainerFragment) {
+            ((SettingsContainerFragment) page).resetToSettingsList();
         }
+    }
+
+    private Fragment getPageFragment(int position) {
+        return getSupportFragmentManager().findFragmentByTag("f" + position);
     }
 
     @Override
@@ -299,19 +346,22 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        if (fragment instanceof FileExplorerFragment) {
-            if (((FileExplorerFragment) fragment).onBackButtonPressed()) {
-                return;
-            } else {
-                fragment = null;
-            }
-        } else if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-            getSupportFragmentManager().popBackStack();
-            return;
-        } else if (currentTab != BottomNavTab.REMOTES) {
-            onTabSelected(BottomNavTab.REMOTES);
+        int currentPage = viewPager.getCurrentItem();
+        Fragment page = getPageFragment(currentPage);
+
+        // Try delegating to the current page's container
+        if (page instanceof RemotesContainerFragment) {
+            if (((RemotesContainerFragment) page).onBackPressed()) return;
+        } else if (page instanceof SettingsContainerFragment) {
+            if (((SettingsContainerFragment) page).onBackPressed()) return;
+        }
+
+        // If not on Remotes, go to Remotes
+        if (currentPage != BottomNavTab.REMOTES.ordinal()) {
+            viewPager.setCurrentItem(BottomNavTab.REMOTES.ordinal(), true);
             return;
         }
+
         super.onBackPressed();
     }
 
@@ -334,32 +384,8 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void startTasksFragment() {
-        startFragment(ch.jacem.starclone.ui.screens.tasks.TasksFragment.newInstance());
-    }
-
-    private void startLogFragment() {
-        startFragment(ch.jacem.starclone.ui.screens.logs.LogsFragment.newInstance());
-    }
-
-    private void startFragment(Fragment fragmentToStart) {
-        View appBar = findViewById(R.id.appBar);
-        if (appBar != null) appBar.setVisibility(View.VISIBLE);
-
-        fragment = fragmentToStart;
-        FragmentManager fragmentManager = getSupportFragmentManager();
-
-        for (int i = 0; i < fragmentManager.getBackStackEntryCount(); i++) {
-            fragmentManager.popBackStack();
-        }
-
-        if (!isFinishing()) {
-            fragmentManager.beginTransaction().replace(R.id.flFragment, fragment).commitAllowingStateLoss();
-        }
-    }
-
     public void startRemotesFragment() {
-        startFragment(ch.jacem.starclone.ui.screens.remotes.RemotesFragment.newInstance());
+        viewPager.setCurrentItem(BottomNavTab.REMOTES.ordinal(), false);
     }
 
     private void warnUserAboutOverwritingConfiguration() {
@@ -484,53 +510,20 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void onRemoteClick(RemoteItem remote) {
-        startRemote(remote, true);
+        startRemote(remote);
     }
 
-    private void startSettingsFragment() {
-        startFragment(ch.jacem.starclone.ui.screens.settings.SettingsFragment.newInstance());
-    }
+    private void startRemote(RemoteItem remote) {
+        // Switch to Remotes page and open the remote in the container
+        viewPager.setCurrentItem(BottomNavTab.REMOTES.ordinal(), false);
 
-    @Override
-    public void onSettingCategoryClicked(int category) {
-        Fragment settingsSubFragment = null;
-        switch (category) {
-            case SettingsFragment.GENERAL_SETTINGS:
-                settingsSubFragment = new ch.jacem.starclone.ui.screens.settings.general.GeneralSettingsFragment();
-                break;
-            case SettingsFragment.FILE_ACCESS_SETTINGS:
-                settingsSubFragment = new ch.jacem.starclone.ui.screens.settings.fileaccess.FileAccessFragment();
-                break;
-            case SettingsFragment.LOOK_AND_FEEL_SETTINGS:
-                settingsSubFragment = new ch.jacem.starclone.ui.screens.settings.theming.ThemingFragment();
-                break;
-            case SettingsFragment.LOGGING_SETTINGS:
-                settingsSubFragment = new ch.jacem.starclone.ui.screens.settings.logging.LoggingSettingsFragment();
-                break;
-            case SettingsFragment.NOTIFICATION_SETTINGS:
-                settingsSubFragment = new ch.jacem.starclone.ui.screens.settings.notifications.NotificationSettingsFragment();
-                break;
-        }
-        if (settingsSubFragment != null) {
-            fragment = settingsSubFragment;
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.flFragment, settingsSubFragment)
-                    .addToBackStack(null)
-                    .commitAllowingStateLoss();
-        }
-    }
-
-    private void startRemote(RemoteItem remote, boolean addToBackStack) {
-        View appBar = findViewById(R.id.appBar);
-        if (appBar != null) appBar.setVisibility(View.VISIBLE);
-
-        fragment = FileExplorerFragment.newInstance(remote);
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.flFragment, fragment, FILE_EXPLORER_FRAGMENT_TAG);
-        if (addToBackStack) {
-            transaction.addToBackStack(null);
-        }
-        transaction.commit();
+        // Post to ensure the fragment is attached before opening
+        viewPager.post(() -> {
+            Fragment page = getPageFragment(BottomNavTab.REMOTES.ordinal());
+            if (page instanceof RemotesContainerFragment) {
+                ((RemotesContainerFragment) page).openRemote(remote);
+            }
+        });
 
         AppShortcutsHelper.reportAppShortcutUsage(this, remote.getName());
     }
@@ -815,15 +808,18 @@ public class MainActivity extends AppCompatActivity
                 return;
             }
             Set<String> renamedRemotes = pref.getStringSet(getString(R.string.pref_key_renamed_remotes), new HashSet<>());
-            Set<String> pinnedRemotes = pref.getStringSet(getString(R.string.shared_preferences_drawer_pinned_remotes), new HashSet<>());
+            Set<String> drawerPinned = pref.getStringSet(getString(R.string.shared_preferences_drawer_pinned_remotes), new HashSet<>());
+            Set<String> topPinned = pref.getStringSet(getString(R.string.shared_preferences_pinned_remotes), new HashSet<>());
             Set<String> generatedRemotes = pref.getStringSet(getString(R.string.pref_key_local_alias_remotes), new HashSet<>());
             renamedRemotes.add(id);
-            pinnedRemotes.add(id);
+            drawerPinned.add(id);
+            topPinned.add(id);
             generatedRemotes.add(id);
             pref.edit()
                     .putStringSet(getString(R.string.pref_key_renamed_remotes), renamedRemotes)
                     .putString(getString(R.string.pref_key_renamed_remote_prefix, id), name)
-                    .putStringSet(getString(R.string.shared_preferences_drawer_pinned_remotes), pinnedRemotes)
+                    .putStringSet(getString(R.string.shared_preferences_drawer_pinned_remotes), drawerPinned)
+                    .putStringSet(getString(R.string.shared_preferences_pinned_remotes), topPinned)
                     .putStringSet(getString(R.string.pref_key_local_alias_remotes), generatedRemotes)
                     .apply();
         }

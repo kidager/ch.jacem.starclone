@@ -12,6 +12,9 @@ import java.util.Random
 
 class SyncManager(private var mContext: Context) {
 
+    companion object {
+        const val TAG_SYNC = "sync_transfer"
+    }
 
     fun queue(trigger: Trigger) {
         queue(trigger.triggerTarget)
@@ -29,6 +32,7 @@ class SyncManager(private var mContext: Context) {
 
         uploadWorkRequest.setInputData(data.build())
         uploadWorkRequest.addTag(taskID.toString())
+        uploadWorkRequest.addTag(TAG_SYNC)
         work(uploadWorkRequest.build())
     }
 
@@ -42,6 +46,7 @@ class SyncManager(private var mContext: Context) {
 
         uploadWorkRequest.setInputData(data.build())
         uploadWorkRequest.addTag(task.id.toString())
+        uploadWorkRequest.addTag(TAG_SYNC)
         work(uploadWorkRequest.build())
     }
 

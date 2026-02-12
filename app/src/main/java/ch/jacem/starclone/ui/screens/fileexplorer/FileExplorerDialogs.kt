@@ -14,7 +14,7 @@ import androidx.compose.material.icons.outlined.AudioFile
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.VideoFile
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
@@ -24,7 +24,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,12 +33,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import ch.jacem.starclone.Dialogs.SortDialog
 import ch.jacem.starclone.Items.FileItem
 import ch.jacem.starclone.Items.RemoteItem
+import ch.jacem.starclone.Items.SyncDirectionObject
 import ch.jacem.starclone.R
+import ch.jacem.starclone.Rclone
+import ch.jacem.starclone.ui.components.StarCloneDialog
 
 // --- Sort Dialog ---
 
@@ -63,9 +67,9 @@ fun SortDialog(
     var sortBy by remember { mutableIntStateOf(initialSortBy) }
     var ascending by remember { mutableStateOf(initialAscending) }
 
-    AlertDialog(
+    StarCloneDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.sort)) },
+        title = stringResource(R.string.sort),
         text = {
             Column {
                 // Sort by options
@@ -100,23 +104,17 @@ fun SortDialog(
                 )
             }
         },
-        confirmButton = {
-            TextButton(onClick = {
-                val order = when (sortBy) {
-                    1 -> if (ascending) SortDialog.MOD_TIME_ASCENDING else SortDialog.MOD_TIME_DESCENDING
-                    2 -> if (ascending) SortDialog.SIZE_ASCENDING else SortDialog.SIZE_DESCENDING
-                    else -> if (ascending) SortDialog.ALPHA_ASCENDING else SortDialog.ALPHA_DESCENDING
-                }
-                onConfirm(order)
-            }) {
-                Text(stringResource(R.string.ok))
+        confirmLabel = stringResource(R.string.ok),
+        onConfirm = {
+            val order = when (sortBy) {
+                1 -> if (ascending) SortDialog.MOD_TIME_ASCENDING else SortDialog.MOD_TIME_DESCENDING
+                2 -> if (ascending) SortDialog.SIZE_ASCENDING else SortDialog.SIZE_DESCENDING
+                else -> if (ascending) SortDialog.ALPHA_ASCENDING else SortDialog.ALPHA_DESCENDING
             }
+            onConfirm(order)
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        },
+        dismissLabel = stringResource(R.string.cancel),
+        onDismiss = onDismiss,
     )
 }
 
@@ -152,9 +150,9 @@ fun InputDialog(
 ) {
     var text by remember { mutableStateOf(initialValue) }
 
-    AlertDialog(
+    StarCloneDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title) },
+        title = title,
         text = {
             Column {
                 Text(message, style = MaterialTheme.typography.bodyMedium)
@@ -170,16 +168,10 @@ fun InputDialog(
                 )
             }
         },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(text) }) {
-                Text(stringResource(R.string.okay_confirmation))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        },
+        confirmLabel = stringResource(R.string.okay_confirmation),
+        onConfirm = { onConfirm(text) },
+        dismissLabel = stringResource(R.string.cancel),
+        onDismiss = onDismiss,
     )
 }
 
@@ -201,22 +193,17 @@ fun DeleteConfirmDialog(
         stringResource(R.string.name_will_be_deleted, files[0].name)
     } else null
 
-    AlertDialog(
+    StarCloneDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title) },
+        title = title,
         text = if (message != null) {
             { Text(message) }
         } else null,
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(stringResource(R.string.delete))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        },
+        confirmLabel = stringResource(R.string.delete),
+        onConfirm = onConfirm,
+        dismissLabel = stringResource(R.string.cancel),
+        onDismiss = onDismiss,
+        isDestructive = true,
     )
 }
 
@@ -227,19 +214,14 @@ fun EmptyTrashConfirmDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
-    AlertDialog(
+    StarCloneDialog(
         onDismissRequest = onDismiss,
         text = { Text(stringResource(R.string.empty_trash_confirmation)) },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(stringResource(R.string.ok))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        },
+        confirmLabel = stringResource(R.string.ok),
+        onConfirm = onConfirm,
+        dismissLabel = stringResource(R.string.cancel),
+        onDismiss = onDismiss,
+        isDestructive = true,
     )
 }
 
@@ -254,9 +236,9 @@ fun OpenAsDialog(
     onVideo: () -> Unit,
     onImage: () -> Unit,
 ) {
-    AlertDialog(
+    StarCloneDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.open_as)) },
+        title = stringResource(R.string.open_as),
         text = {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -284,12 +266,8 @@ fun OpenAsDialog(
                 )
             }
         },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        },
+        dismissLabel = stringResource(R.string.cancel),
+        onDismiss = onDismiss,
     )
 }
 
@@ -376,19 +354,196 @@ fun LinkDialog(
     link: String,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
+    StarCloneDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.public_link)) },
+        title = stringResource(R.string.public_link),
         text = {
             Text(
                 text = link,
                 style = MaterialTheme.typography.bodyMedium,
             )
         },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.ok))
+        confirmLabel = stringResource(R.string.ok),
+        onConfirm = onDismiss,
+    )
+}
+
+// --- Cloud Files Dialog ---
+
+@Composable
+fun CloudFilesDialog(
+    count: Int,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    StarCloneDialog(
+        onDismissRequest = onDismiss,
+        title = stringResource(R.string.upload_cloud_files_title),
+        text = {
+            Text(
+                text = stringResource(R.string.upload_cloud_files_message, count),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        },
+        confirmLabel = stringResource(R.string.upload_cloud_files_confirm),
+        onConfirm = onConfirm,
+        dismissLabel = stringResource(android.R.string.cancel),
+        onDismiss = onDismiss,
+    )
+}
+
+// --- Sync Direction Dialog ---
+
+@Composable
+fun SyncDirectionDialog(
+    onDismiss: () -> Unit,
+    onDirectionSelected: (Int) -> Unit,
+) {
+    val labels = stringArrayResource(R.array.sync_direction_options)
+    val directions = listOf(
+        SyncDirectionObject.SYNC_LOCAL_TO_REMOTE,
+        SyncDirectionObject.SYNC_REMOTE_TO_LOCAL,
+    )
+
+    StarCloneDialog(
+        onDismissRequest = onDismiss,
+        title = stringResource(R.string.select_sync_direction),
+        text = {
+            Column {
+                labels.forEachIndexed { index, label ->
+                    val direction = directions.getOrElse(index) { return@forEachIndexed }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .selectable(selected = false, onClick = {
+                                onDirectionSelected(direction)
+                            })
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(label, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
             }
         },
+        dismissLabel = stringResource(R.string.cancel),
+        onDismiss = onDismiss,
     )
+}
+
+// --- Serve Dialog ---
+
+@Composable
+fun ServeDialog(
+    initialAllowRemoteAccess: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (protocol: Int, allowRemoteAccess: Boolean, user: String, password: String) -> Unit,
+) {
+    var selectedProtocol by remember { mutableIntStateOf(Rclone.SERVE_PROTOCOL_HTTP) }
+    var allowRemoteAccess by remember { mutableStateOf(initialAllowRemoteAccess) }
+    var user by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    StarCloneDialog(
+        onDismissRequest = onDismiss,
+        title = stringResource(R.string.serve_dialog_title),
+        text = {
+            Column {
+                // Protocol selection
+                ServeProtocolOption(
+                    label = stringResource(R.string.provider_ftp),
+                    selected = selectedProtocol == Rclone.SERVE_PROTOCOL_FTP,
+                    onClick = { selectedProtocol = Rclone.SERVE_PROTOCOL_FTP },
+                )
+                ServeProtocolOption(
+                    label = stringResource(R.string.serve_dlna),
+                    selected = selectedProtocol == Rclone.SERVE_PROTOCOL_DLNA,
+                    onClick = { selectedProtocol = Rclone.SERVE_PROTOCOL_DLNA },
+                )
+                ServeProtocolOption(
+                    label = stringResource(R.string.provider_http),
+                    selected = selectedProtocol == Rclone.SERVE_PROTOCOL_HTTP,
+                    onClick = { selectedProtocol = Rclone.SERVE_PROTOCOL_HTTP },
+                )
+                ServeProtocolOption(
+                    label = stringResource(R.string.provider_webdav),
+                    selected = selectedProtocol == Rclone.SERVE_PROTOCOL_WEBDAV,
+                    onClick = { selectedProtocol = Rclone.SERVE_PROTOCOL_WEBDAV },
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                // Allow remote access
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .selectable(
+                            selected = allowRemoteAccess,
+                            onClick = { allowRemoteAccess = !allowRemoteAccess },
+                        )
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Checkbox(checked = allowRemoteAccess, onCheckedChange = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        stringResource(R.string.allow_remote_access),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                // Authentication section
+                Text(
+                    text = stringResource(R.string.authentication),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = user,
+                    onValueChange = { user = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Username") },
+                    supportingText = { Text(stringResource(R.string.optional)) },
+                    singleLine = true,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Password") },
+                    supportingText = { Text(stringResource(R.string.optional)) },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                )
+            }
+        },
+        confirmLabel = stringResource(R.string.ok),
+        onConfirm = { onConfirm(selectedProtocol, allowRemoteAccess, user, password) },
+        dismissLabel = stringResource(R.string.cancel),
+        onDismiss = onDismiss,
+    )
+}
+
+@Composable
+private fun ServeProtocolOption(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .selectable(selected = selected, onClick = onClick)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(selected = selected, onClick = null)
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(label, style = MaterialTheme.typography.bodyMedium)
+    }
 }

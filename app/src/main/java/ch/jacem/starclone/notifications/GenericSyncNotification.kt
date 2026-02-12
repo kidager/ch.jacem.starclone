@@ -5,10 +5,12 @@ import android.app.NotificationChannelGroup
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_IMMUTABLE
+import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import ch.jacem.starclone.Activities.MainActivity
 import ch.jacem.starclone.R
 
 class GenericSyncNotification(var mContext: Context) {
@@ -21,7 +23,8 @@ class GenericSyncNotification(var mContext: Context) {
         percent: Int,
         cls: Class<*>?,
         cancelIntent: PendingIntent?,
-        channelID: String
+        channelID: String,
+        workerId: String? = null,
     ): NotificationCompat.Builder {
         val bigText = StringBuilder()
         for (i in bigTextArray.indices) {
@@ -30,8 +33,19 @@ class GenericSyncNotification(var mContext: Context) {
                 bigText.append("\n")
             }
         }
-        val foregroundIntent = Intent(mContext, cls)
-        val pendingIntent = PendingIntent.getActivity(mContext, 0, foregroundIntent, FLAG_IMMUTABLE)
+        val foregroundIntent = Intent(mContext, MainActivity::class.java).apply {
+            action = MainActivity.MAIN_ACTIVITY_START_PROCESSES
+            if (workerId != null) {
+                putExtra(MainActivity.EXTRA_HIGHLIGHT_WORKER_ID, workerId)
+            }
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            mContext,
+            workerId?.hashCode() ?: 0,
+            foregroundIntent,
+            FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE,
+        )
 
 
         val notificationBuilder = NotificationCompat.Builder(

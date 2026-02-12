@@ -10,18 +10,32 @@ import android.os.Environment
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import ch.jacem.starclone.BuildConfig
 import ch.jacem.starclone.R
 import ch.jacem.starclone.ui.theme.StarCloneTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class FileAccessFragment : Fragment() {
 
     private val permissions = mutableStateListOf<UriPermission>()
+    private val snackbarHostState = SnackbarHostState()
+
+    private fun showSnackbar(message: String) {
+        CoroutineScope(Dispatchers.Main).launch {
+            snackbarHostState.showSnackbar(
+                message = message,
+                duration = SnackbarDuration.Short,
+            )
+        }
+    }
 
     private val documentTreeLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
@@ -29,18 +43,18 @@ class FileAccessFragment : Fragment() {
         if (result.resultCode == android.app.Activity.RESULT_OK) {
             val uri = result.data?.data ?: return@registerForActivityResult
             if (uri.authority == BuildConfig.VCP_AUTHORITY) {
-                Toast.makeText(requireContext(), getString(R.string.saf_uri_permission_error), Toast.LENGTH_LONG).show()
+                showSnackbar(getString(R.string.saf_uri_permission_error))
                 return@registerForActivityResult
             }
             val contentResolver = requireContext().contentResolver
             for (perm in contentResolver.persistedUriPermissions) {
                 if (uri.toString().startsWith(perm.uri.toString())) {
-                    Toast.makeText(requireContext(), getString(R.string.saf_uri_permission_already_added), Toast.LENGTH_LONG).show()
+                    showSnackbar(getString(R.string.saf_uri_permission_already_added))
                     return@registerForActivityResult
                 }
             }
             if ("com.android.externalstorage.documents" != uri.authority) {
-                Toast.makeText(requireContext(), "Third party providers are not tested well, proceed with caution.", Toast.LENGTH_LONG).show()
+                showSnackbar("Third party providers are not tested well, proceed with caution.")
             }
             val takeFlags = result.data?.flags ?: 0
             contentResolver.takePersistableUriPermission(
@@ -48,7 +62,7 @@ class FileAccessFragment : Fragment() {
                 (Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION) and takeFlags,
             )
             refreshPermissions()
-            Toast.makeText(requireContext(), getString(R.string.saf_uri_permission_added), Toast.LENGTH_SHORT).show()
+            showSnackbar(getString(R.string.saf_uri_permission_added))
         }
     }
 
@@ -56,9 +70,9 @@ class FileAccessFragment : Fragment() {
         ActivityResultContracts.StartActivityForResult(),
     ) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Environment.isExternalStorageManager()) {
-            Toast.makeText(requireContext(), "You can now access all local storage", Toast.LENGTH_LONG).show()
+            showSnackbar("You can now access all local storage")
         } else {
-            Toast.makeText(requireContext(), "Manage files not granted", Toast.LENGTH_LONG).show()
+            showSnackbar("Manage files not granted")
         }
     }
 
@@ -72,6 +86,7 @@ class FileAccessFragment : Fragment() {
             StarCloneTheme {
                 FileAccessScreen(
                     permissions = permissions,
+                    snackbarHostState = snackbarHostState,
                     onAddStorage = { addRoot() },
                     onRemovePermission = { perm -> removePermission(perm) },
                     onOpenAllFilesSettings = { openAllFilesSettings() },

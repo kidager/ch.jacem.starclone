@@ -38,7 +38,12 @@ class RemotesFragment : Fragment() {
                 RemotesScreen(
                     viewModel = viewModel,
                     onRemoteClick = { remote ->
-                        (requireActivity() as MainActivity).onRemoteClick(remote)
+                        val parent = parentFragment
+                        if (parent is RemotesContainerFragment) {
+                            parent.openRemote(remote)
+                        } else {
+                            (requireActivity() as MainActivity).onRemoteClick(remote)
+                        }
                     },
                     onAddRemote = {
                         configLauncher.launch(Intent(context, RemoteConfig::class.java))

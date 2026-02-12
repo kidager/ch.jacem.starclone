@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 fun StarCloneBottomNav(
     selectedTab: BottomNavTab,
     onTabSelected: (BottomNavTab) -> Unit,
+    onTabReselected: (BottomNavTab) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     NavigationBar(
@@ -23,7 +24,13 @@ fun StarCloneBottomNav(
                 icon = { Icon(imageVector = tab.icon, contentDescription = tab.label) },
                 label = { Text(tab.label) },
                 selected = selectedTab == tab,
-                onClick = { onTabSelected(tab) },
+                onClick = {
+                    if (selectedTab == tab) {
+                        onTabReselected(tab)
+                    } else {
+                        onTabSelected(tab)
+                    }
+                },
             )
         }
     }

@@ -3,9 +3,11 @@ package ch.jacem.starclone.ui.screens.settings.fileaccess
 import android.content.Intent
 import android.content.UriPermission
 import android.os.Build
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -17,6 +19,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,6 +48,7 @@ private const val ANDROID_AUTHORITY = "com.android.externalstorage.documents"
 @Composable
 fun FileAccessScreen(
     permissions: List<UriPermission>,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     onAddStorage: () -> Unit,
     onRemovePermission: (UriPermission) -> Unit,
     onOpenAllFilesSettings: () -> Unit,
@@ -65,6 +70,7 @@ fun FileAccessScreen(
     var vcpDeclareLocal by remember { mutableStateOf(prefs.getBoolean(vcpLocalKey, true)) }
     var vcpGrantAll by remember { mutableStateOf(prefs.getBoolean(vcpGrantAllKey, false)) }
 
+    Box(modifier = Modifier.fillMaxSize()) {
     LazyColumn(
         contentPadding = PaddingValues(vertical = 8.dp),
     ) {
@@ -190,6 +196,11 @@ fun FileAccessScreen(
         }
 
         item { Spacer(Modifier.height(80.dp)) }
+    }
+    SnackbarHost(
+        hostState = snackbarHostState,
+        modifier = Modifier.align(Alignment.BottomCenter),
+    )
     }
 }
 

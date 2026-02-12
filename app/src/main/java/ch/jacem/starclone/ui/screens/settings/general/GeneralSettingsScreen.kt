@@ -1,7 +1,6 @@
 package ch.jacem.starclone.ui.screens.settings.general
 
 import android.os.Build
-import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,14 +10,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,10 +34,15 @@ import ch.jacem.starclone.AppShortcutsHelper
 import ch.jacem.starclone.Items.RemoteItem
 import ch.jacem.starclone.R
 import ch.jacem.starclone.Rclone
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import ch.jacem.starclone.ui.components.StarCloneDialog
 import ch.jacem.starclone.ui.components.StarCloneListItem
 import java.util.Locale
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 
 @Composable
 fun GeneralSettingsScreen() {
@@ -290,9 +292,9 @@ fun GeneralSettingsScreen() {
 
     // Protocol dialog
     if (showProtocolDialog) {
-        AlertDialog(
+        StarCloneDialog(
             onDismissRequest = { showProtocolDialog = false },
-            title = { Text(stringResource(R.string.pref_proxy_protocol_dlg_title)) },
+            title = stringResource(R.string.pref_proxy_protocol_dlg_title),
             text = {
                 Column {
                     validProtocols.forEach { protocol ->
@@ -313,9 +315,8 @@ fun GeneralSettingsScreen() {
                     }
                 }
             },
-            confirmButton = {
-                TextButton(onClick = { showProtocolDialog = false }) { Text("Cancel") }
-            },
+            dismissLabel = stringResource(R.string.cancel),
+            onDismiss = { showProtocolDialog = false },
         )
     }
 
@@ -332,9 +333,9 @@ fun GeneralSettingsScreen() {
             }
         }
 
-        AlertDialog(
+        StarCloneDialog(
             onDismissRequest = { showLanguageDialog = false },
-            title = { Text(stringResource(R.string.pref_locale_dlg_title)) },
+            title = stringResource(R.string.pref_locale_dlg_title),
             text = {
                 Column {
                     locales.forEachIndexed { index, locale ->
@@ -356,9 +357,8 @@ fun GeneralSettingsScreen() {
                     }
                 }
             },
-            confirmButton = {
-                TextButton(onClick = { showLanguageDialog = false }) { Text("Cancel") }
-            },
+            dismissLabel = stringResource(R.string.cancel),
+            onDismiss = { showLanguageDialog = false },
         )
     }
 
@@ -396,9 +396,9 @@ private fun EditTextDialog(
 ) {
     var text by remember { mutableStateOf(config.value) }
 
-    AlertDialog(
+    StarCloneDialog(
         onDismissRequest = onDismiss,
-        title = { Text(config.title) },
+        title = config.title,
         text = {
             OutlinedTextField(
                 value = text,
@@ -409,15 +409,13 @@ private fun EditTextDialog(
                 modifier = Modifier.fillMaxWidth(),
             )
         },
-        confirmButton = {
-            TextButton(onClick = {
-                config.onConfirm(text)
-                onDismiss()
-            }) { Text("OK") }
+        confirmLabel = "OK",
+        onConfirm = {
+            config.onConfirm(text)
+            onDismiss()
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
-        },
+        dismissLabel = "Cancel",
+        onDismiss = onDismiss,
     )
 }
 
@@ -429,9 +427,9 @@ private fun ThumbnailSizeDialog(
 ) {
     var text by remember { mutableStateOf(String.format("%.1f", currentSize / 1024.0 / 1024.0)) }
 
-    AlertDialog(
+    StarCloneDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.pref_thumbnails_dlg_title)) },
+        title = stringResource(R.string.pref_thumbnails_dlg_title),
         text = {
             OutlinedTextField(
                 value = text,
@@ -442,23 +440,25 @@ private fun ThumbnailSizeDialog(
                 modifier = Modifier.fillMaxWidth(),
             )
         },
-        confirmButton = {
-            TextButton(onClick = {
-                val mb = text.toDoubleOrNull()
-                if (mb != null) {
-                    onConfirm((mb * 1024 * 1024).toLong())
-                }
-            }) { Text("OK") }
+        confirmLabel = "OK",
+        onConfirm = {
+            val mb = text.toDoubleOrNull()
+            if (mb != null) {
+                onConfirm((mb * 1024 * 1024).toLong())
+            }
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
-        },
+        dismissLabel = "Cancel",
+        onDismiss = onDismiss,
     )
 }
 
 @Composable
-private fun AppShortcutDialog(onDismiss: () -> Unit) {
+private fun AppShortcutDialog(
+    onDismiss: () -> Unit,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val prefs = remember { PreferenceManager.getDefaultSharedPreferences(context) }
     val shortcutsKey = stringResource(R.string.shared_preferences_app_shortcuts)
 
@@ -478,9 +478,9 @@ private fun AppShortcutDialog(onDismiss: () -> Unit) {
         }.toMutableStateList()
     }
 
-    AlertDialog(
+    StarCloneDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.app_shortcuts_settings_dialog_title)) },
+        title = stringResource(R.string.app_shortcuts_settings_dialog_title),
         text = {
             Column {
                 remotes.forEachIndexed { index, remote ->
@@ -493,11 +493,12 @@ private fun AppShortcutDialog(onDismiss: () -> Unit) {
                             onCheckedChange = { checked ->
                                 val selectedCount = checkedStates.count { it }
                                 if (checked && selectedCount >= 4) {
-                                    Toast.makeText(
-                                        context,
-                                        context.getString(R.string.app_shortcuts_max_toast),
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = context.getString(R.string.app_shortcuts_max_toast),
+                                            duration = SnackbarDuration.Short,
+                                        )
+                                    }
                                     return@Checkbox
                                 }
                                 checkedStates[index] = checked
@@ -511,16 +512,14 @@ private fun AppShortcutDialog(onDismiss: () -> Unit) {
                 }
             }
         },
-        confirmButton = {
-            TextButton(onClick = {
-                val selectedNames = remotes.filterIndexed { i, _ -> checkedStates[i] }.map { it.name }
-                setAppShortcuts(context, prefs, shortcutsKey, remotes, selectedNames)
-                onDismiss()
-            }) { Text(stringResource(R.string.select)) }
+        confirmLabel = stringResource(R.string.select),
+        onConfirm = {
+            val selectedNames = remotes.filterIndexed { i, _ -> checkedStates[i] }.map { it.name }
+            setAppShortcuts(context, prefs, shortcutsKey, remotes, selectedNames)
+            onDismiss()
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
-        },
+        dismissLabel = stringResource(R.string.cancel),
+        onDismiss = onDismiss,
     )
 }
 

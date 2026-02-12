@@ -28,10 +28,8 @@ import ch.jacem.starclone.BuildConfig
 import ch.jacem.starclone.Dialogs.Dialogs
 import ch.jacem.starclone.Dialogs.GoToDialog
 import ch.jacem.starclone.Dialogs.LoadingDialog
-import ch.jacem.starclone.Dialogs.ServeDialog
 import ch.jacem.starclone.Items.FileItem
 import ch.jacem.starclone.Items.RemoteItem
-import ch.jacem.starclone.Items.SyncDirectionObject
 import ch.jacem.starclone.Items.Task
 import ch.jacem.starclone.R
 import ch.jacem.starclone.Rclone
@@ -58,8 +56,7 @@ import java.net.ServerSocket
 import java.security.SecureRandom
 
 class FileExplorerFragment : Fragment(),
-    GoToDialog.Callbacks,
-    ServeDialog.Callback {
+    GoToDialog.Callbacks {
 
     private val viewModel: FileExplorerViewModel by viewModels()
     private lateinit var remote: RemoteItem
@@ -71,8 +68,8 @@ class FileExplorerFragment : Fragment(),
     private var thumbnailServerPort = 0
     private var goToDefaultSet = false
     private var syncDirection = -1
-    private var syncRemotePath: String? = null
     private var pendingDownloadFiles: List<FileItem> = emptyList()
+    private var pendingCloudUris: List<Uri> = emptyList()
 
     // --- SAF pickers ---
 
@@ -80,14 +77,31 @@ class FileExplorerFragment : Fragment(),
         ActivityResultContracts.OpenMultipleDocuments()
     ) { uris ->
         val ctx = context ?: return@registerForActivityResult
+        val resolved = mutableListOf<String>()
+        val unresolved = mutableListOf<Uri>()
+
         for (uri in uris) {
-            // VCP URI → remote-to-remote copy using rclone path
             val path = if (UriUtils.isVcpUri(uri)) {
                 UriUtils.getRclonePathFromVcpUri(ctx, uri)
             } else {
                 UriUtils.getPathFromDocumentUri(ctx, uri)
-            } ?: continue
+            }
+            if (path != null) {
+                resolved.add(path)
+            } else {
+                unresolved.add(uri)
+            }
+        }
+
+        // Queue resolved files immediately
+        for (path in resolved) {
             EphemeralTaskManager.queueUpload(ctx, remote, path, viewModel.currentPath)
+        }
+
+        // Ask confirmation for unresolved (cloud) files
+        if (unresolved.isNotEmpty()) {
+            pendingCloudUris = unresolved
+            viewModel.showCloudFilesDialog = unresolved.size
         }
     }
 
@@ -114,7 +128,7 @@ class FileExplorerFragment : Fragment(),
             remoteId = remote.name
             localPath = path
             direction = syncDirection
-            remotePath = syncRemotePath ?: ""
+            remotePath = viewModel.syncRemotePath ?: ""
         }
         SyncManager(ctx).queueEphemeral(task)
     }
@@ -184,10 +198,14 @@ class FileExplorerFragment : Fragment(),
                         onFileClick = { fileItem -> handleFileClick(fileItem) },
                         onUploadFiles = { uploadPicker.launch(arrayOf("*/*")) },
                         onDownloadFiles = { files -> onDownloadFiles(files) },
-                        onSyncSelected = { path -> showSyncDialog(path) },
-                        onServe = { showServeDialog() },
+                        onSyncDirectionSelected = { direction -> onSyncDirectionSelected(direction) },
                         onShowGoToDialog = { showSFTPgoToDialog() },
-                        onShowServeDialog = { showServeDialog() },
+                        onCloudFilesConfirmed = { onCloudFilesConfirmed() },
+                        onServeConfirmed = { protocol, allowRemoteAccess, user, password ->
+                            onServeOptionsSelected(protocol, allowRemoteAccess, user, password)
+                        },
+                        serveAllowRemoteAccess = getServeAllowRemoteAccess(),
+                        onTransferClick = { workerId -> navigateToProcess(workerId) },
                     )
                 }
             }
@@ -246,13 +264,16 @@ class FileExplorerFragment : Fragment(),
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.action_sort -> true
+            R.id.action_sort -> {
+                viewModel.showSortDialog = true
+                true
+            }
             R.id.action_select_all -> {
                 viewModel.selectAll()
                 true
             }
             R.id.action_serve -> {
-                showServeDialog()
+                viewModel.showServeDialog = true
                 true
             }
             R.id.action_empty_trash -> {
@@ -264,7 +285,8 @@ class FileExplorerFragment : Fragment(),
                 true
             }
             R.id.action_sync -> {
-                showSyncDialog(viewModel.currentPath)
+                viewModel.syncRemotePath = viewModel.currentPath
+                viewModel.showSyncDirectionDialog = true
                 true
             }
             R.id.action_go_to -> {
@@ -458,30 +480,33 @@ class FileExplorerFragment : Fragment(),
         downloadDestPicker.launch(null)
     }
 
-    private fun showSyncDialog(path: String) {
-        syncRemotePath = path
-        val options = resources.getStringArray(R.array.sync_direction_options)
+    private fun onSyncDirectionSelected(direction: Int) {
+        syncDirection = direction
+        syncDestPicker.launch(null)
+    }
+
+    private fun onCloudFilesConfirmed() {
         val ctx = context ?: return
-        androidx.appcompat.app.AlertDialog.Builder(ctx)
-            .setTitle(R.string.select_sync_direction)
-            .setItems(options) { _, which ->
-                syncDirection = when (which + 1) {
-                    SyncDirectionObject.SYNC_REMOTE_TO_LOCAL -> SyncDirectionObject.SYNC_REMOTE_TO_LOCAL
-                    SyncDirectionObject.COPY_LOCAL_TO_REMOTE -> SyncDirectionObject.COPY_LOCAL_TO_REMOTE
-                    SyncDirectionObject.COPY_REMOTE_TO_LOCAL -> SyncDirectionObject.COPY_REMOTE_TO_LOCAL
-                    else -> SyncDirectionObject.SYNC_LOCAL_TO_REMOTE
+        val uris = pendingCloudUris
+        pendingCloudUris = emptyList()
+        lifecycleScope.launch(Dispatchers.IO) {
+            for (uri in uris) {
+                val cachedPath = UriUtils.copyToCache(ctx, uri)
+                if (cachedPath != null) {
+                    EphemeralTaskManager.queueUpload(ctx, remote, cachedPath, viewModel.currentPath)
                 }
-                syncDestPicker.launch(null)
             }
-            .show()
+        }
     }
 
-    private fun showServeDialog() {
-        ServeDialog().show(childFragmentManager, "serve dialog")
-    }
-
-    override fun onServeOptionsSelected(protocol: Int, allowRemoteAccess: Boolean, user: String?, password: String?) {
+    private fun onServeOptionsSelected(protocol: Int, allowRemoteAccess: Boolean, user: String?, password: String?) {
         val ctx = context ?: return
+
+        PreferenceManager.getDefaultSharedPreferences(ctx)
+            .edit()
+            .putBoolean(getString(R.string.pref_choice_serve_dialog_allow_ext), allowRemoteAccess)
+            .apply()
+
         ctx.stopService(Intent(ctx, StreamingService::class.java))
 
         val intent = Intent(ctx, StreamingService::class.java).apply {
@@ -505,6 +530,12 @@ class FileExplorerFragment : Fragment(),
         tryStartService(ctx, intent)
     }
 
+    private fun getServeAllowRemoteAccess(): Boolean {
+        val ctx = context ?: return false
+        val prefs = PreferenceManager.getDefaultSharedPreferences(ctx)
+        return prefs.getBoolean(getString(R.string.pref_choice_serve_dialog_allow_ext), false)
+    }
+
     private fun showSFTPgoToDialog() {
         GoToDialog().show(childFragmentManager, "go to dialog")
     }
@@ -515,6 +546,10 @@ class FileExplorerFragment : Fragment(),
 
     override fun onHomeClicked(isSetAsDefault: Boolean) {
         viewModel.goToHome(isSetAsDefault)
+    }
+
+    private fun navigateToProcess(workerId: String) {
+        (activity as? MainActivity)?.navigateToProcesses(workerId)
     }
 
     // --- Helpers ---

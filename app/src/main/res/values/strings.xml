@@ -666,4 +666,24 @@
     <string name="pref_proxy_password">Password</string>
     <string name="intro_update_checks_title">Update Notifications</string>
     <string name="intro_update_checks_description">If you want to recieve updates, you can enable the switch below! We will notify if an update is available, and you can then choose to apply it.</string>
+
+    <!-- Processes screen -->
+    <string name="processes">Processes</string>
+    <string name="active_processes">Active</string>
+    <string name="transfer_history">History</string>
+    <string name="no_processes">No processes</string>
+    <string name="no_processes_subtitle">Transfers and sync operations will appear here</string>
+    <string name="cancel_selected">Cancel selected (%d)</string>
+    <string name="cancel_all">Cancel all</string>
+    <string name="clear_history">Clear</string>
+    <string name="delete_selected">Delete (%d)</string>
+    <string name="process_state_queued">Queued</string>
+    <string name="process_status_succeeded">Succeeded</string>
+    <string name="process_status_failed">Failed</string>
+    <string name="process_status_cancelled">Cancelled</string>
+    <string name="process_from">From:</string>
+    <string name="process_to">To:</string>
+    <string name="upload_cloud_files_title">Cloud files detected</string>
+    <string name="upload_cloud_files_message">%d file(s) are from a cloud provider and need to be downloaded to your device first before uploading. Continue?</string>
+    <string name="upload_cloud_files_confirm">Download &amp; Upload</string>
 </resources>

@@ -2,6 +2,7 @@ package ch.jacem.starclone.util
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -18,10 +19,23 @@ class NotificationUtils {
 
         @SuppressLint("MissingPermission") // Checked by PermissionManager(context).grantedNotifications()
         @JvmStatic
-        fun createNotification(context: Context, notificationId: Int, notification: Notification) {
+        @JvmOverloads
+        fun createNotification(context: Context, notificationId: Int, notification: Notification, forceShow: Boolean = false) {
+            if (!forceShow && isAppInForeground(context)) return
             if(PermissionManager(context).grantedNotifications()) {
                 val notificationManager = NotificationManagerCompat.from(context)
                 notificationManager.notify(notificationId, notification)
+            }
+        }
+
+        @JvmStatic
+        fun isAppInForeground(context: Context): Boolean {
+            val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager ?: return false
+            val appProcesses = activityManager.runningAppProcesses ?: return false
+            val packageName = context.packageName
+            return appProcesses.any {
+                it.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND &&
+                    it.processName == packageName
             }
         }
 

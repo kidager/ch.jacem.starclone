@@ -2,6 +2,7 @@ package ch.jacem.starclone.Database
 
 import ch.jacem.starclone.Items.Filter
 import ch.jacem.starclone.Items.Task
+import ch.jacem.starclone.Items.TransferRecord
 import ch.jacem.starclone.Items.Trigger
 
 class DatabaseInfo {
@@ -9,7 +10,7 @@ class DatabaseInfo {
     companion object {
 
         // If you change the database schema, you must increment the database version.
-        const val DATABASE_VERSION = 6
+        const val DATABASE_VERSION = 8
         const val DATABASE_NAME = "rcloneExplorer.db"
 
 
@@ -43,6 +44,25 @@ class DatabaseInfo {
         val SQL_UPDATE_TASK_ADD_DELETE_EXCLUDED = "ALTER TABLE ${Task.TABLE_NAME} ADD COLUMN ${Task.COLUMN_NAME_DELETE_EXCLUDED} INTEGER"
         val SQL_UPDATE_TASK_ADD_FOLLOWUPS_FAIL = "ALTER TABLE ${Task.TABLE_NAME} ADD COLUMN ${Task.COLUMN_NAME_ONFAIL_FOLLOWUP} INTEGER"
         val SQL_UPDATE_TASK_ADD_FOLLOWUPS_SUCCESS = "ALTER TABLE ${Task.TABLE_NAME} ADD COLUMN ${Task.COLUMN_NAME_ONSUCCESS_FOLLOWUP} INTEGER"
+
+        val SQL_CREATE_TABLE_TRANSFER_HISTORY = "CREATE TABLE ${TransferRecord.TABLE_NAME} (" +
+                "${TransferRecord.COLUMN_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "${TransferRecord.COLUMN_WORKER_ID} TEXT," +
+                "${TransferRecord.COLUMN_TYPE} TEXT," +
+                "${TransferRecord.COLUMN_TITLE} TEXT," +
+                "${TransferRecord.COLUMN_REMOTE_NAME} TEXT," +
+                "${TransferRecord.COLUMN_SOURCE} TEXT," +
+                "${TransferRecord.COLUMN_DESTINATION} TEXT," +
+                "${TransferRecord.COLUMN_STATUS} TEXT," +
+                "${TransferRecord.COLUMN_BYTES_TRANSFERRED} INTEGER," +
+                "${TransferRecord.COLUMN_ERROR_MESSAGE} TEXT," +
+                "${TransferRecord.COLUMN_STARTED_AT} INTEGER," +
+                "${TransferRecord.COLUMN_FINISHED_AT} INTEGER)"
+
+        val SQL_UPDATE_TRANSFER_HISTORY_ADD_SOURCE =
+            "ALTER TABLE ${TransferRecord.TABLE_NAME} ADD COLUMN ${TransferRecord.COLUMN_SOURCE} TEXT"
+        val SQL_UPDATE_TRANSFER_HISTORY_ADD_DEST =
+            "ALTER TABLE ${TransferRecord.TABLE_NAME} ADD COLUMN ${TransferRecord.COLUMN_DESTINATION} TEXT"
 
     }
 }

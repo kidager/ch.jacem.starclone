@@ -41,8 +41,14 @@ class SyncServiceNotifications(var mContext: Context) {
     private var mCancelUnsetId: UUID = UUID.randomUUID()
     private var mCancelId: UUID = mCancelUnsetId
 
+    private var mWorkerId: String? = null
+
     fun setCancelId(id: UUID) {
         mCancelId = id
+    }
+
+    fun setWorkerId(id: String) {
+        mWorkerId = id
     }
 
     private fun useReports(): Boolean {
@@ -212,7 +218,8 @@ class SyncServiceNotifications(var mContext: Context) {
             percent,
             SyncWorker::class.java,
             null,
-            CHANNEL_ID
+            CHANNEL_ID,
+            mWorkerId,
         )
 
         if(mCancelId != mCancelUnsetId) {

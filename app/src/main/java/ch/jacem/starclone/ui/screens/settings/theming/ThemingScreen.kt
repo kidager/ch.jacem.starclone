@@ -6,11 +6,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.preference.PreferenceManager
 import ch.jacem.starclone.R
+import ch.jacem.starclone.ui.components.StarCloneDialog
 import ch.jacem.starclone.ui.components.StarCloneListItem
 
 @Composable
@@ -73,9 +72,9 @@ fun ThemingScreen(onThemeChanged: () -> Unit) {
     }
 
     if (showThemeDialog) {
-        AlertDialog(
+        StarCloneDialog(
             onDismissRequest = { showThemeDialog = false },
-            title = { Text(stringResource(R.string.theme_title)) },
+            title = stringResource(R.string.theme_title),
             text = {
                 Column {
                     themeLabels.forEachIndexed { index, label ->
@@ -97,9 +96,8 @@ fun ThemingScreen(onThemeChanged: () -> Unit) {
                     }
                 }
             },
-            confirmButton = {
-                TextButton(onClick = { showThemeDialog = false }) { Text("Cancel") }
-            },
+            dismissLabel = "Cancel",
+            onDismiss = { showThemeDialog = false },
         )
     }
 }

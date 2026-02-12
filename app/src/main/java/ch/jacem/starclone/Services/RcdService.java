@@ -118,7 +118,7 @@ public class RcdService extends Service implements RcloneRcd.JobsUpdateHandler {
             builder.setOngoing(true).setProgress(100, 25, true);
         }
 
-        NotificationUtils.createNotification(this, PERSISTENT_NOTIFICATION_ID, builder.build());
+        NotificationUtils.createNotification(this, PERSISTENT_NOTIFICATION_ID, builder.build(), true);
     }
 
     public RcloneRcd.JobStatusHandler manageJob() {

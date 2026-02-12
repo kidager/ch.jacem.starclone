@@ -15,7 +15,9 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 import ch.jacem.starclone.Database.DatabaseHandler
 import ch.jacem.starclone.Items.RemoteItem
+import ch.jacem.starclone.Items.SyncDirectionObject
 import ch.jacem.starclone.Items.Task
+import ch.jacem.starclone.Items.TransferRecord
 import ch.jacem.starclone.Log2File
 import ch.jacem.starclone.R
 import ch.jacem.starclone.Rclone
@@ -36,6 +38,7 @@ import java.io.IOException
 import java.io.InputStreamReader
 import java.io.InterruptedIOException
 import java.util.Random
+import androidx.work.Data
 
 class SyncWorker (private var mContext: Context, workerParams: WorkerParameters): Worker(mContext, workerParams) {
 
@@ -52,6 +55,14 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
 
         // Todo: Allow SyncWorker to run in silent mode, or remove this!
         const val EXTRA_TASK_SILENT = "notification"
+
+        const val PROGRESS_PERCENT = "progress_percent"
+        const val PROGRESS_CONTENT = "progress_content"
+        const val PROGRESS_SPEED = "progress_speed"
+        const val PROGRESS_FILENAME = "progress_filename"
+        const val PROGRESS_TITLE = "progress_title"
+        const val PROGRESS_SOURCE = "progress_source"
+        const val PROGRESS_DEST = "progress_dest"
     }
 
 
@@ -86,10 +97,14 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
     // Task
     private lateinit var mTask: Task
     private var mTitle: String = mContext.getString(R.string.sync_service_notification_startingsync)
+    private var startedAt: Long = 0L
+    private var mSource: String = ""
+    private var mDest: String = ""
 
 
 
     override fun doWork(): Result {
+        startedAt = System.currentTimeMillis()
 
         prepareNotifications()
         registerBroadcastReceivers()
@@ -157,11 +172,31 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
     private fun handleTask() {
         mTitle = mTask.title
         mNotificationManager.setCancelId(id)
+        mNotificationManager.setWorkerId(id.toString())
         val remoteItem = RemoteItem(mTask.remoteId, mTask.remoteType, "")
 
         if (mTask.title == "") {
             mTitle = mTask.remotePath
         }
+
+        val remotePath = "${mTask.remoteId}:${mTask.remotePath}"
+        when (mTask.direction) {
+            SyncDirectionObject.SYNC_LOCAL_TO_REMOTE,
+            SyncDirectionObject.COPY_LOCAL_TO_REMOTE -> {
+                mSource = mTask.localPath
+                mDest = remotePath
+            }
+            SyncDirectionObject.SYNC_REMOTE_TO_LOCAL,
+            SyncDirectionObject.COPY_REMOTE_TO_LOCAL -> {
+                mSource = remotePath
+                mDest = mTask.localPath
+            }
+            else -> {
+                mSource = mTask.localPath
+                mDest = remotePath
+            }
+        }
+
         if(arePreconditionsMet()) {
             val taskFilter = if(mTask.filterId != null ) mDatabase.getFilter(mTask.filterId!!) else null;
             val taskFilterList = taskFilter?.getFilters() ?: ArrayList()
@@ -191,12 +226,13 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
                     try {
                         val logline = JSONObject(line)
                         //todo: migrate this to StatusObject, so that we can handle everything properly.
-                        if (logline.getString("level") == "error") {
+                        val level = logline.getString("level")
+                        if (level == "error") {
                             if (sIsLoggingEnabled) {
                                 log2File?.log(line)
                             }
-                            statusObject.parseLoglineToStatusObject(logline)
-                        } else if (logline.getString("level") == "warning") {
+                        }
+                        if (level == "error" || level == "warning" || level == "notice") {
                             statusObject.parseLoglineToStatusObject(logline)
                         }
 
@@ -207,6 +243,18 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
                             statusObject.notificationPercent,
                             ongoingNotificationID
                         ))
+
+                        val currentFileName = statusObject.mStats.optJSONArray("transferring")
+                            ?.optJSONObject(0)?.optString("name", "") ?: ""
+                        setProgressAsync(Data.Builder()
+                            .putInt(PROGRESS_PERCENT, statusObject.notificationPercent)
+                            .putString(PROGRESS_CONTENT, statusObject.notificationContent)
+                            .putString(PROGRESS_SPEED, statusObject.getSpeed())
+                            .putString(PROGRESS_FILENAME, currentFileName)
+                            .putString(PROGRESS_TITLE, mTitle)
+                            .putString(PROGRESS_SOURCE, mSource)
+                            .putString(PROGRESS_DEST, mDest)
+                            .build())
                     } catch (e: JSONException) {
                         FLog.e(TAG, "SyncService-Error: the offending line: $line")
                         if (line.isNotBlank()) {
@@ -234,6 +282,34 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
         mNotificationManager.cancelSyncNotification(ongoingNotificationID)
     }
 
+    private fun saveTransferRecord() {
+        if (sRcloneProcess == null && failureReason == FAILURE_REASON.NO_FAILURE) return
+        val status = when (failureReason) {
+            FAILURE_REASON.NO_FAILURE -> TransferRecord.STATUS_SUCCEEDED
+            FAILURE_REASON.CANCELLED -> TransferRecord.STATUS_CANCELLED
+            else -> TransferRecord.STATUS_FAILED
+        }
+        val remoteName = if (::mTask.isInitialized) mTask.remoteId else ""
+        val record = TransferRecord(
+            workerId = id.toString(),
+            type = "SYNC",
+            title = mTitle,
+            remoteName = remoteName,
+            source = mSource,
+            destination = mDest,
+            status = status,
+            bytesTransferred = statusObject.mStats.optLong("bytes", 0),
+            errorMessage = statusObject.getAllErrorMessages().ifEmpty { null },
+            startedAt = startedAt,
+            finishedAt = System.currentTimeMillis(),
+        )
+        try {
+            mDatabase.insertTransferRecord(record)
+        } catch (e: Exception) {
+            FLog.e(TAG, "Failed to save transfer record", e)
+        }
+    }
+
     private fun postSync() {
         if (endNotificationAlreadyPosted) {
             return
@@ -245,6 +321,8 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
         if (sRcloneProcess == null && failureReason == FAILURE_REASON.NO_FAILURE) {
             return
         }
+
+        saveTransferRecord()
 
         val notificationId = System.currentTimeMillis().toInt()
 

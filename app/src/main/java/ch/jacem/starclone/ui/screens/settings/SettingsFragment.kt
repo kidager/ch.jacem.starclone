@@ -18,9 +18,9 @@ class SettingsFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        if (context is OldSettingsFragment.OnSettingCategorySelectedListener) {
-            clickListener = context
-        }
+        // Prefer parent fragment (SettingsContainerFragment) over activity
+        clickListener = parentFragment as? OldSettingsFragment.OnSettingCategorySelectedListener
+            ?: context as? OldSettingsFragment.OnSettingCategorySelectedListener
     }
 
     override fun onCreateView(

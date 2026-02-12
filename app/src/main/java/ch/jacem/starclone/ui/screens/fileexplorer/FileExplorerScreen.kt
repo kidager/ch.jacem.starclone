@@ -71,6 +71,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import ch.jacem.starclone.Items.FileItem
 import ch.jacem.starclone.Items.RemoteItem
 import ch.jacem.starclone.R
@@ -84,23 +89,40 @@ fun FileExplorerScreen(
     onFileClick: (FileItem) -> Unit,
     onUploadFiles: () -> Unit,
     onDownloadFiles: (List<FileItem>) -> Unit,
-    onSyncSelected: (String) -> Unit,
-    onServe: () -> Unit,
+    onSyncDirectionSelected: (Int) -> Unit,
     onShowGoToDialog: () -> Unit,
-    onShowServeDialog: () -> Unit,
+    onCloudFilesConfirmed: () -> Unit = {},
+    onServeConfirmed: (protocol: Int, allowRemoteAccess: Boolean, user: String, password: String) -> Unit = { _, _, _, _ -> },
+    serveAllowRemoteAccess: Boolean = false,
+    onTransferClick: (String) -> Unit = {},
 ) {
-    val context = LocalContext.current
     val remote = viewModel.remote
+    val snackbarHostState = remember { SnackbarHostState() }
 
     var showFabMenu by remember { mutableStateOf(false) }
     var fileForOptions by remember { mutableStateOf<FileItem?>(null) }
-    var showSortDialog by remember { mutableStateOf(false) }
+    var showSortDialog by viewModel::showSortDialog
     var showNewFolderDialog by remember { mutableStateOf(false) }
     var renameTarget by remember { mutableStateOf<FileItem?>(null) }
     var deleteTargets by remember { mutableStateOf<List<FileItem>?>(null) }
     var showEmptyTrashConfirm by remember { mutableStateOf(false) }
     var openAsTarget by remember { mutableStateOf<FileItem?>(null) }
     var showFileProperties by remember { mutableStateOf<FileItem?>(null) }
+
+    // Show error as Snackbar with Retry
+    viewModel.error?.let { errorMessage ->
+        LaunchedEffect(errorMessage) {
+            val result = snackbarHostState.showSnackbar(
+                message = errorMessage,
+                actionLabel = "Retry",
+                duration = SnackbarDuration.Long,
+            )
+            viewModel.consumeError()
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.refresh()
+            }
+        }
+    }
 
     // Link result dialog
     val linkResult = viewModel.linkResult
@@ -133,12 +155,15 @@ fun FileExplorerScreen(
 
             // Transfer progress
             if (viewModel.activeTransfers.isNotEmpty()) {
-                TransferProgressBanner(viewModel.activeTransfers)
+                TransferProgressBanner(
+                    transfers = viewModel.activeTransfers,
+                    onTransferClick = onTransferClick,
+                )
             }
 
             // Main content
             PullToRefreshBox(
-                isRefreshing = viewModel.isLoading,
+                isRefreshing = viewModel.isRefreshing,
                 onRefresh = { viewModel.refresh() },
                 modifier = Modifier
                     .fillMaxSize()
@@ -147,13 +172,21 @@ fun FileExplorerScreen(
                 val allFiles = viewModel.files
 
                 when {
-                    !viewModel.isLoading && allFiles.isEmpty() && viewModel.searchQuery.isNotEmpty() -> {
+                    viewModel.isLoading -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                    allFiles.isEmpty() && viewModel.searchQuery.isNotEmpty() -> {
                         StarCloneEmptyState(
                             icon = Icons.Outlined.SearchOff,
                             title = stringResource(R.string.no_search_results),
                         )
                     }
-                    !viewModel.isLoading && allFiles.isEmpty() -> {
+                    allFiles.isEmpty() -> {
                         StarCloneEmptyState(
                             icon = Icons.Outlined.FolderOpen,
                             title = stringResource(R.string.empty_folder),
@@ -259,6 +292,19 @@ fun FileExplorerScreen(
                 }
             }
         }
+
+        // Snackbar — always glued to bottom (just above the navigation bar)
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        ) { data ->
+            Snackbar(
+                snackbarData = data,
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                actionColor = MaterialTheme.colorScheme.error,
+            )
+        }
     }
 
     // --- Dialogs ---
@@ -359,6 +405,38 @@ fun FileExplorerScreen(
         )
     }
 
+    viewModel.showCloudFilesDialog?.let { count ->
+        CloudFilesDialog(
+            count = count,
+            onDismiss = { viewModel.showCloudFilesDialog = null },
+            onConfirm = {
+                viewModel.showCloudFilesDialog = null
+                onCloudFilesConfirmed()
+            },
+        )
+    }
+
+    if (viewModel.showSyncDirectionDialog) {
+        SyncDirectionDialog(
+            onDismiss = { viewModel.showSyncDirectionDialog = false },
+            onDirectionSelected = { direction ->
+                viewModel.showSyncDirectionDialog = false
+                onSyncDirectionSelected(direction)
+            },
+        )
+    }
+
+    if (viewModel.showServeDialog) {
+        ServeDialog(
+            initialAllowRemoteAccess = serveAllowRemoteAccess,
+            onDismiss = { viewModel.showServeDialog = false },
+            onConfirm = { protocol, allowRemoteAccess, user, password ->
+                viewModel.showServeDialog = false
+                onServeConfirmed(protocol, allowRemoteAccess, user, password)
+            },
+        )
+    }
+
     // File options bottom sheet
     fileForOptions?.let { fileItem ->
         FileOptionsSheet(
@@ -394,7 +472,8 @@ fun FileExplorerScreen(
                 fileForOptions = null
             },
             onSync = {
-                onSyncSelected(fileItem.path)
+                viewModel.syncRemotePath = fileItem.path
+                viewModel.showSyncDirectionDialog = true
                 fileForOptions = null
             },
         )
@@ -475,7 +554,10 @@ private fun BreadcrumbBar(
 // --- Transfer Progress Banner ---
 
 @Composable
-private fun TransferProgressBanner(transfers: List<TransferProgress>) {
+private fun TransferProgressBanner(
+    transfers: List<TransferProgress>,
+    onTransferClick: (String) -> Unit,
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -483,13 +565,19 @@ private fun TransferProgressBanner(transfers: List<TransferProgress>) {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         for (transfer in transfers) {
-            TransferProgressCard(transfer)
+            TransferProgressCard(
+                transfer = transfer,
+                onClick = { onTransferClick(transfer.id) },
+            )
         }
     }
 }
 
 @Composable
-private fun TransferProgressCard(transfer: TransferProgress) {
+private fun TransferProgressCard(
+    transfer: TransferProgress,
+    onClick: () -> Unit,
+) {
     val typeLabel = when (transfer.type) {
         Type.UPLOAD -> stringResource(R.string.fab_upload_files)
         Type.DOWNLOAD -> stringResource(R.string.download)
@@ -498,6 +586,7 @@ private fun TransferProgressCard(transfer: TransferProgress) {
     }
 
     ElevatedCard(
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -647,44 +736,56 @@ private fun SelectionBottomBar(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceContainer)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .padding(horizontal = 8.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (showDownload) {
-            IconButton(onClick = onDownload) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Outlined.Download, contentDescription = stringResource(R.string.download))
-                    Text(stringResource(R.string.download), style = MaterialTheme.typography.labelSmall)
-                }
-            }
+            BarAction(
+                icon = Icons.Outlined.Download,
+                label = stringResource(R.string.download),
+                onClick = onDownload,
+            )
         }
-        IconButton(onClick = onMove) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Outlined.DriveFileMove, contentDescription = stringResource(R.string.move))
-                Text(stringResource(R.string.move), style = MaterialTheme.typography.labelSmall)
-            }
-        }
-        IconButton(onClick = onRename, enabled = canRename) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    Icons.Outlined.DriveFileRenameOutline,
-                    contentDescription = stringResource(R.string.rename),
-                    tint = if (canRename) {
-                        MaterialTheme.colorScheme.onSurface
-                    } else {
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                    },
-                )
-                Text(stringResource(R.string.rename), style = MaterialTheme.typography.labelSmall)
-            }
-        }
-        IconButton(onClick = onDelete) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.delete))
-                Text(stringResource(R.string.delete), style = MaterialTheme.typography.labelSmall)
-            }
-        }
+        BarAction(
+            icon = Icons.Outlined.DriveFileMove,
+            label = stringResource(R.string.move),
+            onClick = onMove,
+        )
+        BarAction(
+            icon = Icons.Outlined.DriveFileRenameOutline,
+            label = stringResource(R.string.rename),
+            onClick = onRename,
+            enabled = canRename,
+        )
+        BarAction(
+            icon = Icons.Outlined.Delete,
+            label = stringResource(R.string.delete),
+            onClick = onDelete,
+        )
+    }
+}
+
+@Composable
+private fun BarAction(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+) {
+    val color = if (enabled) {
+        MaterialTheme.colorScheme.onSurface
+    } else {
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+    }
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+    ) {
+        Icon(icon, contentDescription = label, tint = color)
+        Text(label, style = MaterialTheme.typography.labelSmall, color = color)
     }
 }
 

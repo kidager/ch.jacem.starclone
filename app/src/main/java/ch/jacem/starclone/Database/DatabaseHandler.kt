@@ -20,6 +20,7 @@ import ch.jacem.starclone.Database.DatabaseInfo.Companion.SQL_UPDATE_TASK_ADD_FO
 import ch.jacem.starclone.Database.DatabaseInfo.Companion.SQL_UPDATE_TRIGGER_ADD_TYPE
 import ch.jacem.starclone.Items.Filter
 import ch.jacem.starclone.Items.Task
+import ch.jacem.starclone.Items.TransferRecord
 import ch.jacem.starclone.Items.Trigger
 import java.util.ArrayList
 
@@ -37,6 +38,7 @@ class DatabaseHandler(context: Context?) :
         sqLiteDatabase.execSQL(SQL_UPDATE_TASK_ADD_DELETE_EXCLUDED)
         sqLiteDatabase.execSQL(SQL_UPDATE_TASK_ADD_FOLLOWUPS_FAIL)
         sqLiteDatabase.execSQL(SQL_UPDATE_TASK_ADD_FOLLOWUPS_SUCCESS)
+        sqLiteDatabase.execSQL(DatabaseInfo.SQL_CREATE_TABLE_TRANSFER_HISTORY)
     }
 
     override fun onUpgrade(sqLiteDatabase: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -58,6 +60,17 @@ class DatabaseHandler(context: Context?) :
         if (oldVersion < 6) {
             sqLiteDatabase.execSQL(SQL_UPDATE_TASK_ADD_FOLLOWUPS_FAIL)
             sqLiteDatabase.execSQL(SQL_UPDATE_TASK_ADD_FOLLOWUPS_SUCCESS)
+        }
+        if (oldVersion < 7) {
+            sqLiteDatabase.execSQL(DatabaseInfo.SQL_CREATE_TABLE_TRANSFER_HISTORY)
+        }
+        if (oldVersion < 8) {
+            try {
+                sqLiteDatabase.execSQL(DatabaseInfo.SQL_UPDATE_TRANSFER_HISTORY_ADD_SOURCE)
+                sqLiteDatabase.execSQL(DatabaseInfo.SQL_UPDATE_TRANSFER_HISTORY_ADD_DEST)
+            } catch (_: Exception) {
+                // Columns may already exist if table was created fresh in v7+
+            }
         }
     }
 
@@ -457,6 +470,84 @@ class DatabaseHandler(context: Context?) :
         filter.title = cursor.getString(1)
         filter.setFiltersRaw(cursor.getString(2))
         return filter
+    }
+
+    // Transfer History
+
+    fun insertTransferRecord(record: TransferRecord): Long {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(TransferRecord.COLUMN_WORKER_ID, record.workerId)
+            put(TransferRecord.COLUMN_TYPE, record.type)
+            put(TransferRecord.COLUMN_TITLE, record.title)
+            put(TransferRecord.COLUMN_REMOTE_NAME, record.remoteName)
+            put(TransferRecord.COLUMN_SOURCE, record.source)
+            put(TransferRecord.COLUMN_DESTINATION, record.destination)
+            put(TransferRecord.COLUMN_STATUS, record.status)
+            put(TransferRecord.COLUMN_BYTES_TRANSFERRED, record.bytesTransferred)
+            put(TransferRecord.COLUMN_ERROR_MESSAGE, record.errorMessage)
+            put(TransferRecord.COLUMN_STARTED_AT, record.startedAt)
+            put(TransferRecord.COLUMN_FINISHED_AT, record.finishedAt)
+        }
+        val id = db.insert(TransferRecord.TABLE_NAME, null, values)
+        db.close()
+        return id
+    }
+
+    fun getTransferHistory(limit: Int = 100): List<TransferRecord> {
+        val db = readableDatabase
+        val cursor = db.query(
+            TransferRecord.TABLE_NAME,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "${TransferRecord.COLUMN_FINISHED_AT} DESC",
+            limit.toString(),
+        )
+        val results = mutableListOf<TransferRecord>()
+        while (cursor.moveToNext()) {
+            results.add(transferRecordFromCursor(cursor))
+        }
+        cursor.close()
+        db.close()
+        return results
+    }
+
+    fun clearTransferHistory() {
+        val db = writableDatabase
+        db.delete(TransferRecord.TABLE_NAME, null, null)
+        db.close()
+    }
+
+    fun deleteTransferRecords(ids: List<Long>) {
+        if (ids.isEmpty()) return
+        val db = writableDatabase
+        val placeholders = ids.joinToString(",") { "?" }
+        db.delete(
+            TransferRecord.TABLE_NAME,
+            "${TransferRecord.COLUMN_ID} IN ($placeholders)",
+            ids.map { it.toString() }.toTypedArray(),
+        )
+        db.close()
+    }
+
+    private fun transferRecordFromCursor(cursor: Cursor): TransferRecord {
+        return TransferRecord(
+            id = cursor.getLong(cursor.getColumnIndexOrThrow(TransferRecord.COLUMN_ID)),
+            workerId = cursor.getString(cursor.getColumnIndexOrThrow(TransferRecord.COLUMN_WORKER_ID)) ?: "",
+            type = cursor.getString(cursor.getColumnIndexOrThrow(TransferRecord.COLUMN_TYPE)) ?: "",
+            title = cursor.getString(cursor.getColumnIndexOrThrow(TransferRecord.COLUMN_TITLE)) ?: "",
+            remoteName = cursor.getString(cursor.getColumnIndexOrThrow(TransferRecord.COLUMN_REMOTE_NAME)) ?: "",
+            source = cursor.getString(cursor.getColumnIndexOrThrow(TransferRecord.COLUMN_SOURCE)) ?: "",
+            destination = cursor.getString(cursor.getColumnIndexOrThrow(TransferRecord.COLUMN_DESTINATION)) ?: "",
+            status = cursor.getString(cursor.getColumnIndexOrThrow(TransferRecord.COLUMN_STATUS)) ?: "",
+            bytesTransferred = cursor.getLong(cursor.getColumnIndexOrThrow(TransferRecord.COLUMN_BYTES_TRANSFERRED)),
+            errorMessage = cursor.getString(cursor.getColumnIndexOrThrow(TransferRecord.COLUMN_ERROR_MESSAGE)),
+            startedAt = cursor.getLong(cursor.getColumnIndexOrThrow(TransferRecord.COLUMN_STARTED_AT)),
+            finishedAt = cursor.getLong(cursor.getColumnIndexOrThrow(TransferRecord.COLUMN_FINISHED_AT)),
+        )
     }
 
     fun deleteEveryting() {

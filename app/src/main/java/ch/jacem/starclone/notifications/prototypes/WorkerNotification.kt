@@ -174,6 +174,12 @@ abstract class WorkerNotification(var mContext: Context) {
         NotificationUtils.createNotification(mContext, SUMMARY_ID, summaryNotification.build())
     }
 
+    private var mWorkerId: String? = null
+
+    fun setWorkerId(id: String) {
+        mWorkerId = id
+    }
+
     fun updateNotification(
             title: String,
             content: String,
@@ -194,7 +200,8 @@ abstract class WorkerNotification(var mContext: Context) {
                 percent,
                 SyncWorker::class.java,
                 null,
-                CHANNEL_ID
+                CHANNEL_ID,
+                mWorkerId,
         )
 
         if (mCancelId != mCancelUnsetId) {

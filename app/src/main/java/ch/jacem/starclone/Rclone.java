@@ -75,6 +75,7 @@ public class Rclone {
     private String rclone;
     private String rcloneConf;
     private Log2File log2File;
+    private String lastError;
 
     public Rclone(Context context) {
         this.context = context;
@@ -200,6 +201,35 @@ public class Rclone {
         return environmentValues.toArray(new String[0]);
     }
 
+    public String getLastError() {
+        return lastError;
+    }
+
+    private String readErrorStream(Process process) {
+        if (process == null) return null;
+        String lastErrorMsg = null;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                try {
+                    JSONObject json = new JSONObject(line);
+                    String level = json.optString("level", "");
+                    String msg = json.optString("msg", "");
+                    if (!msg.isEmpty() && ("error".equals(level) || "warning".equals(level))) {
+                        lastErrorMsg = msg;
+                    }
+                } catch (JSONException e) {
+                    if (!line.trim().isEmpty()) {
+                        lastErrorMsg = line.trim();
+                    }
+                }
+            }
+        } catch (IOException e) {
+            FLog.d(TAG, "readErrorStream: could not read stderr");
+        }
+        return lastErrorMsg;
+    }
+
     public void logErrorOutput(Process process) {
         if (process == null) {
             return;
@@ -280,7 +310,7 @@ public class Rclone {
             process.waitFor();
             // For local/alias remotes, exit(6) is not a fatal error.
             if (process.exitValue() != 0 && (process.exitValue() != 6 || !remote.isRemoteType(RemoteItem.LOCAL, RemoteItem.ALIAS))) {
-                logErrorOutput(process);
+                lastError = readErrorStream(process);
                 return null;
             }
 
@@ -288,11 +318,11 @@ public class Rclone {
             results = new JSONArray(outputStr);
 
         } catch (InterruptedException e) {
-            logErrorOutput(process);
+            lastError = readErrorStream(process);
             FLog.d(TAG, "getDirectoryContent: Aborted refreshing folder");
             return null;
         } catch (IOException | JSONException e) {
-            logErrorOutput(process);
+            lastError = readErrorStream(process);
             FLog.e(TAG, "getDirectoryContent: Could not get folder content", e);
             return null;
         }

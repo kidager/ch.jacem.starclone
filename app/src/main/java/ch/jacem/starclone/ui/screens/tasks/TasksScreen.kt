@@ -15,8 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Alarm
 import androidx.compose.material.icons.outlined.SyncAlt
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -35,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ch.jacem.starclone.Items.Task
 import ch.jacem.starclone.Items.Trigger
+import ch.jacem.starclone.ui.components.StarCloneDialog
 import ch.jacem.starclone.ui.components.StarCloneEmptyState
 
 @Composable
@@ -214,47 +213,35 @@ fun TasksScreen(
 
     // Delete task confirmation
     showDeleteTaskDialog?.let { task ->
-        AlertDialog(
+        StarCloneDialog(
             onDismissRequest = { showDeleteTaskDialog = null },
-            title = { Text("Delete Task") },
+            title = "Delete Task",
             text = { Text("Are you sure you want to delete \"${task.title}\"?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.deleteTask(task)
-                        showDeleteTaskDialog = null
-                    },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error,
-                    ),
-                ) { Text("Delete") }
+            confirmLabel = "Delete",
+            onConfirm = {
+                viewModel.deleteTask(task)
+                showDeleteTaskDialog = null
             },
-            dismissButton = {
-                TextButton(onClick = { showDeleteTaskDialog = null }) { Text("Cancel") }
-            },
+            dismissLabel = "Cancel",
+            onDismiss = { showDeleteTaskDialog = null },
+            isDestructive = true,
         )
     }
 
     // Delete trigger confirmation
     showDeleteTriggerDialog?.let { trigger ->
-        AlertDialog(
+        StarCloneDialog(
             onDismissRequest = { showDeleteTriggerDialog = null },
-            title = { Text("Delete Trigger") },
+            title = "Delete Trigger",
             text = { Text("Are you sure you want to delete \"${trigger.title}\"?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.deleteTrigger(trigger)
-                        showDeleteTriggerDialog = null
-                    },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error,
-                    ),
-                ) { Text("Delete") }
+            confirmLabel = "Delete",
+            onConfirm = {
+                viewModel.deleteTrigger(trigger)
+                showDeleteTriggerDialog = null
             },
-            dismissButton = {
-                TextButton(onClick = { showDeleteTriggerDialog = null }) { Text("Cancel") }
-            },
+            dismissLabel = "Cancel",
+            onDismiss = { showDeleteTriggerDialog = null },
+            isDestructive = true,
         )
     }
 }

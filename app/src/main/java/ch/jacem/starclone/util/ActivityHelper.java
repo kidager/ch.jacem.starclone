@@ -17,6 +17,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
+import com.google.android.material.color.DynamicColors;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
 
@@ -101,6 +102,7 @@ public class ActivityHelper {
 
     public static void applyTheme(Activity activity) {
         applyDarkMode(activity);
+        DynamicColors.applyToActivityIfAvailable(activity);
     }
 
     public static boolean isDarkTheme(Context context) {

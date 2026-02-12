@@ -7,12 +7,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.preference.PreferenceManager
 import ch.jacem.starclone.R
+import ch.jacem.starclone.ui.components.StarCloneDialog
 import ch.jacem.starclone.ui.components.StarCloneListItem
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -85,24 +83,18 @@ fun LoggingSettingsScreen() {
     }
 
     if (showSigquitDialog) {
-        AlertDialog(
+        StarCloneDialog(
             onDismissRequest = { showSigquitDialog = false },
-            title = { Text(stringResource(R.string.pref_send_sigquit_title)) },
+            title = stringResource(R.string.pref_send_sigquit_title),
             text = { Text("This will kill all rclone processes and close the app. Continue?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        Toast.makeText(context, "StarClone: Stopping everything", Toast.LENGTH_SHORT).show()
-                        sigquitAll()
-                    },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error,
-                    ),
-                ) { Text("Kill") }
+            confirmLabel = "Kill",
+            onConfirm = {
+                Toast.makeText(context, "StarClone: Stopping everything", Toast.LENGTH_SHORT).show()
+                sigquitAll()
             },
-            dismissButton = {
-                TextButton(onClick = { showSigquitDialog = false }) { Text("Cancel") }
-            },
+            dismissLabel = "Cancel",
+            onDismiss = { showSigquitDialog = false },
+            isDestructive = true,
         )
     }
 }

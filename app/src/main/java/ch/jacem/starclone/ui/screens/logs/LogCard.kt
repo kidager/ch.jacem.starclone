@@ -32,11 +32,11 @@ fun LogCard(
                 overflow = TextOverflow.Ellipsis,
             )
         },
-        supportingContent = if (entry.content.isNotBlank()) {
+        supportingContent = if (entry.preview.isNotBlank()) {
             {
                 Text(
-                    text = entry.content,
-                    maxLines = 2,
+                    text = entry.preview,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }

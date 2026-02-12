@@ -20,6 +20,7 @@ fun setupBottomNav(
     composeView: ComposeView,
     owner: LifecycleOwner,
     onTabSelected: (BottomNavTab) -> Unit,
+    onTabReselected: (BottomNavTab) -> Unit = {},
 ) {
     composeView.setViewTreeLifecycleOwner(owner)
     if (owner is SavedStateRegistryOwner) {
@@ -32,6 +33,9 @@ fun setupBottomNav(
                 onTabSelected = { tab ->
                     selectedTab = tab
                     onTabSelected(tab)
+                },
+                onTabReselected = { tab ->
+                    onTabReselected(tab)
                 },
             )
         }

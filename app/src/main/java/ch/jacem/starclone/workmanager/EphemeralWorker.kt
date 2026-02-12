@@ -19,6 +19,8 @@ import ch.jacem.starclone.Items.FileItem
 import ch.jacem.starclone.Items.RemoteItem
 import ch.jacem.starclone.Log2File
 import ch.jacem.starclone.R
+import ch.jacem.starclone.Database.DatabaseHandler
+import ch.jacem.starclone.Items.TransferRecord
 import ch.jacem.starclone.Rclone
 import ch.jacem.starclone.notifications.prototypes.WorkerNotification
 import ch.jacem.starclone.notifications.support.ErrorObject
@@ -65,6 +67,9 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
         const val PROGRESS_SPEED = "progress_speed"
         const val PROGRESS_FILENAME = "progress_filename"
         const val PROGRESS_TYPE = "progress_type"
+        const val PROGRESS_REMOTE = "progress_remote"
+        const val PROGRESS_SOURCE = "progress_source"
+        const val PROGRESS_DEST = "progress_dest"
     }
 
     internal enum class FAILURE_REASON {
@@ -92,8 +97,13 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
 
 
     private var mTitle: String = mNotificationManager?.initialTitle ?: ""
+    private var startedAt: Long = 0L
+    private var mRemoteName: String = ""
+    private var mSource: String = ""
+    private var mDest: String = ""
 
     override fun doWork(): Result {
+        startedAt = System.currentTimeMillis()
 
         registerBroadcastReceivers()
 
@@ -116,6 +126,8 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
             }
 
             mNotificationManager?.setCancelId(id)
+            mNotificationManager?.setWorkerId(id.toString())
+            mRemoteName = remoteItem.name
             if(preconditionsMet()) {
                 // do not instantiate rclone when you dont want it to run.
                 // It will immediately run!
@@ -129,6 +141,9 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
                             return Result.failure()
                         }
 
+                        mSource = "${remoteItem.name}:${fileItem.path}${fileItem.name}"
+                        mDest = target ?: ""
+
                         sRcloneProcess = Rclone(mContext).downloadFile(
                             remoteItem,
                             fileItem,
@@ -138,6 +153,9 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
                     Type.UPLOAD -> {
                         val target = inputData.getString(UPLOAD_TARGETPATH)
                         val file = inputData.getString(UPLOAD_FILE)
+
+                        mSource = file ?: ""
+                        mDest = "${remoteItem.name}:${target ?: ""}"
 
                         sRcloneProcess = Rclone(mContext).uploadFile(
                             remoteItem,
@@ -154,6 +172,9 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
                             return Result.failure()
                         }
 
+                        mSource = "${remoteItem.name}:${fileItem.path}${fileItem.name}"
+                        mDest = "${remoteItem.name}:${target ?: ""}"
+
                         sRcloneProcess = Rclone(mContext).moveTo(
                             remoteItem,
                             fileItem,
@@ -167,6 +188,9 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
                             log("$DELETE_FILE: No valid target was passed!")
                             return Result.failure()
                         }
+
+                        mSource = "${remoteItem.name}:${fileItem.path}${fileItem.name}"
+                        mDest = ""
 
                         sRcloneProcess = Rclone(mContext).deleteItems(
                             remoteItem,
@@ -229,12 +253,13 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
                     try {
                         val logline = JSONObject(line)
                         //todo: migrate this to StatusObject, so that we can handle everything properly.
-                        if (logline.getString("level") == "error") {
+                        val level = logline.getString("level")
+                        if (level == "error") {
                             if (sIsLoggingEnabled) {
                                 log2File?.log(line)
                             }
-                            statusObject.parseLoglineToStatusObject(logline)
-                        } else if (logline.getString("level") == "warning") {
+                        }
+                        if (level == "error" || level == "warning" || level == "notice") {
                             statusObject.parseLoglineToStatusObject(logline)
                         }
 
@@ -254,6 +279,9 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
                             .putString(PROGRESS_SPEED, statusObject.getSpeed())
                             .putString(PROGRESS_FILENAME, currentFileName)
                             .putString(PROGRESS_TYPE, inputData.getString(EPHEMERAL_TYPE) ?: "")
+                            .putString(PROGRESS_REMOTE, mRemoteName)
+                            .putString(PROGRESS_SOURCE, mSource)
+                            .putString(PROGRESS_DEST, mDest)
                             .build())
                     } catch (e: JSONException) {
                         Log.e(tag(), "Error: the offending line: $line")
@@ -282,6 +310,34 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
         mNotificationManager?.cancelSyncNotification(ongoingNotificationID)
     }
 
+    private fun saveTransferRecord() {
+        if (sRcloneProcess == null && failureReason == FAILURE_REASON.NO_FAILURE) return
+        val status = when (failureReason) {
+            FAILURE_REASON.NO_FAILURE -> TransferRecord.STATUS_SUCCEEDED
+            FAILURE_REASON.CANCELLED -> TransferRecord.STATUS_CANCELLED
+            else -> TransferRecord.STATUS_FAILED
+        }
+        val typeStr = inputData.getString(EPHEMERAL_TYPE) ?: ""
+        val record = TransferRecord(
+            workerId = id.toString(),
+            type = typeStr,
+            title = mTitle.ifEmpty { typeStr },
+            remoteName = mRemoteName,
+            source = mSource,
+            destination = mDest,
+            status = status,
+            bytesTransferred = statusObject.mStats.optLong("bytes", 0),
+            errorMessage = statusObject.getAllErrorMessages().ifEmpty { null },
+            startedAt = startedAt,
+            finishedAt = System.currentTimeMillis(),
+        )
+        try {
+            DatabaseHandler(mContext).insertTransferRecord(record)
+        } catch (e: Exception) {
+            FLog.e("EphemeralWorker", "Failed to save transfer record", e)
+        }
+    }
+
     private fun postSync() {
         if (endNotificationAlreadyPosted) {
             return
@@ -293,6 +349,8 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
         if (sRcloneProcess == null && failureReason == FAILURE_REASON.NO_FAILURE) {
             return
         }
+
+        saveTransferRecord()
 
         val notificationId = System.currentTimeMillis().toInt()
 

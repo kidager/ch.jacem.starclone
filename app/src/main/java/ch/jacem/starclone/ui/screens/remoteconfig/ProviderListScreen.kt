@@ -1,7 +1,9 @@
 package ch.jacem.starclone.ui.screens.remoteconfig
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material3.FloatingActionButton
@@ -94,12 +97,16 @@ fun ProviderListScreen(
     }
 }
 
+private val DEPRECATED_PROVIDERS = setOf("cache", "google photos", "linkbox", "sharefile")
+
 @Composable
 private fun ProviderItem(
     provider: Provider,
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
+    val isDeprecated = provider.name in DEPRECATED_PROVIDERS
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -119,16 +126,31 @@ private fun ProviderItem(
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.width(12.dp))
-        Box(modifier = Modifier.weight(1f)) {
-            Text(
-                text = provider.getNameCapitalized(),
-                style = MaterialTheme.typography.bodyLarge,
-            )
+        Column(modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = provider.getNameCapitalized(),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                if (isDeprecated) {
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "Deprecated",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier
+                            .background(
+                                MaterialTheme.colorScheme.errorContainer,
+                                RoundedCornerShape(4.dp),
+                            )
+                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                    )
+                }
+            }
             Text(
                 text = provider.description,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 22.dp),
             )
         }
     }

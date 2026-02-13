@@ -364,8 +364,10 @@ public class RemoteItem implements Comparable<RemoteItem>, Parcelable {
         } else {
             switch (type) {
                 case RemoteItem.SAFW:
+                case RemoteItem.LOCAL:
                     return R.drawable.ic_tablet_cellphone;
                 case RemoteItem.AMAZON_DRIVE:
+                case RemoteItem.S3:
                     return R.drawable.ic_amazon;
                 case RemoteItem.AZUREBLOB:
                     return R.drawable.ic_azure_storage_blob_logo;
@@ -387,22 +389,35 @@ public class RemoteItem implements Comparable<RemoteItem>, Parcelable {
                     return R.drawable.ic_onedrive;
                 case RemoteItem.OPENDRIVE:
                     return R.drawable.ic_open_drive;
-                case RemoteItem.S3:
-                    return R.drawable.ic_amazon;
                 case RemoteItem.BOX:
                     return R.drawable.ic_box;
                 case RemoteItem.SFTP:
+                case RemoteItem.FTP:
                     return R.drawable.ic_terminal;
-                case RemoteItem.LOCAL:
-                    return R.drawable.ic_tablet_cellphone;
                 case RemoteItem.PCLOUD:
                     return R.drawable.ic_pcloud;
                 case RemoteItem.UNION:
+                case RemoteItem.CHUNKER:
                     return R.drawable.ic_union_24dp;
                 case RemoteItem.WEBDAV:
+                case RemoteItem.HTTP:
                     return R.drawable.ic_webdav;
                 case RemoteItem.YANDEX:
                     return R.drawable.ic_yandex_mono;
+                case RemoteItem.ALIAS:
+                    return R.drawable.ic_folder_move;
+                case RemoteItem.CACHE:
+                    return R.drawable.ic_sd_storage;
+                case RemoteItem.SWIFT:
+                    return R.drawable.ic_cloud;
+                case RemoteItem.JOTTACLOUD:
+                case RemoteItem.SHAREFILE:
+                case RemoteItem.PUTIO:
+                case RemoteItem.MAILRU:
+                case RemoteItem.PREMIUMIZEME:
+                case RemoteItem.FICHIER:
+                case RemoteItem.QINGSTOR:
+                    return R.drawable.ic_cloud;
                 default:
                     return R.drawable.ic_cloud;
             }

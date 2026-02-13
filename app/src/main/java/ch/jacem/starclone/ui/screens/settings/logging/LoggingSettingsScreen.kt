@@ -23,11 +23,18 @@ import androidx.preference.PreferenceManager
 import ch.jacem.starclone.R
 import ch.jacem.starclone.ui.components.StarCloneDialog
 import ch.jacem.starclone.ui.components.StarCloneListItem
+import ch.jacem.starclone.ui.components.StarCloneTopBar
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoggingSettingsScreen() {
+fun LoggingSettingsScreen(onNavigateBack: () -> Unit = {}) {
     val context = LocalContext.current
     val prefs = remember { PreferenceManager.getDefaultSharedPreferences(context) }
     val logsKey = stringResource(R.string.pref_key_logs)
@@ -37,8 +44,16 @@ fun LoggingSettingsScreen() {
     }
     var showSigquitDialog by remember { mutableStateOf(false) }
 
+    Column(modifier = Modifier.fillMaxSize()) {
+        StarCloneTopBar(
+            title = stringResource(R.string.logging_settings_header),
+            navigationIcon = Icons.AutoMirrored.Outlined.ArrowBack,
+            onNavigationClick = onNavigateBack,
+        )
+
     LazyColumn(
         contentPadding = PaddingValues(vertical = 8.dp),
+        modifier = Modifier.weight(1f),
     ) {
         item {
             Text(
@@ -80,6 +95,8 @@ fun LoggingSettingsScreen() {
             )
         }
         item { Spacer(Modifier.height(80.dp)) }
+    }
+
     }
 
     if (showSigquitDialog) {

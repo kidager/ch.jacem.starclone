@@ -80,6 +80,12 @@ import ch.jacem.starclone.Items.FileItem
 import ch.jacem.starclone.Items.RemoteItem
 import ch.jacem.starclone.R
 import ch.jacem.starclone.ui.components.StarCloneEmptyState
+import ch.jacem.starclone.ui.components.StarCloneTopBar
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Sort
+import androidx.compose.material.icons.outlined.SelectAll
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import ch.jacem.starclone.workmanager.Type
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -91,6 +97,7 @@ fun FileExplorerScreen(
     onDownloadFiles: (List<FileItem>) -> Unit,
     onSyncDirectionSelected: (Int) -> Unit,
     onShowGoToDialog: () -> Unit,
+    onNavigateBack: () -> Unit = {},
     onCloudFilesConfirmed: () -> Unit = {},
     onServeConfirmed: (protocol: Int, allowRemoteAccess: Boolean, user: String, password: String) -> Unit = { _, _, _, _ -> },
     serveAllowRemoteAccess: Boolean = false,
@@ -127,8 +134,95 @@ fun FileExplorerScreen(
     // Link result dialog
     val linkResult = viewModel.linkResult
 
+    var showOverflowMenu by remember { mutableStateOf(false) }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
+            // Top bar
+            val title = if (remote.isCrypt) "crypt (${remote.typeReadable})" else remote.typeReadable
+            StarCloneTopBar(
+                title = title,
+                navigationIcon = Icons.AutoMirrored.Outlined.ArrowBack,
+                onNavigationClick = {
+                    when {
+                        viewModel.isInMoveMode -> viewModel.cancelMove()
+                        viewModel.isInSelectMode -> viewModel.clearSelection()
+                        else -> onNavigateBack()
+                    }
+                },
+                actions = {
+                    if (!viewModel.isInMoveMode && !viewModel.isInSelectMode) {
+                        IconButton(onClick = { viewModel.enterSearchMode() }) {
+                            Icon(Icons.Outlined.Search, contentDescription = stringResource(R.string.search))
+                        }
+                        IconButton(onClick = { viewModel.showSortDialog = true }) {
+                            Icon(Icons.Outlined.Sort, contentDescription = stringResource(R.string.sort))
+                        }
+                        Box {
+                            IconButton(onClick = { showOverflowMenu = true }) {
+                                Icon(Icons.Outlined.MoreVert, contentDescription = "More")
+                            }
+                            DropdownMenu(
+                                expanded = showOverflowMenu,
+                                onDismissRequest = { showOverflowMenu = false },
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.select_all)) },
+                                    onClick = {
+                                        viewModel.selectAll()
+                                        showOverflowMenu = false
+                                    },
+                                )
+                                if (remote.hasSyncSupport()) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.sync)) },
+                                        onClick = {
+                                            viewModel.syncRemotePath = viewModel.currentPath
+                                            viewModel.showSyncDirectionDialog = true
+                                            showOverflowMenu = false
+                                        },
+                                    )
+                                }
+                                if (remote.hasLinkSupport()) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.link)) },
+                                        onClick = {
+                                            viewModel.generateLink(viewModel.currentPath)
+                                            showOverflowMenu = false
+                                        },
+                                    )
+                                }
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.serve)) },
+                                    onClick = {
+                                        viewModel.showServeDialog = true
+                                        showOverflowMenu = false
+                                    },
+                                )
+                                if (remote.isRemoteType(RemoteItem.SFTP)) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.go_to)) },
+                                        onClick = {
+                                            onShowGoToDialog()
+                                            showOverflowMenu = false
+                                        },
+                                    )
+                                }
+                                if (remote.hasTrashCan()) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.empty_trash)) },
+                                        onClick = {
+                                            viewModel.emptyTrash()
+                                            showOverflowMenu = false
+                                        },
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
+            )
+
             // Search bar
             if (viewModel.isInSearchMode) {
                 OutlinedTextField(

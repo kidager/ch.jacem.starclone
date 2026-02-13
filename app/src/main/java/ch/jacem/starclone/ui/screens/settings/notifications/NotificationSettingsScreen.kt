@@ -22,10 +22,17 @@ import androidx.compose.ui.unit.dp
 import androidx.preference.PreferenceManager
 import ch.jacem.starclone.R
 import ch.jacem.starclone.ui.components.StarCloneListItem
+import ch.jacem.starclone.ui.components.StarCloneTopBar
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
 import ch.jacem.starclone.extract.updates.UpdateChecker
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotificationSettingsScreen() {
+fun NotificationSettingsScreen(onNavigateBack: () -> Unit = {}) {
     val context = LocalContext.current
     val prefs = remember { PreferenceManager.getDefaultSharedPreferences(context) }
     val updatesKey = stringResource(R.string.pref_key_app_updates)
@@ -39,8 +46,16 @@ fun NotificationSettingsScreen() {
     }
     val isManagedInstallation = remember { UpdateChecker(context).isManagedInstallation() }
 
+    Column(modifier = Modifier.fillMaxSize()) {
+        StarCloneTopBar(
+            title = stringResource(R.string.notifications_pref_title),
+            navigationIcon = Icons.AutoMirrored.Outlined.ArrowBack,
+            onNavigationClick = onNavigateBack,
+        )
+
     LazyColumn(
         contentPadding = PaddingValues(vertical = 8.dp),
+        modifier = Modifier.weight(1f),
     ) {
         if (!isManagedInstallation) {
             item {
@@ -109,5 +124,6 @@ fun NotificationSettingsScreen() {
             )
         }
         item { Spacer(Modifier.height(80.dp)) }
+    }
     }
 }

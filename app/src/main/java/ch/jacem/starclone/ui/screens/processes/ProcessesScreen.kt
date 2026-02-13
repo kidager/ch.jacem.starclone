@@ -2,6 +2,7 @@ package ch.jacem.starclone.ui.screens.processes
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ch.jacem.starclone.R
 import ch.jacem.starclone.ui.components.StarCloneEmptyState
+import ch.jacem.starclone.ui.components.StarCloneTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,10 +57,13 @@ fun ProcessesScreen(
         }
     }
 
+    Column(modifier = Modifier.fillMaxSize()) {
+        StarCloneTopBar(title = stringResource(R.string.processes))
+
     PullToRefreshBox(
         isRefreshing = viewModel.isRefreshing,
         onRefresh = { viewModel.refresh() },
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().weight(1f),
     ) {
         when {
             viewModel.isLoading -> {
@@ -202,5 +207,6 @@ fun ProcessesScreen(
                 }
             }
         }
+    }
     }
 }

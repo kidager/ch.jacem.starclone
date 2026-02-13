@@ -17,7 +17,9 @@ class LoggingSettingsFragment : Fragment() {
     ) = ComposeView(requireContext()).apply {
         setContent {
             StarCloneTheme {
-                LoggingSettingsScreen()
+                LoggingSettingsScreen(
+                    onNavigateBack = { parentFragmentManager.popBackStack() },
+                )
             }
         }
     }

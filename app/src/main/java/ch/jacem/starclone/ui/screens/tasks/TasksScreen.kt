@@ -30,12 +30,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ch.jacem.starclone.Items.Task
 import ch.jacem.starclone.Items.Trigger
+import ch.jacem.starclone.R
 import ch.jacem.starclone.ui.components.StarCloneDialog
 import ch.jacem.starclone.ui.components.StarCloneEmptyState
+import ch.jacem.starclone.ui.components.StarCloneTopBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TasksScreen(
     viewModel: TasksViewModel,
@@ -50,7 +55,10 @@ fun TasksScreen(
     var showDeleteTriggerDialog by remember { mutableStateOf<Trigger?>(null) }
     var showFabMenu by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        StarCloneTopBar(title = stringResource(R.string.tasks))
+
+    Box(modifier = Modifier.fillMaxSize().weight(1f)) {
         when {
             viewModel.isLoading -> {
                 CircularProgressIndicator(
@@ -165,6 +173,7 @@ fun TasksScreen(
                 }
             }
         }
+    }
     }
 
     // Task options bottom sheet

@@ -41,14 +41,20 @@ import ch.jacem.starclone.RemoteConfig.RemoteConfigHelper
 import ch.jacem.starclone.Services.RcdService
 import ch.jacem.starclone.VirtualContentProvider
 import ch.jacem.starclone.ui.components.StarCloneListItem
+import ch.jacem.starclone.ui.components.StarCloneTopBar
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
 import io.github.x0b.safdav.file.SafConstants
 
 private const val ANDROID_AUTHORITY = "com.android.externalstorage.documents"
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FileAccessScreen(
     permissions: List<UriPermission>,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    onNavigateBack: () -> Unit = {},
     onAddStorage: () -> Unit,
     onRemovePermission: (UriPermission) -> Unit,
     onOpenAllFilesSettings: () -> Unit,
@@ -70,7 +76,14 @@ fun FileAccessScreen(
     var vcpDeclareLocal by remember { mutableStateOf(prefs.getBoolean(vcpLocalKey, true)) }
     var vcpGrantAll by remember { mutableStateOf(prefs.getBoolean(vcpGrantAllKey, false)) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        StarCloneTopBar(
+            title = stringResource(R.string.pref_header_file_access),
+            navigationIcon = Icons.AutoMirrored.Outlined.ArrowBack,
+            onNavigationClick = onNavigateBack,
+        )
+
+    Box(modifier = Modifier.fillMaxSize().weight(1f)) {
     LazyColumn(
         contentPadding = PaddingValues(vertical = 8.dp),
     ) {
@@ -201,6 +214,7 @@ fun FileAccessScreen(
         hostState = snackbarHostState,
         modifier = Modifier.align(Alignment.BottomCenter),
     )
+    }
     }
 }
 

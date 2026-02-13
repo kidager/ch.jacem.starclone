@@ -19,6 +19,7 @@ class ThemingFragment : Fragment() {
             StarCloneTheme {
                 ThemingScreen(
                     onThemeChanged = { activity?.recreate() },
+                    onNavigateBack = { parentFragmentManager.popBackStack() },
                 )
             }
         }

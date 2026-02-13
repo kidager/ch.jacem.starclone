@@ -38,14 +38,20 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import ch.jacem.starclone.ui.components.StarCloneDialog
 import ch.jacem.starclone.ui.components.StarCloneListItem
+import ch.jacem.starclone.ui.components.StarCloneTopBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ExperimentalMaterial3Api
 import java.util.Locale
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GeneralSettingsScreen() {
+fun GeneralSettingsScreen(onNavigateBack: () -> Unit = {}) {
     val context = LocalContext.current
     val prefs = remember { PreferenceManager.getDefaultSharedPreferences(context) }
 
@@ -87,8 +93,16 @@ fun GeneralSettingsScreen() {
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf<EditDialogConfig?>(null) }
 
+    Column(modifier = Modifier.fillMaxSize()) {
+        StarCloneTopBar(
+            title = stringResource(R.string.pref_header_general),
+            navigationIcon = Icons.AutoMirrored.Outlined.ArrowBack,
+            onNavigationClick = onNavigateBack,
+        )
+
     LazyColumn(
         contentPadding = PaddingValues(vertical = 8.dp),
+        modifier = Modifier.weight(1f),
     ) {
         // App shortcuts
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
@@ -368,6 +382,7 @@ fun GeneralSettingsScreen() {
             config = config,
             onDismiss = { showEditDialog = null },
         )
+    }
     }
 }
 

@@ -12,6 +12,7 @@
         android:layout_height="wrap_content"
         android:animateLayoutChanges="false"
         android:background="@android:color/transparent"
+        android:visibility="gone"
         app:elevation="0dp">
 
         <androidx.appcompat.widget.Toolbar

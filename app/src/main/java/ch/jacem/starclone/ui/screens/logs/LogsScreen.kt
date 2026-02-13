@@ -31,6 +31,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import ch.jacem.starclone.ui.components.StarCloneDialog
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import ch.jacem.starclone.R
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -42,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import ch.jacem.starclone.ui.components.StarCloneEmptyState
+import ch.jacem.starclone.ui.components.StarCloneTopBar
 import ch.jacem.starclone.util.SyncLog
 import java.util.Date
 
@@ -65,6 +68,8 @@ fun LogsScreen(viewModel: LogsViewModel) {
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
+        StarCloneTopBar(title = stringResource(R.string.logFragment))
+
         // Sticky toolbar: filter dropdown + clear button
         Row(
             modifier = Modifier

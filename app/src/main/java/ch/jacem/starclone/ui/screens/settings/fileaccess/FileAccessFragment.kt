@@ -87,6 +87,7 @@ class FileAccessFragment : Fragment() {
                 FileAccessScreen(
                     permissions = permissions,
                     snackbarHostState = snackbarHostState,
+                    onNavigateBack = { parentFragmentManager.popBackStack() },
                     onAddStorage = { addRoot() },
                     onRemovePermission = { perm -> removePermission(perm) },
                     onOpenAllFilesSettings = { openAllFilesSettings() },

@@ -2,6 +2,7 @@ package ch.jacem.starclone.ui.screens.remotes
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,11 +29,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ch.jacem.starclone.Items.RemoteItem
+import ch.jacem.starclone.R
 import ch.jacem.starclone.ui.components.StarCloneDialog
 import ch.jacem.starclone.ui.components.StarCloneEmptyState
+import ch.jacem.starclone.ui.components.StarCloneTopBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RemotesScreen(
     viewModel: RemotesViewModel,
@@ -46,7 +52,10 @@ fun RemotesScreen(
     var showDeleteDialog by remember { mutableStateOf<RemoteItem?>(null) }
     var showRenameDialog by remember { mutableStateOf<RemoteItem?>(null) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        StarCloneTopBar(title = stringResource(R.string.remotes))
+
+    Box(modifier = Modifier.fillMaxSize().weight(1f)) {
         when {
             viewModel.isLoading -> {
                 CircularProgressIndicator(
@@ -105,6 +114,7 @@ fun RemotesScreen(
                 Icon(Icons.Default.Add, contentDescription = "Add Remote")
             }
         }
+    }
     }
 
     // Options bottom sheet

@@ -24,9 +24,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.compose.ui.platform.ComposeView;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
@@ -107,13 +105,6 @@ public class MainActivity extends AppCompatActivity
         context = this;
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        ActionBar actionbar = getSupportActionBar();
-        if (actionbar != null) {
-            actionbar.setDisplayHomeAsUpEnabled(false);
-        }
-
         // Set up ViewPager2
         viewPager = findViewById(R.id.viewPager);
         pagerAdapter = new MainPagerAdapter(this);
@@ -127,32 +118,12 @@ public class MainActivity extends AppCompatActivity
             viewPager.setCurrentItem(savedPage, false);
         }
 
-        // Sync ViewPager2 page changes → bottom nav and fade toolbar during swipe
-        View appBarLayout = findViewById(R.id.appBar);
+        // Sync ViewPager2 page changes → bottom nav
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
                 BottomNavTab tab = BottomNavTab.values()[position];
                 MainActivityNavKt.syncSelectedTab(tab);
-            }
-
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                // Fade the toolbar during swipe transitions
-                if (positionOffset == 0f) {
-                    appBarLayout.setAlpha(1f);
-                } else {
-                    // Fade out quickly during the first 30% of the swipe
-                    float alpha = Math.max(0f, 1f - positionOffset * 3.3f);
-                    appBarLayout.setAlpha(alpha);
-                }
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-                if (state == ViewPager2.SCROLL_STATE_IDLE) {
-                    appBarLayout.setAlpha(1f);
-                }
             }
         });
 

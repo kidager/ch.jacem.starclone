@@ -29,15 +29,22 @@ import ch.jacem.starclone.BuildConfig
 import ch.jacem.starclone.R
 import ch.jacem.starclone.Rclone
 import ch.jacem.starclone.ui.components.StarCloneListItem
+import ch.jacem.starclone.ui.components.StarCloneTopBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onCategoryClick: (Int) -> Unit,
     onImport: () -> Unit,
     onExport: () -> Unit,
 ) {
+    Column {
+        StarCloneTopBar(title = stringResource(R.string.settings))
+
     LazyColumn(
         contentPadding = PaddingValues(vertical = 8.dp),
+        modifier = Modifier.weight(1f),
     ) {
         item {
             StarCloneListItem(
@@ -124,6 +131,7 @@ fun SettingsScreen(
             }
         }
         item { Spacer(Modifier.height(80.dp)) }
+    }
     }
 }
 

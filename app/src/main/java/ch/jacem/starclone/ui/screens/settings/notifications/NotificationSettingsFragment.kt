@@ -17,7 +17,9 @@ class NotificationSettingsFragment : Fragment() {
     ) = ComposeView(requireContext()).apply {
         setContent {
             StarCloneTheme {
-                NotificationSettingsScreen()
+                NotificationSettingsScreen(
+                    onNavigateBack = { parentFragmentManager.popBackStack() },
+                )
             }
         }
     }

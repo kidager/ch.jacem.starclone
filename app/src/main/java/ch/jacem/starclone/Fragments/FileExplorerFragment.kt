@@ -8,9 +8,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Base64
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -158,8 +155,6 @@ class FileExplorerFragment : Fragment(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-
         remote = arguments?.getParcelable(ARG_REMOTE) ?: return
         rclone = Rclone(requireContext())
 
@@ -200,6 +195,7 @@ class FileExplorerFragment : Fragment(),
                         onDownloadFiles = { files -> onDownloadFiles(files) },
                         onSyncDirectionSelected = { direction -> onSyncDirectionSelected(direction) },
                         onShowGoToDialog = { showSFTPgoToDialog() },
+                        onNavigateBack = { parentFragmentManager.popBackStack() },
                         onCloudFilesConfirmed = { onCloudFilesConfirmed() },
                         onServeConfirmed = { protocol, allowRemoteAccess, user, password ->
                             onServeOptionsSelected(protocol, allowRemoteAccess, user, password)
@@ -220,7 +216,6 @@ class FileExplorerFragment : Fragment(),
 
     override fun onResume() {
         super.onResume()
-        setTitle()
     }
 
     override fun onStop() {
@@ -234,91 +229,6 @@ class FileExplorerFragment : Fragment(),
 
     override fun onDetach() {
         super.onDetach()
-        val searchContainer = activity?.findViewById<View>(R.id.searchButton)
-        searchContainer?.visibility = View.GONE
-    }
-
-    // --- Menu ---
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.file_explorer_folder_menu, menu)
-
-        if (!remote.hasTrashCan()) {
-            menu.findItem(R.id.action_empty_trash)?.isVisible = false
-        }
-        if (!remote.hasLinkSupport()) {
-            menu.findItem(R.id.action_link)?.isVisible = false
-        }
-        if (!remote.isRemoteType(RemoteItem.SFTP)) {
-            menu.findItem(R.id.action_go_to)?.isVisible = false
-        }
-        if (!remote.hasSyncSupport()) {
-            menu.findItem(R.id.action_sync)?.isVisible = false
-        }
-
-        if (viewModel.isInMoveMode || viewModel.isInSelectMode) {
-            setMenuVisibility(menu, false)
-        }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_sort -> {
-                viewModel.showSortDialog = true
-                true
-            }
-            R.id.action_select_all -> {
-                viewModel.selectAll()
-                true
-            }
-            R.id.action_serve -> {
-                viewModel.showServeDialog = true
-                true
-            }
-            R.id.action_empty_trash -> {
-                viewModel.emptyTrash()
-                true
-            }
-            R.id.action_link -> {
-                viewModel.generateLink(viewModel.currentPath)
-                true
-            }
-            R.id.action_sync -> {
-                viewModel.syncRemotePath = viewModel.currentPath
-                viewModel.showSyncDirectionDialog = true
-                true
-            }
-            R.id.action_go_to -> {
-                showSFTPgoToDialog()
-                true
-            }
-            android.R.id.home -> {
-                when {
-                    viewModel.isInMoveMode -> viewModel.cancelMove()
-                    viewModel.isInSelectMode -> viewModel.clearSelection()
-                    else -> (activity as? MainActivity)?.openNavigationDrawer()
-                }
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
-
-    private fun setMenuVisibility(menu: Menu, visible: Boolean) {
-        menu.findItem(R.id.action_serve)?.isVisible = visible
-        if (!visible && viewModel.isInMoveMode) {
-            menu.findItem(R.id.action_select_all)?.isVisible = false
-        }
-        if (!remote.isCrypt) {
-            menu.findItem(R.id.action_link)?.isVisible = visible
-        }
-        if (remote.hasTrashCan()) {
-            menu.findItem(R.id.action_empty_trash)?.isVisible = visible
-        }
-        if (remote.isRemoteType(RemoteItem.SFTP)) {
-            menu.findItem(R.id.action_go_to)?.isVisible = visible
-        }
     }
 
     // --- Back press ---
@@ -553,15 +463,6 @@ class FileExplorerFragment : Fragment(),
     }
 
     // --- Helpers ---
-
-    private fun setTitle() {
-        val title = if (remote.isCrypt) {
-            "crypt (${remote.typeReadable})"
-        } else {
-            remote.typeReadable
-        }
-        activity?.title = title
-    }
 
     private fun registerReceivers() {
         val filter = IntentFilter().apply {

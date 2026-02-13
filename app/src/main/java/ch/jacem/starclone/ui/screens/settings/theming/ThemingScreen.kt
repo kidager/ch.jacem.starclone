@@ -22,9 +22,15 @@ import androidx.preference.PreferenceManager
 import ch.jacem.starclone.R
 import ch.jacem.starclone.ui.components.StarCloneDialog
 import ch.jacem.starclone.ui.components.StarCloneListItem
+import ch.jacem.starclone.ui.components.StarCloneTopBar
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ThemingScreen(onThemeChanged: () -> Unit) {
+fun ThemingScreen(onThemeChanged: () -> Unit, onNavigateBack: () -> Unit = {}) {
     val context = LocalContext.current
     val prefs = remember { PreferenceManager.getDefaultSharedPreferences(context) }
     val themeKey = stringResource(R.string.pref_key_theme)
@@ -42,8 +48,16 @@ fun ThemingScreen(onThemeChanged: () -> Unit) {
     val themeValues = listOf("0", "1", "2")
     val currentThemeLabel = themeLabels.getOrElse(themeValues.indexOf(currentTheme)) { themeLabels[0] }
 
+    Column(modifier = Modifier.fillMaxSize()) {
+        StarCloneTopBar(
+            title = stringResource(R.string.look_and_feel),
+            navigationIcon = Icons.AutoMirrored.Outlined.ArrowBack,
+            onNavigationClick = onNavigateBack,
+        )
+
     LazyColumn(
         contentPadding = PaddingValues(vertical = 8.dp),
+        modifier = Modifier.weight(1f),
     ) {
         item {
             StarCloneListItem(
@@ -69,6 +83,8 @@ fun ThemingScreen(onThemeChanged: () -> Unit) {
             )
         }
         item { Spacer(Modifier.height(80.dp)) }
+    }
+
     }
 
     if (showThemeDialog) {

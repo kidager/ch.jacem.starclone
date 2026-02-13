@@ -17,7 +17,9 @@ class GeneralSettingsFragment : Fragment() {
     ) = ComposeView(requireContext()).apply {
         setContent {
             StarCloneTheme {
-                GeneralSettingsScreen()
+                GeneralSettingsScreen(
+                    onNavigateBack = { parentFragmentManager.popBackStack() },
+                )
             }
         }
     }

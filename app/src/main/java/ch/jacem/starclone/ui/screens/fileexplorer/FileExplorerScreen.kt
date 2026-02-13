@@ -115,6 +115,7 @@ fun FileExplorerScreen(
     var showEmptyTrashConfirm by remember { mutableStateOf(false) }
     var openAsTarget by remember { mutableStateOf<FileItem?>(null) }
     var showFileProperties by remember { mutableStateOf<FileItem?>(null) }
+    var showSelectionActions by remember { mutableStateOf(false) }
 
     // Show error as Snackbar with Retry
     viewModel.error?.let { errorMessage ->
@@ -139,7 +140,13 @@ fun FileExplorerScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Top bar
-            val title = if (remote.isCrypt) "crypt (${remote.typeReadable})" else remote.typeReadable
+            val title = when {
+                viewModel.isInSelectMode && !viewModel.isInMoveMode ->
+                    "${viewModel.selectedFiles.size} selected"
+                viewModel.isInMoveMode -> stringResource(R.string.move)
+                remote.isCrypt -> "crypt (${remote.typeReadable})"
+                else -> remote.typeReadable
+            }
             StarCloneTopBar(
                 title = title,
                 navigationIcon = Icons.AutoMirrored.Outlined.ArrowBack,
@@ -151,7 +158,14 @@ fun FileExplorerScreen(
                     }
                 },
                 actions = {
-                    if (!viewModel.isInMoveMode && !viewModel.isInSelectMode) {
+                    if (viewModel.isInSelectMode && !viewModel.isInMoveMode) {
+                        IconButton(onClick = { viewModel.selectAll() }) {
+                            Icon(Icons.Outlined.SelectAll, contentDescription = stringResource(R.string.select_all))
+                        }
+                        IconButton(onClick = { showSelectionActions = true }) {
+                            Icon(Icons.Outlined.MoreVert, contentDescription = "Actions")
+                        }
+                    } else if (!viewModel.isInMoveMode && !viewModel.isInSelectMode) {
                         IconButton(onClick = { viewModel.enterSearchMode() }) {
                             Icon(Icons.Outlined.Search, contentDescription = stringResource(R.string.search))
                         }
@@ -319,25 +333,6 @@ fun FileExplorerScreen(
                         }
                     }
                 }
-            }
-
-            // Selection bottom bar
-            if (viewModel.isInSelectMode && !viewModel.isInMoveMode) {
-                SelectionBottomBar(
-                    selectedCount = viewModel.selectedFiles.size,
-                    canRename = viewModel.selectedFiles.size == 1,
-                    showDownload = !remote.isRemoteType(RemoteItem.LOCAL, RemoteItem.SAFW) && !remote.isPathAlias,
-                    onDownload = {
-                        onDownloadFiles(viewModel.selectedFiles.toList())
-                    },
-                    onMove = { viewModel.enterMoveMode(viewModel.selectedFiles.toList()) },
-                    onRename = {
-                        renameTarget = viewModel.selectedFiles.first()
-                    },
-                    onDelete = {
-                        deleteTargets = viewModel.selectedFiles.toList()
-                    },
-                )
             }
 
             // Move mode bottom bar
@@ -528,6 +523,117 @@ fun FileExplorerScreen(
                 viewModel.showServeDialog = false
                 onServeConfirmed(protocol, allowRemoteAccess, user, password)
             },
+        )
+    }
+
+    // Selection actions bottom sheet
+    if (showSelectionActions && viewModel.isInSelectMode) {
+        val selected = viewModel.selectedFiles.toList()
+        val isSingle = selected.size == 1
+        val singleItem = selected.firstOrNull()
+        val errorColor = MaterialTheme.colorScheme.error
+
+        val actions = buildList {
+            if (isSingle && singleItem != null) {
+                add(
+                    ch.jacem.starclone.ui.components.BottomSheetAction(
+                        icon = Icons.Outlined.Info,
+                        label = stringResource(R.string.properties),
+                        onClick = {
+                            showFileProperties = singleItem
+                            showSelectionActions = false
+                        },
+                    ),
+                )
+                if (!singleItem.isDir) {
+                    add(
+                        ch.jacem.starclone.ui.components.BottomSheetAction(
+                            icon = Icons.Outlined.Description,
+                            label = stringResource(R.string.open_as),
+                            onClick = {
+                                openAsTarget = singleItem
+                                showSelectionActions = false
+                            },
+                        ),
+                    )
+                }
+            }
+            if (!remote.isRemoteType(RemoteItem.LOCAL, RemoteItem.SAFW) && !remote.isPathAlias) {
+                add(
+                    ch.jacem.starclone.ui.components.BottomSheetAction(
+                        icon = Icons.Outlined.Download,
+                        label = stringResource(R.string.download),
+                        onClick = {
+                            onDownloadFiles(selected)
+                            showSelectionActions = false
+                        },
+                    ),
+                )
+            }
+            add(
+                ch.jacem.starclone.ui.components.BottomSheetAction(
+                    icon = Icons.Outlined.DriveFileMove,
+                    label = stringResource(R.string.move),
+                    onClick = {
+                        viewModel.enterMoveMode(selected)
+                        showSelectionActions = false
+                    },
+                ),
+            )
+            if (isSingle) {
+                add(
+                    ch.jacem.starclone.ui.components.BottomSheetAction(
+                        icon = Icons.Outlined.DriveFileRenameOutline,
+                        label = stringResource(R.string.rename),
+                        onClick = {
+                            renameTarget = singleItem
+                            showSelectionActions = false
+                        },
+                    ),
+                )
+            }
+            if (isSingle && singleItem != null && remote.hasLinkSupport()) {
+                add(
+                    ch.jacem.starclone.ui.components.BottomSheetAction(
+                        icon = Icons.Outlined.Link,
+                        label = stringResource(R.string.link),
+                        onClick = {
+                            viewModel.generateLink(singleItem.path)
+                            showSelectionActions = false
+                        },
+                    ),
+                )
+            }
+            if (isSingle && singleItem != null && singleItem.isDir && remote.hasSyncSupport()) {
+                add(
+                    ch.jacem.starclone.ui.components.BottomSheetAction(
+                        icon = Icons.Outlined.Sync,
+                        label = stringResource(R.string.sync),
+                        onClick = {
+                            viewModel.syncRemotePath = singleItem.path
+                            viewModel.showSyncDirectionDialog = true
+                            showSelectionActions = false
+                        },
+                    ),
+                )
+            }
+            add(
+                ch.jacem.starclone.ui.components.BottomSheetAction(
+                    icon = Icons.Outlined.Delete,
+                    label = stringResource(R.string.delete),
+                    tint = errorColor,
+                    onClick = {
+                        deleteTargets = selected
+                        showSelectionActions = false
+                    },
+                ),
+            )
+        }
+
+        ch.jacem.starclone.ui.components.StarCloneBottomSheet(
+            title = if (isSingle) singleItem?.name ?: "" else "${selected.size} items selected",
+            actions = actions,
+            onDismiss = { showSelectionActions = false },
         )
     }
 
@@ -812,75 +918,6 @@ private fun FileListItem(
             onLongClick = onLongClick,
         ),
     )
-}
-
-// --- Selection Bottom Bar ---
-
-@Composable
-private fun SelectionBottomBar(
-    selectedCount: Int,
-    canRename: Boolean,
-    showDownload: Boolean,
-    onDownload: () -> Unit,
-    onMove: () -> Unit,
-    onRename: () -> Unit,
-    onDelete: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .padding(horizontal = 8.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        if (showDownload) {
-            BarAction(
-                icon = Icons.Outlined.Download,
-                label = stringResource(R.string.download),
-                onClick = onDownload,
-            )
-        }
-        BarAction(
-            icon = Icons.Outlined.DriveFileMove,
-            label = stringResource(R.string.move),
-            onClick = onMove,
-        )
-        BarAction(
-            icon = Icons.Outlined.DriveFileRenameOutline,
-            label = stringResource(R.string.rename),
-            onClick = onRename,
-            enabled = canRename,
-        )
-        BarAction(
-            icon = Icons.Outlined.Delete,
-            label = stringResource(R.string.delete),
-            onClick = onDelete,
-        )
-    }
-}
-
-@Composable
-private fun BarAction(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    onClick: () -> Unit,
-    enabled: Boolean = true,
-) {
-    val color = if (enabled) {
-        MaterialTheme.colorScheme.onSurface
-    } else {
-        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-    }
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .clickable(enabled = enabled, onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 4.dp),
-    ) {
-        Icon(icon, contentDescription = label, tint = color)
-        Text(label, style = MaterialTheme.typography.labelSmall, color = color)
-    }
 }
 
 // --- Move Bottom Bar ---

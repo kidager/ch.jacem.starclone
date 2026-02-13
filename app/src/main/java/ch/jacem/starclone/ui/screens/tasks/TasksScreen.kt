@@ -18,6 +18,7 @@ import androidx.compose.material.icons.outlined.SyncAlt
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,7 +39,6 @@ import ch.jacem.starclone.R
 import ch.jacem.starclone.ui.components.StarCloneDialog
 import ch.jacem.starclone.ui.components.StarCloneEmptyState
 import ch.jacem.starclone.ui.components.StarCloneTopBar
-import androidx.compose.material3.ExperimentalMaterial3Api
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,6 +49,10 @@ fun TasksScreen(
     onAddTrigger: () -> Unit,
     onEditTrigger: (Trigger) -> Unit,
 ) {
+    val taskList = viewModel.tasks
+    val triggerList = viewModel.triggers
+    val isLoading = viewModel.isLoading
+
     var selectedTask by remember { mutableStateOf<Task?>(null) }
     var showDeleteTaskDialog by remember { mutableStateOf<Task?>(null) }
     var selectedTrigger by remember { mutableStateOf<Trigger?>(null) }
@@ -58,122 +62,123 @@ fun TasksScreen(
     Column(modifier = Modifier.fillMaxSize()) {
         StarCloneTopBar(title = stringResource(R.string.tasks))
 
-    Box(modifier = Modifier.fillMaxSize().weight(1f)) {
-        when {
-            viewModel.isLoading -> {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                )
-            }
-            viewModel.tasks.isEmpty() && viewModel.triggers.isEmpty() -> {
-                StarCloneEmptyState(
-                    icon = Icons.Outlined.SyncAlt,
-                    title = "No tasks configured",
-                    subtitle = "Tap + to create a task or trigger",
-                )
-            }
-            else -> {
-                LazyColumn(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    // Tasks section
-                    if (viewModel.tasks.isNotEmpty()) {
-                        item {
-                            Text(
-                                text = "Tasks",
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(vertical = 4.dp),
-                            )
-                        }
-                        items(
-                            items = viewModel.tasks,
-                            key = { "task_${it.id}" },
-                        ) { task ->
-                            TaskCard(
-                                task = task,
-                                onClick = { onEditTask(task) },
-                                onOptionsClick = { selectedTask = task },
-                            )
-                        }
-                    }
-
-                    // Triggers section
-                    item {
-                        Text(
-                            text = "Triggers",
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
-                        )
-                    }
-
-                    if (viewModel.triggers.isEmpty()) {
-                        item {
-                            TextButton(onClick = onAddTrigger) {
-                                Icon(Icons.Outlined.Alarm, contentDescription = null)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Add a trigger to automate tasks")
+        Box(modifier = Modifier.fillMaxSize().weight(1f)) {
+            when {
+                isLoading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                    )
+                }
+                taskList.isEmpty() && triggerList.isEmpty() -> {
+                    StarCloneEmptyState(
+                        icon = Icons.Outlined.SyncAlt,
+                        title = "No tasks configured",
+                        subtitle = "Tap + to create a task or trigger",
+                    )
+                }
+                else -> {
+                    LazyColumn(
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        // Tasks section
+                        if (taskList.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = "Tasks",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(vertical = 4.dp),
+                                )
+                            }
+                            items(
+                                items = taskList,
+                                key = { "task_${it.id}" },
+                            ) { task ->
+                                TaskCard(
+                                    task = task,
+                                    onClick = { onEditTask(task) },
+                                    onOptionsClick = { selectedTask = task },
+                                )
                             }
                         }
-                    } else {
-                        items(
-                            items = viewModel.triggers,
-                            key = { "trigger_${it.id}_${it.isEnabled}" },
-                        ) { trigger ->
-                            val targetTask = viewModel.tasks.find { it.id == trigger.triggerTarget }
-                            TriggerCard(
-                                trigger = trigger,
-                                targetTask = targetTask,
-                                onToggle = { viewModel.toggleTrigger(trigger) },
-                                onOptionsClick = { selectedTrigger = trigger },
+
+                        // Triggers section
+                        item {
+                            Text(
+                                text = "Triggers",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
                             )
                         }
+
+                        if (triggerList.isEmpty()) {
+                            item {
+                                TextButton(onClick = onAddTrigger) {
+                                    Icon(Icons.Outlined.Alarm, contentDescription = null)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Add a trigger to automate tasks")
+                                }
+                            }
+                        } else {
+                            items(
+                                items = triggerList,
+                                key = { "trigger_${it.id}" },
+                            ) { trigger ->
+                                val targetTask = taskList.find { it.id == trigger.triggerTarget }
+                                TriggerCard(
+                                    trigger = trigger,
+                                    isEnabled = trigger.isEnabled,
+                                    targetTask = targetTask,
+                                    onToggle = { viewModel.toggleTrigger(trigger) },
+                                    onOptionsClick = { selectedTrigger = trigger },
+                                )
+                            }
+                        }
+
+                        item { Spacer(Modifier.height(80.dp)) }
                     }
+                }
+            }
 
-                    item { Spacer(Modifier.height(80.dp)) }
+            // FAB with menu
+            if (!isLoading) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp),
+                ) {
+                    FloatingActionButton(
+                        onClick = { showFabMenu = true },
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Add")
+                    }
+                    DropdownMenu(
+                        expanded = showFabMenu,
+                        onDismissRequest = { showFabMenu = false },
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Add Task") },
+                            leadingIcon = { Icon(Icons.Outlined.SyncAlt, contentDescription = null) },
+                            onClick = {
+                                showFabMenu = false
+                                onAddTask()
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Add Trigger") },
+                            leadingIcon = { Icon(Icons.Outlined.Alarm, contentDescription = null) },
+                            onClick = {
+                                showFabMenu = false
+                                onAddTrigger()
+                            },
+                        )
+                    }
                 }
             }
         }
-
-        // FAB with menu
-        if (!viewModel.isLoading) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp),
-            ) {
-                FloatingActionButton(
-                    onClick = { showFabMenu = true },
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add")
-                }
-                DropdownMenu(
-                    expanded = showFabMenu,
-                    onDismissRequest = { showFabMenu = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Add Task") },
-                        leadingIcon = { Icon(Icons.Outlined.SyncAlt, contentDescription = null) },
-                        onClick = {
-                            showFabMenu = false
-                            onAddTask()
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Add Trigger") },
-                        leadingIcon = { Icon(Icons.Outlined.Alarm, contentDescription = null) },
-                        onClick = {
-                            showFabMenu = false
-                            onAddTrigger()
-                        },
-                    )
-                }
-            }
-        }
-    }
     }
 
     // Task options bottom sheet

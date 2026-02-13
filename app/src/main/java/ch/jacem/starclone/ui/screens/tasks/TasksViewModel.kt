@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,16 +15,17 @@ import ch.jacem.starclone.Services.TriggerService
 import ch.jacem.starclone.workmanager.SyncManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class TasksViewModel(application: Application) : AndroidViewModel(application) {
 
     private val context: Context = application
 
-    var tasks by mutableStateOf<List<Task>>(emptyList())
+    var tasks by mutableStateOf<List<Task>>(emptyList(), referentialEqualityPolicy())
         private set
-    var triggers by mutableStateOf<List<Trigger>>(emptyList())
+
+    var triggers by mutableStateOf<List<Trigger>>(emptyList(), referentialEqualityPolicy())
         private set
+
     var isLoading by mutableStateOf(true)
         private set
 
@@ -37,11 +39,9 @@ class TasksViewModel(application: Application) : AndroidViewModel(application) {
             val loadedTasks = dbHandler.allTasks
             val loadedTriggers = dbHandler.allTrigger
 
-            withContext(Dispatchers.Main) {
-                tasks = loadedTasks
-                triggers = loadedTriggers
-                isLoading = false
-            }
+            tasks = loadedTasks
+            triggers = loadedTriggers
+            isLoading = false
         }
     }
 
@@ -67,10 +67,7 @@ class TasksViewModel(application: Application) : AndroidViewModel(application) {
                 onSuccessFollowup = task.onSuccessFollowup
             }
             dbHandler.createTask(copy)
-            val updatedTasks = dbHandler.allTasks
-            withContext(Dispatchers.Main) {
-                tasks = updatedTasks
-            }
+            tasks = dbHandler.allTasks
         }
     }
 
@@ -78,10 +75,7 @@ class TasksViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             val dbHandler = DatabaseHandler(context)
             dbHandler.deleteTask(task.id)
-            val updatedTasks = dbHandler.allTasks
-            withContext(Dispatchers.Main) {
-                tasks = updatedTasks
-            }
+            tasks = dbHandler.allTasks
         }
     }
 
@@ -127,10 +121,7 @@ class TasksViewModel(application: Application) : AndroidViewModel(application) {
                 type = trigger.type
             }
             dbHandler.createTrigger(copy)
-            val updatedTriggers = dbHandler.allTrigger
-            withContext(Dispatchers.Main) {
-                triggers = updatedTriggers
-            }
+            triggers = dbHandler.allTrigger
         }
     }
 
@@ -140,10 +131,7 @@ class TasksViewModel(application: Application) : AndroidViewModel(application) {
             val triggerService = TriggerService(context)
             triggerService.cancelTrigger(trigger.id)
             dbHandler.deleteTrigger(trigger.id)
-            val updatedTriggers = dbHandler.allTrigger
-            withContext(Dispatchers.Main) {
-                triggers = updatedTriggers
-            }
+            triggers = dbHandler.allTrigger
         }
     }
 }

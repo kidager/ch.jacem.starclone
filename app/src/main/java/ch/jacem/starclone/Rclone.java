@@ -259,7 +259,25 @@ public class Rclone {
         }
         String logOutput = stringBuilder.toString();
         log2File.log(logOutput);
-        SyncLog.error(context, "Rclone operation", logOutput);
+
+        // Log each rclone output line as a separate entry
+        for (String rcloneLine : logOutput.split("\\n")) {
+            String trimmed = rcloneLine.trim();
+            if (trimmed.isEmpty()) continue;
+            try {
+                JSONObject json = new JSONObject(trimmed);
+                String msg = json.optString("msg", "").trim();
+                if (msg.isEmpty()) continue;
+                String level = json.optString("level", "error");
+                if ("error".equals(level)) {
+                    SyncLog.error(context, "Rclone", msg);
+                } else {
+                    SyncLog.info(context, "Rclone", msg);
+                }
+            } catch (JSONException e) {
+                SyncLog.error(context, "Rclone", trimmed);
+            }
+        }
     }
 
     @Nullable

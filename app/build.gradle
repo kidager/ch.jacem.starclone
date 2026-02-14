@@ -5,8 +5,15 @@ apply plugin: 'kotlinx-serialization'
 android {
     signingConfigs {
         release {
-            keyAlias 'fdroid'
-            storeFile file('.config/android/roundsync.keystore')
+            def signingPropsFile = rootProject.file('signing.properties')
+            if (signingPropsFile.exists()) {
+                def signingProps = new Properties()
+                signingProps.load(signingPropsFile.newDataInputStream())
+                storeFile file(signingProps['storeFile'])
+                storePassword signingProps['storePassword']
+                keyAlias signingProps['keyAlias']
+                keyPassword signingProps['keyPassword']
+            }
         }
     }
     ndkVersion project.properties['de.felixnuesse.extract.ndkVersion']
@@ -223,6 +230,10 @@ dependencies {
 
     // Splash screen
     implementation("androidx.core:core-splashscreen:1.0.1")
+
+    // Age encryption
+    implementation 'com.exceptionfactory.jagged:jagged-framework:1.0.0'
+    implementation 'com.exceptionfactory.jagged:jagged-x25519:1.0.0'
 
     //Updates
     implementation 'com.github.Sharkaboi:AppUpdateChecker:v1.0.5'

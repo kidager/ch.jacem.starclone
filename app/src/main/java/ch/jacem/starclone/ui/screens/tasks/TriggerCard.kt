@@ -1,7 +1,6 @@
 package ch.jacem.starclone.ui.screens.tasks
 
 import android.text.format.DateFormat
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,14 +18,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import ch.jacem.starclone.Items.Task
 import ch.jacem.starclone.Items.Trigger
+import ch.jacem.starclone.R
 
 @Composable
 fun TriggerCard(
     trigger: Trigger,
+    isEnabled: Boolean,
     targetTask: Task?,
     onToggle: () -> Unit,
     onOptionsClick: () -> Unit,
@@ -44,7 +46,7 @@ fun TriggerCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Switch(
-                checked = trigger.isEnabled,
+                checked = isEnabled,
                 onCheckedChange = { onToggle() },
             )
 
@@ -74,7 +76,7 @@ fun TriggerCard(
                     )
                 } else {
                     Text(
-                        text = "Every ${trigger.time} min",
+                        text = stringResource(R.string.trigger_interval_every_n_min, trigger.time),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -82,7 +84,7 @@ fun TriggerCard(
 
                 targetTask?.let {
                     Text(
-                        text = "Task: ${it.title}",
+                        text = stringResource(R.string.trigger_target_task, it.title),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
                         maxLines = 1,
@@ -92,7 +94,7 @@ fun TriggerCard(
             }
 
             IconButton(onClick = onOptionsClick) {
-                Icon(Icons.Outlined.MoreVert, contentDescription = "Options")
+                Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.task_options))
             }
         }
     }
@@ -115,9 +117,17 @@ private fun formatSchedule(trigger: Trigger, is24Hour: Boolean): String {
     }
 }
 
-private val DAY_LABELS = arrayOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-
+@Composable
 private fun formatWeekdays(trigger: Trigger): String {
-    val days = (0..6).filter { trigger.isEnabledAtDay(it) }.map { DAY_LABELS[it] }
-    return if (days.size == 7) "Every day" else days.joinToString(", ")
+    val dayLabels = listOf(
+        stringResource(R.string.day_chip_mon),
+        stringResource(R.string.day_chip_tue),
+        stringResource(R.string.day_chip_wed),
+        stringResource(R.string.day_chip_thu),
+        stringResource(R.string.day_chip_fri),
+        stringResource(R.string.day_chip_sat),
+        stringResource(R.string.day_chip_sun),
+    )
+    val days = (0..6).filter { trigger.isEnabledAtDay(it) }.map { dayLabels[it] }
+    return if (days.size == 7) stringResource(R.string.trigger_every_day) else days.joinToString(", ")
 }

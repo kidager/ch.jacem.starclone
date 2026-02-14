@@ -52,6 +52,77 @@
     <string name="backup_n_filters_imported">%d filters imported</string>
     <string name="backup_preferences_imported">App preferences restored</string>
 
+    <!-- Cloud Backup -->
+    <string name="cloud_backup_title">Cloud Backup</string>
+    <string name="cloud_backup_description">Automatic backups to the cloud</string>
+    <string name="cloud_backup_enabled">Enable cloud backup</string>
+    <string name="cloud_backup_destination">Backup destination</string>
+    <string name="cloud_backup_auto_backup">Android Auto Backup</string>
+    <string name="cloud_backup_auto_backup_desc">System-managed backup to your Google account. Config will be encrypted with your password.</string>
+    <string name="cloud_backup_custom_remote">Custom remote</string>
+    <string name="cloud_backup_custom_remote_desc">Back up to a folder on one of your configured remotes.</string>
+    <string name="cloud_backup_remote">Remote</string>
+    <string name="cloud_backup_path">Backup folder</string>
+    <string name="cloud_backup_path_default">StarClone-Backups</string>
+    <string name="cloud_backup_frequency">Frequency</string>
+    <string name="cloud_backup_frequency_daily">Daily</string>
+    <string name="cloud_backup_frequency_weekly">Weekly</string>
+    <string name="cloud_backup_frequency_monthly">Monthly</string>
+    <string name="cloud_backup_time">Backup time</string>
+    <string name="cloud_backup_wifi_only">WiFi only</string>
+    <string name="cloud_backup_wifi_only_desc">Only run backups on unmetered networks</string>
+    <string name="cloud_backup_retention">Backups to keep</string>
+    <string name="cloud_backup_encryption">Encryption</string>
+    <string name="cloud_backup_encryption_none">None</string>
+    <string name="cloud_backup_encryption_password">Password</string>
+    <string name="cloud_backup_encryption_age">Age key</string>
+    <string name="cloud_backup_encryption_age_desc">Encrypt with an age public key (X25519)</string>
+    <string name="cloud_backup_set_password">Set backup password</string>
+    <string name="cloud_backup_password_hint">Password</string>
+    <string name="cloud_backup_password_confirm_hint">Confirm password</string>
+    <string name="cloud_backup_password_mismatch">Passwords do not match</string>
+    <string name="cloud_backup_password_empty">Password cannot be empty</string>
+    <string name="cloud_backup_age_public_key">Age public key</string>
+    <string name="cloud_backup_age_secret_key">Age secret key</string>
+    <string name="cloud_backup_age_generate">Generate keypair</string>
+    <string name="cloud_backup_age_import">Import from file</string>
+    <string name="cloud_backup_age_key_saved">Age key saved</string>
+    <string name="cloud_backup_age_copy_secret">Copy secret key</string>
+    <string name="cloud_backup_age_copy_secret_warning">Save your secret key securely. You will need it to restore backups.</string>
+    <string name="cloud_backup_backup_now">Backup now</string>
+    <string name="cloud_backup_last_backup">Last backup</string>
+    <string name="cloud_backup_last_backup_never">Never</string>
+    <string name="cloud_backup_last_backup_success">Success — %s</string>
+    <string name="cloud_backup_last_backup_failed">Failed — %s</string>
+    <string name="cloud_backup_config_encryption_required">Config encryption is required for Auto Backup to protect your credentials.</string>
+    <string name="cloud_backup_config_already_encrypted">Config is already encrypted</string>
+    <string name="cloud_backup_enable_config_encryption">Enable config encryption</string>
+    <string name="cloud_backup_no_remotes">No remotes configured. Add a remote first.</string>
+    <string name="cloud_backup_select_remote">Select remote</string>
+    <string name="cloud_backup_warning_key_loss_title">Important</string>
+    <string name="cloud_backup_warning_key_loss">If you lose this password or key, you will not be able to restore your encrypted backups. They will be lost forever. Make sure to save it securely.</string>
+    <string name="cloud_backup_warning_key_change_title">Changing encryption key</string>
+    <string name="cloud_backup_warning_key_change">This will only apply to future backups. Old backups encrypted with the previous key will no longer be restorable. A new backup will be created immediately.</string>
+    <string name="cloud_backup_age_not_supported_auto">Age encryption requires a custom remote destination. Switch to custom remote to use age keys.</string>
+
+    <!-- Import source selection -->
+    <string name="import_source_title">Import from</string>
+    <string name="import_source_file">Local file</string>
+    <string name="import_source_file_desc">Select a backup file from your device</string>
+    <string name="import_source_auto_backup">Android Auto Backup</string>
+    <string name="import_source_auto_backup_desc">Clear app data or reinstall, then Android will offer to restore on next launch.</string>
+    <string name="import_source_remote">Cloud backup</string>
+    <string name="import_source_remote_desc">Download a backup from one of your configured remotes</string>
+    <string name="import_source_remote_select">Select remote</string>
+    <string name="import_source_remote_loading">Loading backup files…</string>
+    <string name="import_source_remote_no_backups">No backups found</string>
+    <string name="import_source_remote_downloading">Downloading backup…</string>
+    <string name="import_source_remote_select_file">Select backup to restore</string>
+
+    <!-- First load -->
+    <string name="no_config_title">No configuration found</string>
+    <string name="no_config_message">Would you like to import your remotes from a backup?</string>
+
     <string name="about">About</string>
     <string name="sort">Sort</string>
     <string name="select_all">Select all</string>
@@ -686,4 +757,86 @@
     <string name="upload_cloud_files_title">Cloud files detected</string>
     <string name="upload_cloud_files_message">%d file(s) are from a cloud provider and need to be downloaded to your device first before uploading. Continue?</string>
     <string name="upload_cloud_files_confirm">Download &amp; Upload</string>
+
+    <!-- Tasks list screen -->
+    <string name="tasks_empty_title">No tasks configured</string>
+    <string name="tasks_empty_subtitle">Tap + to create a task or trigger</string>
+    <string name="tasks_section_tasks">Tasks</string>
+    <string name="tasks_section_triggers">Triggers</string>
+    <string name="tasks_add_trigger_hint">Add a trigger to automate tasks</string>
+    <string name="tasks_fab_add">Add</string>
+
+    <!-- Task card -->
+    <string name="task_direction_sync_to_remote">Sync: Local \u2192 Remote</string>
+    <string name="task_direction_sync_to_local">Sync: Remote \u2192 Local</string>
+    <string name="task_direction_copy_to_remote">Copy: Local \u2192 Remote</string>
+    <string name="task_direction_copy_to_local">Copy: Remote \u2192 Local</string>
+    <string name="task_direction_bisync">BiSync</string>
+    <string name="task_direction_sync">Sync</string>
+    <string name="task_options">Options</string>
+
+    <!-- Trigger card -->
+    <string name="trigger_interval_every_n_min">Every %d min</string>
+    <string name="trigger_target_task">Task: %s</string>
+    <string name="trigger_every_day">Every day</string>
+
+    <!-- Task options sheet -->
+    <string name="task_option_start">Start</string>
+    <string name="task_option_start_desc">Run this task now</string>
+    <string name="task_option_edit">Edit</string>
+    <string name="task_option_edit_desc">Modify task settings</string>
+    <string name="task_option_duplicate">Duplicate</string>
+    <string name="task_option_duplicate_desc">Create a copy of this task</string>
+    <string name="task_option_delete">Delete</string>
+    <string name="task_option_delete_desc">Remove this task</string>
+
+    <!-- Trigger options sheet -->
+    <string name="trigger_option_edit">Edit</string>
+    <string name="trigger_option_edit_desc">Modify trigger settings</string>
+    <string name="trigger_option_duplicate">Duplicate</string>
+    <string name="trigger_option_duplicate_desc">Create a copy of this trigger</string>
+    <string name="trigger_option_delete">Delete</string>
+    <string name="trigger_option_delete_desc">Remove this trigger</string>
+
+    <!-- Delete confirmation dialogs -->
+    <string name="delete_task_title">Delete Task</string>
+    <string name="delete_task_message">Are you sure you want to delete \"%s\"?</string>
+    <string name="delete_trigger_title">Delete Trigger</string>
+    <string name="delete_trigger_message">Are you sure you want to delete \"%s\"?</string>
+
+    <!-- Task edit screen -->
+    <string name="task_edit_title_new">New Task</string>
+    <string name="task_edit_title_edit">Edit Task</string>
+    <string name="task_edit_section_general">General</string>
+    <string name="task_edit_section_local">Local path</string>
+    <string name="task_edit_section_remote">Remote</string>
+    <string name="task_edit_section_options">Options</string>
+    <string name="task_edit_section_filter">Filter</string>
+    <string name="task_edit_section_followup">Follow-up tasks</string>
+    <string name="task_edit_remote_name">Remote</string>
+    <string name="task_edit_remote_path">Remote path</string>
+    <string name="task_edit_on_fail">On failure</string>
+    <string name="task_edit_on_success">On success</string>
+    <string name="task_edit_none">None</string>
+    <string name="task_edit_create_filter">Create filter</string>
+    <string name="task_edit_edit_filter">Edit filter</string>
+    <string name="task_edit_delete_filter">Delete filter</string>
+
+    <!-- Trigger edit screen -->
+    <string name="trigger_edit_title_new">New Trigger</string>
+    <string name="trigger_edit_title_edit">Edit Trigger</string>
+    <string name="trigger_edit_section_general">General</string>
+    <string name="trigger_edit_section_schedule">Schedule</string>
+    <string name="trigger_edit_section_interval">Interval</string>
+    <string name="trigger_edit_section_target">Target task</string>
+    <string name="trigger_edit_no_tasks_warning">No tasks available. Create a task first.</string>
+
+    <!-- Day abbreviations for chips -->
+    <string name="day_chip_mon">Mon</string>
+    <string name="day_chip_tue">Tue</string>
+    <string name="day_chip_wed">Wed</string>
+    <string name="day_chip_thu">Thu</string>
+    <string name="day_chip_fri">Fri</string>
+    <string name="day_chip_sat">Sat</string>
+    <string name="day_chip_sun">Sun</string>
 </resources>

@@ -72,8 +72,8 @@ fun TasksScreen(
                 taskList.isEmpty() && triggerList.isEmpty() -> {
                     StarCloneEmptyState(
                         icon = Icons.Outlined.SyncAlt,
-                        title = "No tasks configured",
-                        subtitle = "Tap + to create a task or trigger",
+                        title = stringResource(R.string.tasks_empty_title),
+                        subtitle = stringResource(R.string.tasks_empty_subtitle),
                     )
                 }
                 else -> {
@@ -86,7 +86,7 @@ fun TasksScreen(
                         if (taskList.isNotEmpty()) {
                             item {
                                 Text(
-                                    text = "Tasks",
+                                    text = stringResource(R.string.tasks_section_tasks),
                                     style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.padding(vertical = 4.dp),
@@ -107,7 +107,7 @@ fun TasksScreen(
                         // Triggers section
                         item {
                             Text(
-                                text = "Triggers",
+                                text = stringResource(R.string.tasks_section_triggers),
                                 style = MaterialTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
@@ -119,7 +119,7 @@ fun TasksScreen(
                                 TextButton(onClick = onAddTrigger) {
                                     Icon(Icons.Outlined.Alarm, contentDescription = null)
                                     Spacer(Modifier.width(8.dp))
-                                    Text("Add a trigger to automate tasks")
+                                    Text(stringResource(R.string.tasks_add_trigger_hint))
                                 }
                             }
                         } else {
@@ -153,14 +153,14 @@ fun TasksScreen(
                     FloatingActionButton(
                         onClick = { showFabMenu = true },
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = "Add")
+                        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.tasks_fab_add))
                     }
                     DropdownMenu(
                         expanded = showFabMenu,
                         onDismissRequest = { showFabMenu = false },
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Add Task") },
+                            text = { Text(stringResource(R.string.add_task)) },
                             leadingIcon = { Icon(Icons.Outlined.SyncAlt, contentDescription = null) },
                             onClick = {
                                 showFabMenu = false
@@ -168,7 +168,7 @@ fun TasksScreen(
                             },
                         )
                         DropdownMenuItem(
-                            text = { Text("Add Trigger") },
+                            text = { Text(stringResource(R.string.add_trigger)) },
                             leadingIcon = { Icon(Icons.Outlined.Alarm, contentDescription = null) },
                             onClick = {
                                 showFabMenu = false
@@ -229,14 +229,14 @@ fun TasksScreen(
     showDeleteTaskDialog?.let { task ->
         StarCloneDialog(
             onDismissRequest = { showDeleteTaskDialog = null },
-            title = "Delete Task",
-            text = { Text("Are you sure you want to delete \"${task.title}\"?") },
-            confirmLabel = "Delete",
+            title = stringResource(R.string.delete_task_title),
+            text = { Text(stringResource(R.string.delete_task_message, task.title)) },
+            confirmLabel = stringResource(R.string.delete),
             onConfirm = {
                 viewModel.deleteTask(task)
                 showDeleteTaskDialog = null
             },
-            dismissLabel = "Cancel",
+            dismissLabel = stringResource(R.string.cancel),
             onDismiss = { showDeleteTaskDialog = null },
             isDestructive = true,
         )
@@ -246,14 +246,14 @@ fun TasksScreen(
     showDeleteTriggerDialog?.let { trigger ->
         StarCloneDialog(
             onDismissRequest = { showDeleteTriggerDialog = null },
-            title = "Delete Trigger",
-            text = { Text("Are you sure you want to delete \"${trigger.title}\"?") },
-            confirmLabel = "Delete",
+            title = stringResource(R.string.delete_trigger_title),
+            text = { Text(stringResource(R.string.delete_trigger_message, trigger.title)) },
+            confirmLabel = stringResource(R.string.delete),
             onConfirm = {
                 viewModel.deleteTrigger(trigger)
                 showDeleteTriggerDialog = null
             },
-            dismissLabel = "Cancel",
+            dismissLabel = stringResource(R.string.cancel),
             onDismiss = { showDeleteTriggerDialog = null },
             isDestructive = true,
         )

@@ -20,10 +20,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import ch.jacem.starclone.Items.SyncDirectionObject
 import ch.jacem.starclone.Items.Task
+import ch.jacem.starclone.R
 
 @Composable
 fun TaskCard(
@@ -78,14 +81,14 @@ fun TaskCard(
             IconButton(onClick = onOptionsClick) {
                 Icon(
                     Icons.Outlined.MoreVert,
-                    contentDescription = "Options",
+                    contentDescription = stringResource(R.string.task_options),
                 )
             }
         }
     }
 }
 
-private fun directionIcon(direction: Int) = when (direction) {
+private fun directionIcon(direction: Int): ImageVector = when (direction) {
     SyncDirectionObject.SYNC_LOCAL_TO_REMOTE,
     SyncDirectionObject.COPY_LOCAL_TO_REMOTE -> Icons.Outlined.ArrowUpward
     SyncDirectionObject.SYNC_REMOTE_TO_LOCAL,
@@ -95,14 +98,15 @@ private fun directionIcon(direction: Int) = when (direction) {
     else -> Icons.Outlined.SwapVert
 }
 
-private fun directionLabel(direction: Int) = when (direction) {
-    SyncDirectionObject.SYNC_LOCAL_TO_REMOTE -> "Sync: Local \u2192 Remote"
-    SyncDirectionObject.SYNC_REMOTE_TO_LOCAL -> "Sync: Remote \u2192 Local"
-    SyncDirectionObject.COPY_LOCAL_TO_REMOTE -> "Copy: Local \u2192 Remote"
-    SyncDirectionObject.COPY_REMOTE_TO_LOCAL -> "Copy: Remote \u2192 Local"
+@Composable
+private fun directionLabel(direction: Int): String = when (direction) {
+    SyncDirectionObject.SYNC_LOCAL_TO_REMOTE -> stringResource(R.string.task_direction_sync_to_remote)
+    SyncDirectionObject.SYNC_REMOTE_TO_LOCAL -> stringResource(R.string.task_direction_sync_to_local)
+    SyncDirectionObject.COPY_LOCAL_TO_REMOTE -> stringResource(R.string.task_direction_copy_to_remote)
+    SyncDirectionObject.COPY_REMOTE_TO_LOCAL -> stringResource(R.string.task_direction_copy_to_local)
     SyncDirectionObject.SYNC_BIDIRECTIONAL,
-    SyncDirectionObject.SYNC_BIDIRECTIONAL_INITIAL -> "BiSync"
-    else -> "Sync"
+    SyncDirectionObject.SYNC_BIDIRECTIONAL_INITIAL -> stringResource(R.string.task_direction_bisync)
+    else -> stringResource(R.string.task_direction_sync)
 }
 
 private fun formatPaths(task: Task): String {

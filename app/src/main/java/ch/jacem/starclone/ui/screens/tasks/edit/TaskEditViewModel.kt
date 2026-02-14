@@ -26,6 +26,8 @@ class TaskEditViewModel(application: Application) : AndroidViewModel(application
     var localPath by mutableStateOf("")
     var remoteId by mutableStateOf("")
     var remotePath by mutableStateOf("")
+    var remoteId2 by mutableStateOf("")
+    var remotePath2 by mutableStateOf("")
     var wifiOnly by mutableStateOf(false)
     var md5sum by mutableStateOf(false)
     var selectedFilterId by mutableStateOf<Long?>(null)
@@ -70,6 +72,8 @@ class TaskEditViewModel(application: Application) : AndroidViewModel(application
                         deleteExcluded = task.deleteExcluded
                         onFailTaskId = task.onFailFollowup?.takeIf { it > 0 }
                         onSuccessTaskId = task.onSuccessFollowup?.takeIf { it > 0 }
+                        remoteId2 = task.remoteId2
+                        remotePath2 = task.remotePath2
                     }
                 }
             }
@@ -88,6 +92,8 @@ class TaskEditViewModel(application: Application) : AndroidViewModel(application
             DirectionOption(SyncDirectionObject.SYNC_REMOTE_TO_LOCAL, resources.getString(R.string.sync_direction_remote_local)),
             DirectionOption(SyncDirectionObject.COPY_LOCAL_TO_REMOTE, resources.getString(R.string.sync_direction_copy_local_remote)),
             DirectionOption(SyncDirectionObject.COPY_REMOTE_TO_LOCAL, resources.getString(R.string.sync_direction_copy_remote_local)),
+            DirectionOption(SyncDirectionObject.SYNC_REMOTE_TO_REMOTE, resources.getString(R.string.sync_direction_sync_remote_to_remote)),
+            DirectionOption(SyncDirectionObject.COPY_REMOTE_TO_REMOTE, resources.getString(R.string.sync_direction_copy_remote_to_remote)),
         )
 
         remoteNames = remotes
@@ -98,6 +104,9 @@ class TaskEditViewModel(application: Application) : AndroidViewModel(application
         if (remoteId.isEmpty() && remotes.isNotEmpty()) {
             remoteId = remotes[0]
         }
+        if (remoteId2.isEmpty() && remotes.isNotEmpty()) {
+            remoteId2 = remotes[0]
+        }
     }
 
     fun updateLocalPath(path: String) {
@@ -107,6 +116,11 @@ class TaskEditViewModel(application: Application) : AndroidViewModel(application
 
     fun updateRemotePath(path: String) {
         remotePath = path
+        validationError = null
+    }
+
+    fun updateRemotePath2(path: String) {
+        remotePath2 = path
         validationError = null
     }
 
@@ -132,12 +146,18 @@ class TaskEditViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun save(): Boolean {
-        if (localPath.isBlank()) {
+        val isR2R = SyncDirectionObject.isRemoteToRemote(direction)
+
+        if (!isR2R && localPath.isBlank()) {
             validationError = context.getString(R.string.task_data_validation_error_no_local_path)
             return false
         }
         if (remotePath.isBlank()) {
             validationError = context.getString(R.string.task_data_validation_error_no_remote_path)
+            return false
+        }
+        if (isR2R && remotePath2.isBlank()) {
+            validationError = context.getString(R.string.task_data_validation_error_no_remote_path_2)
             return false
         }
 
@@ -153,10 +173,17 @@ class TaskEditViewModel(application: Application) : AndroidViewModel(application
         task.deleteExcluded = deleteExcluded
         task.onFailFollowup = onFailTaskId
         task.onSuccessFollowup = onSuccessTaskId
+        task.remoteId2 = remoteId2
+        task.remotePath2 = remotePath2
 
         val rclone = Rclone(context)
         rclone.remotes?.find { it.name == task.remoteId }?.let {
             task.remoteType = it.type
+        }
+        if (isR2R) {
+            rclone.remotes?.find { it.name == task.remoteId2 }?.let {
+                task.remoteType2 = it.type
+            }
         }
 
         if (isEditing) {

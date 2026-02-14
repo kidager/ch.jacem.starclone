@@ -13,10 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FolderOpen
+import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -52,6 +52,7 @@ fun TaskEditScreen(
     viewModel: TaskEditViewModel,
     onPickLocalPath: () -> Unit,
     onPickRemotePath: (remoteName: String) -> Unit,
+    onPickRemotePath2: (remoteName: String) -> Unit,
     onCreateFilter: () -> Unit,
     onEditFilter: (filterId: Long) -> Unit,
     onSave: () -> Unit,
@@ -69,7 +70,7 @@ fun TaskEditScreen(
         floatingActionButton = {
             FloatingActionButton(onClick = onSave) {
                 Icon(
-                    Icons.Outlined.CreateNewFolder,
+                    Icons.Outlined.Save,
                     contentDescription = stringResource(R.string.save),
                 )
             }
@@ -103,52 +104,114 @@ fun TaskEditScreen(
 
             DirectionDescription(viewModel.direction)
 
-            // Local path
-            SectionHeader(stringResource(R.string.task_edit_section_local))
+            val isR2R = remember(viewModel.direction) {
+                SyncDirectionObject.isRemoteToRemote(viewModel.direction)
+            }
 
-            OutlinedTextField(
-                value = viewModel.localPath,
-                onValueChange = {},
-                label = { Text(stringResource(R.string.task_edit_hint_local)) },
-                readOnly = true,
-                singleLine = true,
-                trailingIcon = {
-                    IconButton(onClick = onPickLocalPath) {
-                        Icon(Icons.Outlined.FolderOpen, contentDescription = null)
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onPickLocalPath),
-            )
+            if (isR2R) {
+                // Source remote
+                SectionHeader(stringResource(R.string.task_edit_section_source_remote))
 
-            // Remote
-            SectionHeader(stringResource(R.string.task_edit_section_remote))
+                RemoteDropdown(
+                    remoteNames = viewModel.remoteNames,
+                    selected = viewModel.remoteId,
+                    onSelected = {
+                        viewModel.remoteId = it
+                        viewModel.remotePath = ""
+                    },
+                )
 
-            RemoteDropdown(
-                remoteNames = viewModel.remoteNames,
-                selected = viewModel.remoteId,
-                onSelected = {
-                    viewModel.remoteId = it
-                    viewModel.remotePath = ""
-                },
-            )
+                OutlinedTextField(
+                    value = viewModel.remotePath,
+                    onValueChange = {},
+                    label = { Text(stringResource(R.string.task_edit_hint_remote)) },
+                    readOnly = true,
+                    singleLine = true,
+                    trailingIcon = {
+                        IconButton(onClick = { onPickRemotePath(viewModel.remoteId) }) {
+                            Icon(Icons.Outlined.FolderOpen, contentDescription = null)
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = { onPickRemotePath(viewModel.remoteId) }),
+                )
 
-            OutlinedTextField(
-                value = viewModel.remotePath,
-                onValueChange = {},
-                label = { Text(stringResource(R.string.task_edit_hint_remote)) },
-                readOnly = true,
-                singleLine = true,
-                trailingIcon = {
-                    IconButton(onClick = { onPickRemotePath(viewModel.remoteId) }) {
-                        Icon(Icons.Outlined.FolderOpen, contentDescription = null)
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = { onPickRemotePath(viewModel.remoteId) }),
-            )
+                // Destination remote
+                SectionHeader(stringResource(R.string.task_edit_section_dest_remote))
+
+                RemoteDropdown(
+                    remoteNames = viewModel.remoteNames,
+                    selected = viewModel.remoteId2,
+                    onSelected = {
+                        viewModel.remoteId2 = it
+                        viewModel.remotePath2 = ""
+                    },
+                )
+
+                OutlinedTextField(
+                    value = viewModel.remotePath2,
+                    onValueChange = {},
+                    label = { Text(stringResource(R.string.task_edit_hint_remote)) },
+                    readOnly = true,
+                    singleLine = true,
+                    trailingIcon = {
+                        IconButton(onClick = { onPickRemotePath2(viewModel.remoteId2) }) {
+                            Icon(Icons.Outlined.FolderOpen, contentDescription = null)
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = { onPickRemotePath2(viewModel.remoteId2) }),
+                )
+            } else {
+                // Local path
+                SectionHeader(stringResource(R.string.task_edit_section_local))
+
+                OutlinedTextField(
+                    value = viewModel.localPath,
+                    onValueChange = {},
+                    label = { Text(stringResource(R.string.task_edit_hint_local)) },
+                    readOnly = true,
+                    singleLine = true,
+                    trailingIcon = {
+                        IconButton(onClick = onPickLocalPath) {
+                            Icon(Icons.Outlined.FolderOpen, contentDescription = null)
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onPickLocalPath),
+                )
+
+                // Remote
+                SectionHeader(stringResource(R.string.task_edit_section_remote))
+
+                RemoteDropdown(
+                    remoteNames = viewModel.remoteNames,
+                    selected = viewModel.remoteId,
+                    onSelected = {
+                        viewModel.remoteId = it
+                        viewModel.remotePath = ""
+                    },
+                )
+
+                OutlinedTextField(
+                    value = viewModel.remotePath,
+                    onValueChange = {},
+                    label = { Text(stringResource(R.string.task_edit_hint_remote)) },
+                    readOnly = true,
+                    singleLine = true,
+                    trailingIcon = {
+                        IconButton(onClick = { onPickRemotePath(viewModel.remoteId) }) {
+                            Icon(Icons.Outlined.FolderOpen, contentDescription = null)
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = { onPickRemotePath(viewModel.remoteId) }),
+                )
+            }
 
             // Options
             SectionHeader(stringResource(R.string.task_edit_section_options))
@@ -294,6 +357,8 @@ private fun DirectionDescription(direction: Int) {
         SyncDirectionObject.COPY_REMOTE_TO_LOCAL -> R.string.description_sync_direction_copy_tolocal
         SyncDirectionObject.SYNC_BIDIRECTIONAL,
         SyncDirectionObject.SYNC_BIDIRECTIONAL_INITIAL -> R.string.description_sync_direction_sync_bidirectional
+        SyncDirectionObject.SYNC_REMOTE_TO_REMOTE -> R.string.description_sync_direction_sync_remote_to_remote
+        SyncDirectionObject.COPY_REMOTE_TO_REMOTE -> R.string.description_sync_direction_copy_remote_to_remote
         else -> R.string.description_sync_direction_sync_toremote
     }
     Text(

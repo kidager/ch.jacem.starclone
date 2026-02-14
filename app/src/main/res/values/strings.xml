@@ -449,6 +449,8 @@
     <string name="importer_unknown_error">Unknown error importing task!</string>
     <string name="sync_direction_copy_local_remote">Copy local to remote</string>
     <string name="sync_direction_copy_remote_local">Copy remote to local</string>
+    <string name="sync_direction_sync_remote_to_remote">Sync remote to remote</string>
+    <string name="sync_direction_copy_remote_to_remote">Copy remote to remote</string>
     <string name="copy">Copy</string>
     <string name="operation_success">%s sync successful</string>
     <string name="operation_success_description_zero">There was nothing to do.</string>
@@ -594,6 +596,9 @@
     <string name="alarm_while_idle_summary">May consume more battery, but disabled can cause heavy delays.</string>
     <string name="task_data_validation_error_no_local_path">You have not selected a local path yet</string>
     <string name="task_data_validation_error_no_remote_path">You have not selected a remote path yet</string>
+    <string name="task_data_validation_error_no_remote_path_2">You have not selected a destination remote path yet</string>
+    <string name="task_edit_section_source_remote">Source remote</string>
+    <string name="task_edit_section_dest_remote">Destination remote</string>
     <string name="bisync">Bidirectional</string>
     <string name="description_sync_direction">This determines the source and destination for the data transfer.</string>
     <string name="description_sync_direction_sync_tolocal">Synchronize files from remote storage to local storage. It can also delete files from the local storage if they don\'t exist on the remote storage. Only the local storage is updated with changes.</string>
@@ -601,6 +606,8 @@
     <string name="description_sync_direction_copy_toremote">Copy new or modified files from local storage to remote storage. No files are deleted, existing files on the remote may be overwritten.</string>
     <string name="description_sync_direction_copy_tolocal">Copy new or modified files from remote storage to local storage. No files are deleted, existing files on the local storage may be overwritten.</string>
     <string name="description_sync_direction_sync_bidirectional">Make sure local and remote storage have the same files by transferring, downloading, and deleting files as needed to maintain an identical folder structure.</string>
+    <string name="description_sync_direction_sync_remote_to_remote">Synchronize files from one remote to another. Files on the destination remote that are not present on the source remote will be deleted.</string>
+    <string name="description_sync_direction_copy_remote_to_remote">Copy new or modified files from one remote to another. No files are deleted, existing files on the destination may be overwritten.</string>
     <string name="filter_type_include">Include</string>
     <string name="filter_type_exclude">Exclude</string>
     <string name="intro_success">Success!</string>
@@ -773,6 +780,8 @@
     <string name="task_direction_copy_to_local">Copy: Remote \u2192 Local</string>
     <string name="task_direction_bisync">BiSync</string>
     <string name="task_direction_sync">Sync</string>
+    <string name="task_direction_sync_remote_to_remote">Sync: Remote \u2192 Remote</string>
+    <string name="task_direction_copy_remote_to_remote">Copy: Remote \u2192 Remote</string>
     <string name="task_options">Options</string>
 
     <!-- Trigger card -->

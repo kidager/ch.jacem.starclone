@@ -767,6 +767,14 @@ public class Rclone {
             Collections.addAll(directionParameter, "copy", remoteSection, localPath);
             directionParameter.addAll(defaultParameter);
             command = createCommandWithOptions(directionParameter);
+        } else if (syncDirection == SyncDirectionObject.SYNC_REMOTE_TO_REMOTE) {
+            Collections.addAll(directionParameter, "sync", remoteSection, localPath);
+            directionParameter.addAll(defaultParameter);
+            command = createCommandWithOptions(directionParameter);
+        } else if (syncDirection == SyncDirectionObject.COPY_REMOTE_TO_REMOTE) {
+            Collections.addAll(directionParameter, "copy", remoteSection, localPath);
+            directionParameter.addAll(defaultParameter);
+            command = createCommandWithOptions(directionParameter);
         }else {
             return null;
         }

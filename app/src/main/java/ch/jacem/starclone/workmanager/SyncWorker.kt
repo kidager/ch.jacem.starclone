@@ -180,6 +180,8 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
         }
 
         val remotePath = "${mTask.remoteId}:${mTask.remotePath}"
+        val isR2R = SyncDirectionObject.isRemoteToRemote(mTask.direction)
+        val remotePath2 = "${mTask.remoteId2}:${mTask.remotePath2}"
         when (mTask.direction) {
             SyncDirectionObject.SYNC_LOCAL_TO_REMOTE,
             SyncDirectionObject.COPY_LOCAL_TO_REMOTE -> {
@@ -191,6 +193,11 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
                 mSource = remotePath
                 mDest = mTask.localPath
             }
+            SyncDirectionObject.SYNC_REMOTE_TO_REMOTE,
+            SyncDirectionObject.COPY_REMOTE_TO_REMOTE -> {
+                mSource = remotePath
+                mDest = remotePath2
+            }
             else -> {
                 mSource = mTask.localPath
                 mDest = remotePath
@@ -200,9 +207,10 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
         if(arePreconditionsMet()) {
             val taskFilter = if(mTask.filterId != null ) mDatabase.getFilter(mTask.filterId!!) else null;
             val taskFilterList = taskFilter?.getFilters() ?: ArrayList()
+            val localPathArg = if (isR2R) remotePath2 else mTask.localPath
             sRcloneProcess = mRclone.sync(
                 remoteItem,
-                mTask.localPath,
+                localPathArg,
                 mTask.remotePath,
                 mTask.direction,
                 mTask.md5sum,

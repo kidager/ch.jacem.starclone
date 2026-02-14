@@ -39,6 +39,9 @@ class DatabaseHandler(context: Context?) :
         sqLiteDatabase.execSQL(SQL_UPDATE_TASK_ADD_FOLLOWUPS_FAIL)
         sqLiteDatabase.execSQL(SQL_UPDATE_TASK_ADD_FOLLOWUPS_SUCCESS)
         sqLiteDatabase.execSQL(DatabaseInfo.SQL_CREATE_TABLE_TRANSFER_HISTORY)
+        sqLiteDatabase.execSQL(DatabaseInfo.SQL_UPDATE_TASK_ADD_REMOTE_ID_2)
+        sqLiteDatabase.execSQL(DatabaseInfo.SQL_UPDATE_TASK_ADD_REMOTE_TYPE_2)
+        sqLiteDatabase.execSQL(DatabaseInfo.SQL_UPDATE_TASK_ADD_REMOTE_PATH_2)
     }
 
     override fun onUpgrade(sqLiteDatabase: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -71,6 +74,11 @@ class DatabaseHandler(context: Context?) :
             } catch (_: Exception) {
                 // Columns may already exist if table was created fresh in v7+
             }
+        }
+        if (oldVersion < 9) {
+            sqLiteDatabase.execSQL(DatabaseInfo.SQL_UPDATE_TASK_ADD_REMOTE_ID_2)
+            sqLiteDatabase.execSQL(DatabaseInfo.SQL_UPDATE_TASK_ADD_REMOTE_TYPE_2)
+            sqLiteDatabase.execSQL(DatabaseInfo.SQL_UPDATE_TASK_ADD_REMOTE_PATH_2)
         }
     }
 
@@ -168,7 +176,10 @@ class DatabaseHandler(context: Context?) :
             Task.COLUMN_NAME_FILTER_ID,
             Task.COLUMN_NAME_DELETE_EXCLUDED,
             Task.COLUMN_NAME_ONFAIL_FOLLOWUP,
-            Task.COLUMN_NAME_ONSUCCESS_FOLLOWUP
+            Task.COLUMN_NAME_ONSUCCESS_FOLLOWUP,
+            Task.COLUMN_NAME_REMOTE_ID_2,
+            Task.COLUMN_NAME_REMOTE_TYPE_2,
+            Task.COLUMN_NAME_REMOTE_PATH_2
         )
 
     private fun taskFromCursor(cursor: Cursor): Task {
@@ -185,6 +196,9 @@ class DatabaseHandler(context: Context?) :
         task.deleteExcluded = getBoolean(cursor, 10)
         task.onFailFollowup = cursor.getLong(11)
         task.onSuccessFollowup = cursor.getLong(12)
+        task.remoteId2 = cursor.getString(13) ?: ""
+        task.remoteType2 = cursor.getInt(14)
+        task.remotePath2 = cursor.getString(15) ?: ""
         return task
     }
 
@@ -217,6 +231,9 @@ class DatabaseHandler(context: Context?) :
         values.put(Task.COLUMN_NAME_DELETE_EXCLUDED, task.deleteExcluded)
         values.put(Task.COLUMN_NAME_ONFAIL_FOLLOWUP, task.onFailFollowup)
         values.put(Task.COLUMN_NAME_ONSUCCESS_FOLLOWUP, task.onSuccessFollowup)
+        values.put(Task.COLUMN_NAME_REMOTE_ID_2, task.remoteId2)
+        values.put(Task.COLUMN_NAME_REMOTE_TYPE_2, task.remoteType2)
+        values.put(Task.COLUMN_NAME_REMOTE_PATH_2, task.remotePath2)
         return values
     }
 

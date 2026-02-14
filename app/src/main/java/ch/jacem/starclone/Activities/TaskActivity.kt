@@ -43,6 +43,15 @@ class TaskActivity : AppCompatActivity() {
         }
     }
 
+    private val remotePath2Picker = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val path = result.data?.getStringExtra(FolderPickerActivity.RESULT_PATH) ?: ""
+            viewModel.updateRemotePath2(path)
+        }
+    }
+
     private val filterLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) { result ->
@@ -84,6 +93,12 @@ class TaskActivity : AppCompatActivity() {
                             putExtra(FolderPickerActivity.EXTRA_REMOTE_NAME, remoteName)
                         }
                         remotePathPicker.launch(intent)
+                    },
+                    onPickRemotePath2 = { remoteName ->
+                        val intent = Intent(this, FolderPickerActivity::class.java).apply {
+                            putExtra(FolderPickerActivity.EXTRA_REMOTE_NAME, remoteName)
+                        }
+                        remotePath2Picker.launch(intent)
                     },
                     onCreateFilter = {
                         filterLauncher.launch(Intent(this, FilterActivity::class.java))

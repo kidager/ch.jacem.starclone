@@ -36,6 +36,12 @@ public class SyncDirectionObject {
     public static final int SYNC_BIDIRECTIONAL_INITIAL = 5;
     public static final int SYNC_BIDIRECTIONAL = 6;
 
+    public static final int SYNC_REMOTE_TO_REMOTE = 7;
+    public static final int COPY_REMOTE_TO_REMOTE = 8;
+
+    public static boolean isRemoteToRemote(int direction) {
+        return direction == SYNC_REMOTE_TO_REMOTE || direction == COPY_REMOTE_TO_REMOTE;
+    }
 
     public static String[] getOptionsArray(Context context) {
         return context.getResources().getStringArray(R.array.sync_direction_array);

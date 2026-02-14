@@ -22,9 +22,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.PreferenceManager
 import ch.jacem.starclone.Activities.MainActivity
 import ch.jacem.starclone.BuildConfig
-import ch.jacem.starclone.Dialogs.Dialogs
-import ch.jacem.starclone.Dialogs.GoToDialog
-import ch.jacem.starclone.Dialogs.LoadingDialog
 import ch.jacem.starclone.Items.FileItem
 import ch.jacem.starclone.Items.RemoteItem
 import ch.jacem.starclone.Items.Task
@@ -52,8 +49,7 @@ import java.io.IOException
 import java.net.ServerSocket
 import java.security.SecureRandom
 
-class FileExplorerFragment : Fragment(),
-    GoToDialog.Callbacks {
+class FileExplorerFragment : Fragment() {
 
     private val viewModel: FileExplorerViewModel by viewModels()
     private lateinit var remote: RemoteItem
@@ -182,7 +178,7 @@ class FileExplorerFragment : Fragment(),
 
         // Show SFTP go-to dialog on first launch if no default set
         if (remote.isRemoteType(RemoteItem.SFTP) && !goToDefaultSet && savedInstanceState == null) {
-            showSFTPgoToDialog()
+            viewModel.showGoToDialog = true
         }
 
         return ComposeView(requireContext()).apply {
@@ -194,7 +190,6 @@ class FileExplorerFragment : Fragment(),
                         onUploadFiles = { uploadPicker.launch(arrayOf("*/*")) },
                         onDownloadFiles = { files -> onDownloadFiles(files) },
                         onSyncDirectionSelected = { direction -> onSyncDirectionSelected(direction) },
-                        onShowGoToDialog = { showSFTPgoToDialog() },
                         onNavigateBack = { parentFragmentManager.popBackStack() },
                         onCloudFilesConfirmed = { onCloudFilesConfirmed() },
                         onServeConfirmed = { protocol, allowRemoteAccess, user, password ->
@@ -249,12 +244,7 @@ class FileExplorerFragment : Fragment(),
     }
 
     private fun downloadAndOpen(fileItem: FileItem, openAs: Int = -1) {
-        val loadingDialog = LoadingDialog()
-            .setCanCancel(false)
-            .setTitle(getString(R.string.loading_file))
-            .setNegativeButton(getString(R.string.cancel))
-
-        loadingDialog.show(childFragmentManager, "loading dialog")
+        viewModel.fileLoadingMessage = getString(R.string.loading_file)
 
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
@@ -281,7 +271,7 @@ class FileExplorerFragment : Fragment(),
                 }
             }
 
-            Dialogs.dismissSilently(loadingDialog)
+            viewModel.fileLoadingMessage = null
 
             if (result == null || !isAdded) return@launch
 
@@ -311,11 +301,7 @@ class FileExplorerFragment : Fragment(),
     }
 
     private fun streamFile(fileItem: FileItem, openAs: Int = -1) {
-        val loadingDialog = LoadingDialog()
-            .setCanCancel(false)
-            .setTitle(R.string.loading)
-
-        loadingDialog.show(childFragmentManager, "loading dialog")
+        viewModel.fileLoadingMessage = getString(R.string.loading)
 
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
@@ -368,7 +354,7 @@ class FileExplorerFragment : Fragment(),
                 if (available) intent else null
             }
 
-            Dialogs.dismissSilently(loadingDialog)
+            viewModel.fileLoadingMessage = null
 
             if (!isAdded) return@launch
 
@@ -444,18 +430,6 @@ class FileExplorerFragment : Fragment(),
         val ctx = context ?: return false
         val prefs = PreferenceManager.getDefaultSharedPreferences(ctx)
         return prefs.getBoolean(getString(R.string.pref_choice_serve_dialog_allow_ext), false)
-    }
-
-    private fun showSFTPgoToDialog() {
-        GoToDialog().show(childFragmentManager, "go to dialog")
-    }
-
-    override fun onRootClicked(isSetAsDefault: Boolean) {
-        viewModel.goToRoot(isSetAsDefault)
-    }
-
-    override fun onHomeClicked(isSetAsDefault: Boolean) {
-        viewModel.goToHome(isSetAsDefault)
     }
 
     private fun navigateToProcess(workerId: String) {

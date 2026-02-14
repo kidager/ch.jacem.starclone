@@ -2,15 +2,22 @@ package ch.jacem.starclone.backup
 
 import android.app.Application
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.preference.PreferenceManager
+import ch.jacem.starclone.R
+import ch.jacem.starclone.Rclone
 import ch.jacem.starclone.util.FLog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.json.JSONArray
+import java.io.BufferedReader
 import java.io.File
+import java.io.InputStreamReader
 
 enum class BackupMode { EXPORT, IMPORT }
 
@@ -63,6 +70,18 @@ sealed interface BackupUiState {
         val result: ImportResult? = null,
         val error: String? = null,
     ) : BackupUiState
+
+    data class ImportSourceSelection(
+        val hasRemotes: Boolean = false,
+    ) : BackupUiState
+
+    data class ImportRemoteFileSelection(
+        val remoteName: String,
+        val backupPath: String,
+        val files: List<String> = emptyList(),
+        val isLoading: Boolean = true,
+        val error: String? = null,
+    ) : BackupUiState
 }
 
 class BackupViewModel(application: Application) : AndroidViewModel(application) {
@@ -81,7 +100,11 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
                     selectedRemotes = remotes.toSet(),
                 )
             }
-            BackupMode.IMPORT -> BackupUiState.ImportWaitingForFile
+            BackupMode.IMPORT -> {
+                val rclone = Rclone(context)
+                val hasRemotes = rclone.isConfigFileCreated && (rclone.remotes?.isNotEmpty() == true)
+                BackupUiState.ImportSourceSelection(hasRemotes = hasRemotes)
+            }
         }
     }
 
@@ -301,6 +324,138 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
                 )
             }
         }
+    }
+
+    fun selectImportFromFile() {
+        _uiState.value = BackupUiState.ImportWaitingForFile
+    }
+
+    fun selectImportFromRemote(remoteName: String) {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val backupPath = prefs.getString(
+            context.getString(R.string.pref_key_cloud_backup_path),
+            "StarClone-Backups",
+        ) ?: "StarClone-Backups"
+
+        _uiState.value = BackupUiState.ImportRemoteFileSelection(
+            remoteName = remoteName,
+            backupPath = backupPath,
+            isLoading = true,
+        )
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val files = listRemoteBackups(remoteName, backupPath)
+                _uiState.value = BackupUiState.ImportRemoteFileSelection(
+                    remoteName = remoteName,
+                    backupPath = backupPath,
+                    files = files,
+                    isLoading = false,
+                )
+            } catch (e: Exception) {
+                FLog.e(TAG, "Failed to list remote backups", e)
+                _uiState.value = BackupUiState.ImportRemoteFileSelection(
+                    remoteName = remoteName,
+                    backupPath = backupPath,
+                    isLoading = false,
+                    error = e.message,
+                )
+            }
+        }
+    }
+
+    fun downloadAndImportRemoteFile(remoteName: String, backupPath: String, fileName: String) {
+        _uiState.value = BackupUiState.ImportInProgress("Downloading backup...")
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val rclone = Rclone(context)
+                val rcloneBin = context.applicationInfo.nativeLibraryDir + "/librclone.so"
+                val rcloneConf = context.filesDir.path + "/rclone.conf"
+                val tempFile = File(context.cacheDir, fileName)
+
+                // Download via rclone copy
+                val src = "$remoteName:$backupPath/$fileName"
+                val command = arrayOf(rcloneBin, "--config", rcloneConf, "copy", src, context.cacheDir.absolutePath)
+                val env = rclone.getRcloneEnv()
+                val process = Runtime.getRuntime().exec(command, env)
+                val exitCode = process.waitFor()
+
+                if (exitCode != 0) {
+                    val error = process.errorStream.bufferedReader().readText()
+                    throw Exception("Download failed: $error")
+                }
+
+                if (!tempFile.exists()) {
+                    throw Exception("Downloaded file not found")
+                }
+
+                // Feed into existing import flow
+                val uri = tempFile.toUri()
+                val contents = BackupReader.readBackup(context, uri, password = null)
+                if (contents.isEncrypted) {
+                    _uiState.value = BackupUiState.ImportPassword(sourceUri = uri)
+                } else {
+                    _uiState.value = BackupUiState.ImportPreview(
+                        sourceUri = uri,
+                        contents = contents,
+                        remotesSelected = contents.configBytes != null,
+                        databaseSelected = contents.databaseJson != null,
+                        preferencesSelected = contents.hasPreferences,
+                        selectedRemotes = contents.remoteNames.toSet(),
+                    )
+                }
+            } catch (e: Exception) {
+                FLog.e(TAG, "Failed to download remote backup", e)
+                _uiState.value = BackupUiState.ImportComplete(
+                    error = e.message ?: "Failed to download backup",
+                )
+            }
+        }
+    }
+
+    fun goBackToSourceSelection() {
+        val rclone = Rclone(context)
+        val hasRemotes = rclone.isConfigFileCreated && (rclone.remotes?.isNotEmpty() == true)
+        _uiState.value = BackupUiState.ImportSourceSelection(hasRemotes = hasRemotes)
+    }
+
+    private fun listRemoteBackups(remoteName: String, backupPath: String): List<String> {
+        val rclone = Rclone(context)
+        val rcloneBin = context.applicationInfo.nativeLibraryDir + "/librclone.so"
+        val rcloneConf = context.filesDir.path + "/rclone.conf"
+
+        val command = arrayOf(rcloneBin, "--config", rcloneConf, "lsjson", "$remoteName:$backupPath")
+        val env = rclone.getRcloneEnv()
+        val process = Runtime.getRuntime().exec(command, env)
+
+        val output = StringBuilder()
+        BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
+            var line = reader.readLine()
+            while (line != null) {
+                output.append(line)
+                line = reader.readLine()
+            }
+        }
+        process.waitFor()
+
+        if (process.exitValue() != 0) {
+            return emptyList()
+        }
+
+        val files = JSONArray(output.toString())
+        val backupFiles = mutableListOf<String>()
+        for (i in 0 until files.length()) {
+            val file = files.getJSONObject(i)
+            val name = file.getString("Name")
+            val isDir = file.getBoolean("IsDir")
+            if (!isDir && name.startsWith("starclone-backup-")) {
+                backupFiles.add(name)
+            }
+        }
+        // Sort descending (newest first)
+        backupFiles.sortDescending()
+        return backupFiles
     }
 
     companion object {

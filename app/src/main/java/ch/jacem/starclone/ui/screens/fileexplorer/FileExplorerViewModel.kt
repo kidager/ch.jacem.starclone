@@ -11,7 +11,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
-import ch.jacem.starclone.Dialogs.SortDialog
 import ch.jacem.starclone.FileComparators
 import ch.jacem.starclone.Items.DirectoryObject
 import ch.jacem.starclone.Items.FileItem
@@ -54,7 +53,7 @@ class FileExplorerViewModel(application: Application) : AndroidViewModel(applica
         private set
     var error by mutableStateOf<String?>(null)
         private set
-    var sortOrder by mutableIntStateOf(SortDialog.ALPHA_ASCENDING)
+    var sortOrder by mutableIntStateOf(ALPHA_ASCENDING)
         private set
     var showSortDialog by mutableStateOf(false)
 
@@ -75,7 +74,9 @@ class FileExplorerViewModel(application: Application) : AndroidViewModel(applica
     var showCloudFilesDialog by mutableStateOf<Int?>(null)
     var showSyncDirectionDialog by mutableStateOf(false)
     var showServeDialog by mutableStateOf(false)
+    var showGoToDialog by mutableStateOf(false)
     var syncRemotePath: String? = null
+    var fileLoadingMessage by mutableStateOf<String?>(null)
 
     // Search
     var isInSearchMode by mutableStateOf(false)
@@ -99,7 +100,7 @@ class FileExplorerViewModel(application: Application) : AndroidViewModel(applica
         initialized = true
         remote = remoteItem
         remoteName = remoteItem.name
-        sortOrder = prefs.getInt(SHARED_PREFS_SORT_ORDER, SortDialog.ALPHA_ASCENDING)
+        sortOrder = prefs.getInt(SHARED_PREFS_SORT_ORDER, ALPHA_ASCENDING)
 
         val rootPath = "//$remoteName"
         currentPath = rootPath
@@ -508,11 +509,11 @@ class FileExplorerViewModel(application: Application) : AndroidViewModel(applica
     private fun sortDirectoryContent() {
         val content = directoryObject.directoryContent
         val comparator = when (sortOrder) {
-            SortDialog.ALPHA_DESCENDING -> FileComparators.SortAlphaDescending()
-            SortDialog.MOD_TIME_DESCENDING -> FileComparators.SortModTimeDescending()
-            SortDialog.MOD_TIME_ASCENDING -> FileComparators.SortModTimeAscending()
-            SortDialog.SIZE_DESCENDING -> FileComparators.SortSizeDescending()
-            SortDialog.SIZE_ASCENDING -> FileComparators.SortSizeAscending()
+            ALPHA_DESCENDING -> FileComparators.SortAlphaDescending()
+            MOD_TIME_DESCENDING -> FileComparators.SortModTimeDescending()
+            MOD_TIME_ASCENDING -> FileComparators.SortModTimeAscending()
+            SIZE_DESCENDING -> FileComparators.SortSizeDescending()
+            SIZE_ASCENDING -> FileComparators.SortSizeAscending()
             else -> FileComparators.SortAlphaAscending()
         }
         content.sortWith(comparator)
@@ -575,6 +576,13 @@ class FileExplorerViewModel(application: Application) : AndroidViewModel(applica
     companion object {
         private const val TAG = "FileExplorerViewModel"
         private const val SHARED_PREFS_SORT_ORDER = "ch.jacem.starclone.sort_order"
+
+        const val ALPHA_DESCENDING = 1
+        const val ALPHA_ASCENDING = 2
+        const val MOD_TIME_DESCENDING = 3
+        const val MOD_TIME_ASCENDING = 4
+        const val SIZE_DESCENDING = 5
+        const val SIZE_ASCENDING = 6
     }
 }
 

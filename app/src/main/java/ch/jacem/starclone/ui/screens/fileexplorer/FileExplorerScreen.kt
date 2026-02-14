@@ -96,7 +96,7 @@ fun FileExplorerScreen(
     onUploadFiles: () -> Unit,
     onDownloadFiles: (List<FileItem>) -> Unit,
     onSyncDirectionSelected: (Int) -> Unit,
-    onShowGoToDialog: () -> Unit,
+    onShowGoToDialog: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
     onCloudFilesConfirmed: () -> Unit = {},
     onServeConfirmed: (protocol: Int, allowRemoteAccess: Boolean, user: String, password: String) -> Unit = { _, _, _, _ -> },
@@ -217,7 +217,7 @@ fun FileExplorerScreen(
                                     DropdownMenuItem(
                                         text = { Text(stringResource(R.string.go_to)) },
                                         onClick = {
-                                            onShowGoToDialog()
+                                            viewModel.showGoToDialog = true
                                             showOverflowMenu = false
                                         },
                                     )
@@ -522,6 +522,27 @@ fun FileExplorerScreen(
             onConfirm = { protocol, allowRemoteAccess, user, password ->
                 viewModel.showServeDialog = false
                 onServeConfirmed(protocol, allowRemoteAccess, user, password)
+            },
+        )
+    }
+
+    viewModel.fileLoadingMessage?.let { message ->
+        LoadingDialog(
+            title = message,
+            onDismiss = { viewModel.fileLoadingMessage = null },
+        )
+    }
+
+    if (viewModel.showGoToDialog) {
+        GoToDialog(
+            onDismiss = { viewModel.showGoToDialog = false },
+            onRoot = { setAsDefault ->
+                viewModel.showGoToDialog = false
+                viewModel.goToRoot(setAsDefault)
+            },
+            onHome = { setAsDefault ->
+                viewModel.showGoToDialog = false
+                viewModel.goToHome(setAsDefault)
             },
         )
     }

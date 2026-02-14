@@ -11,6 +11,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import ch.jacem.starclone.R
+import ch.jacem.starclone.Rclone
 import ch.jacem.starclone.RuntimeConfiguration
 import ch.jacem.starclone.backup.BackupMode
 import ch.jacem.starclone.backup.BackupUiState
@@ -72,10 +73,7 @@ class BackupActivity : AppCompatActivity() {
             viewModel.initMode(backupMode)
         }
 
-        // Launch file picker immediately for import
-        if (savedInstanceState == null && backupMode == BackupMode.IMPORT) {
-            importFilePicker.launch(arrayOf("*/*"))
-        }
+        // Import now shows source selection first (no auto SAF launch)
 
         // Update toolbar title based on state
         lifecycleScope.launch {
@@ -86,11 +84,15 @@ class BackupActivity : AppCompatActivity() {
                         is BackupUiState.ExportEncryption,
                         is BackupUiState.ExportInProgress,
                         is BackupUiState.ExportComplete -> getString(R.string.export_rclone_config)
+                        is BackupUiState.ImportSourceSelection -> getString(R.string.import_source_title)
                         else -> getString(R.string.import_rclone_config)
                     }
                 }
             }
         }
+
+        val rclone = Rclone(this)
+        val remoteNames = rclone.remotes?.map { it.name } ?: emptyList()
 
         findViewById<ComposeView>(R.id.compose_view).setContent {
             StarCloneTheme {
@@ -111,6 +113,13 @@ class BackupActivity : AppCompatActivity() {
                     onSetImportRemote = viewModel::setImportRemote,
                     onStartImport = viewModel::startImport,
                     onFinish = ::finish,
+                    onSelectImportFromFile = {
+                        viewModel.selectImportFromFile()
+                        importFilePicker.launch(arrayOf("*/*"))
+                    },
+                    onSelectImportFromRemote = viewModel::selectImportFromRemote,
+                    onDownloadRemoteFile = viewModel::downloadAndImportRemoteFile,
+                    remoteNames = remoteNames,
                 )
             }
         }

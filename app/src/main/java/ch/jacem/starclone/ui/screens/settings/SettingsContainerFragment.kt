@@ -6,15 +6,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
-import ch.jacem.starclone.Settings.SettingsFragment as OldSettingsFragment
 import ch.jacem.starclone.ui.screens.settings.fileaccess.FileAccessFragment
 import ch.jacem.starclone.ui.screens.settings.general.GeneralSettingsFragment
 import ch.jacem.starclone.ui.screens.settings.logging.LoggingSettingsFragment
+import ch.jacem.starclone.ui.screens.settings.cloudbackup.CloudBackupFragment
 import ch.jacem.starclone.ui.screens.settings.notifications.NotificationSettingsFragment
 import ch.jacem.starclone.ui.screens.settings.theming.ThemingFragment
 
 class SettingsContainerFragment : Fragment(),
-    OldSettingsFragment.OnSettingCategorySelectedListener {
+    OnSettingCategorySelectedListener {
 
     private var containerId = View.NO_ID
 
@@ -54,11 +54,12 @@ class SettingsContainerFragment : Fragment(),
 
     override fun onSettingCategoryClicked(category: Int) {
         val subFragment: Fragment = when (category) {
-            OldSettingsFragment.GENERAL_SETTINGS -> GeneralSettingsFragment()
-            OldSettingsFragment.FILE_ACCESS_SETTINGS -> FileAccessFragment()
-            OldSettingsFragment.LOOK_AND_FEEL_SETTINGS -> ThemingFragment()
-            OldSettingsFragment.LOGGING_SETTINGS -> LoggingSettingsFragment()
-            OldSettingsFragment.NOTIFICATION_SETTINGS -> NotificationSettingsFragment()
+            GENERAL_SETTINGS -> GeneralSettingsFragment()
+            FILE_ACCESS_SETTINGS -> FileAccessFragment()
+            LOOK_AND_FEEL_SETTINGS -> ThemingFragment()
+            LOGGING_SETTINGS -> LoggingSettingsFragment()
+            NOTIFICATION_SETTINGS -> NotificationSettingsFragment()
+            CLOUD_BACKUP_SETTINGS -> CloudBackupFragment()
             else -> return
         }
         childFragmentManager.beginTransaction()

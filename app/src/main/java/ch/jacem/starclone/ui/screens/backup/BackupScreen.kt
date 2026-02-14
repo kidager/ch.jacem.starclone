@@ -53,6 +53,12 @@ import ch.jacem.starclone.backup.BackupContents
 import ch.jacem.starclone.backup.BackupUiState
 import ch.jacem.starclone.backup.EncryptionScope
 import ch.jacem.starclone.backup.ImportResult
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.outlined.CloudDownload
+import androidx.compose.material.icons.outlined.FileOpen
+import androidx.compose.material.icons.outlined.PhoneAndroid
 
 @Composable
 fun BackupScreen(
@@ -71,6 +77,10 @@ fun BackupScreen(
     onSetImportRemote: (String, Boolean) -> Unit,
     onStartImport: () -> Unit,
     onFinish: () -> Unit,
+    onSelectImportFromFile: () -> Unit = {},
+    onSelectImportFromRemote: (String) -> Unit = {},
+    onDownloadRemoteFile: (String, String, String) -> Unit = { _, _, _ -> },
+    remoteNames: List<String> = emptyList(),
 ) {
     when (uiState) {
         is BackupUiState.ExportSelectContent -> ExportSelectContentStep(
@@ -93,8 +103,19 @@ fun BackupScreen(
             error = uiState.error,
             onFinish = onFinish,
         )
+        is BackupUiState.ImportSourceSelection -> ImportSourceSelectionStep(
+            hasRemotes = uiState.hasRemotes,
+            remoteNames = remoteNames,
+            onSelectFile = onSelectImportFromFile,
+            onSelectRemote = onSelectImportFromRemote,
+            onFinish = onFinish,
+        )
         is BackupUiState.ImportWaitingForFile -> ProgressStep(
             stringResource(R.string.backup_waiting_for_file),
+        )
+        is BackupUiState.ImportRemoteFileSelection -> ImportRemoteFileSelectionStep(
+            state = uiState,
+            onSelectFile = { onDownloadRemoteFile(uiState.remoteName, uiState.backupPath, it) },
         )
         is BackupUiState.ImportPassword -> ImportPasswordStep(
             state = uiState,
@@ -677,6 +698,239 @@ private fun buildImportSummary(result: ImportResult): String {
         parts.add(stringResource(R.string.backup_preferences_imported))
     }
     return parts.joinToString("\n")
+}
+
+@Composable
+private fun ImportSourceSelectionStep(
+    hasRemotes: Boolean,
+    remoteNames: List<String>,
+    onSelectFile: () -> Unit,
+    onSelectRemote: (String) -> Unit,
+    onFinish: () -> Unit,
+) {
+    var showRemotePicker by rememberSaveable { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.import_source_title),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Spacer(Modifier.height(16.dp))
+
+        // From file
+        ElevatedCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onSelectFile() }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    Icons.Outlined.FileOpen,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                Column(modifier = Modifier.padding(start = 12.dp)) {
+                    Text(stringResource(R.string.import_source_file), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        stringResource(R.string.import_source_file_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+
+        // From Auto Backup
+        ElevatedCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    Icons.Outlined.PhoneAndroid,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Column(modifier = Modifier.padding(start = 12.dp)) {
+                    Text(stringResource(R.string.import_source_auto_backup), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        stringResource(R.string.import_source_auto_backup_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+
+        // From remote backup
+        if (hasRemotes) {
+            ElevatedCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showRemotePicker = true }
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        Icons.Outlined.CloudDownload,
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                    Column(modifier = Modifier.padding(start = 12.dp)) {
+                        Text(stringResource(R.string.import_source_remote), style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            stringResource(R.string.import_source_remote_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.weight(1f))
+
+        OutlinedButton(
+            onClick = onFinish,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(stringResource(android.R.string.cancel))
+        }
+    }
+
+    if (showRemotePicker) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showRemotePicker = false },
+            title = { Text(stringResource(R.string.import_source_remote_select)) },
+            text = {
+                Column {
+                    remoteNames.forEach { name ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    showRemotePicker = false
+                                    onSelectRemote(name)
+                                }
+                                .padding(vertical = 12.dp, horizontal = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(Icons.Outlined.Cloud, contentDescription = null, modifier = Modifier.size(24.dp))
+                            Text(name, modifier = Modifier.padding(start = 12.dp), style = MaterialTheme.typography.bodyLarge)
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                OutlinedButton(onClick = { showRemotePicker = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun ImportRemoteFileSelectionStep(
+    state: BackupUiState.ImportRemoteFileSelection,
+    onSelectFile: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.import_source_remote_select_file),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            text = "${state.remoteName}:${state.backupPath}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(16.dp))
+
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator()
+                    Spacer(Modifier.height(16.dp))
+                    Text(stringResource(R.string.import_source_remote_loading))
+                }
+            }
+        } else if (state.error != null) {
+            Text(
+                text = state.error,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        } else if (state.files.isEmpty()) {
+            Text(
+                text = stringResource(R.string.import_source_remote_no_backups),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                items(state.files) { fileName ->
+                    ElevatedCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onSelectFile(fileName) }
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                Icons.Outlined.Storage,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                            Text(
+                                text = fileName,
+                                modifier = Modifier.padding(start = 12.dp),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable

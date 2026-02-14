@@ -48,9 +48,7 @@ import ch.jacem.starclone.AppShortcutsHelper;
 import ch.jacem.starclone.BuildConfig;
 import ch.jacem.starclone.Database.json.Importer;
 import ch.jacem.starclone.Database.json.SharedPreferencesBackup;
-import ch.jacem.starclone.Dialogs.Dialogs;
-import ch.jacem.starclone.Dialogs.InputDialog;
-import ch.jacem.starclone.Dialogs.LoadingDialog;
+
 import ch.jacem.starclone.Items.RemoteItem;
 import ch.jacem.starclone.R;
 import ch.jacem.starclone.Rclone;
@@ -70,9 +68,7 @@ import ch.jacem.starclone.extract.updates.UpdateChecker;
 import es.dmoral.toasty.Toasty;
 import java9.util.stream.Stream;
 
-public class MainActivity extends AppCompatActivity
-        implements InputDialog.OnPositive,
-        InputDialog.OnNegative {
+public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     public static final String MAIN_ACTIVITY_START_LOG = "MAIN_ACTIVITY_START_LOG";
@@ -81,7 +77,6 @@ public class MainActivity extends AppCompatActivity
     public static final String MAIN_ACTIVITY_START_PROCESSES = "MAIN_ACTIVITY_START_PROCESSES";
     public static final String EXTRA_HIGHLIGHT_WORKER_ID = "EXTRA_HIGHLIGHT_WORKER_ID";
     private static final int READ_REQUEST_CODE = 42;
-    private static final int SETTINGS_CODE = 71;
     private static final int WRITE_REQUEST_CODE = 81;
     private Rclone rclone;
     private Context context;
@@ -198,6 +193,20 @@ public class MainActivity extends AppCompatActivity
         triggerService.queueTrigger();
 
         (new UpdateChecker(this)).schedule();
+
+        // First-load: offer import if no config exists
+        if (!rclone.isConfigFileCreated() && savedInstanceState == null) {
+            new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.no_config_title)
+                .setMessage(R.string.no_config_message)
+                .setPositiveButton(R.string.import_rclone_config, (dialog, which) -> {
+                    Intent importIntent = new Intent(this, BackupActivity.class);
+                    importIntent.putExtra(BackupActivity.EXTRA_MODE, "import");
+                    startActivity(importIntent);
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+        }
     }
 
     @Override
@@ -269,11 +278,6 @@ public class MainActivity extends AppCompatActivity
             if (data != null) {
                 uri = data.getData();
                 new CopyConfigFile().execute(uri);
-            }
-        } else if (requestCode == SETTINGS_CODE && resultCode == RESULT_OK) {
-            boolean themeChanged = data.getBooleanExtra(SettingsActivity.THEME_CHANGED, false);
-            if (themeChanged) {
-                recreate();
             }
         } else if (requestCode == WRITE_REQUEST_CODE && resultCode == RESULT_OK) {
             Uri uri;
@@ -393,26 +397,27 @@ public class MainActivity extends AppCompatActivity
 
     private void askForConfigPassword() {
         findViewById(R.id.locked_config).setVisibility(View.VISIBLE);
-        InputDialog dialog = new InputDialog()
+        android.widget.EditText editText = new android.widget.EditText(this);
+        editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        android.widget.FrameLayout container = new android.widget.FrameLayout(this);
+        int padding = (int) (24 * getResources().getDisplayMetrics().density);
+        container.setPadding(padding, 0, padding, 0);
+        container.addView(editText);
+
+        new MaterialAlertDialogBuilder(this, R.style.RoundedCornersDialog)
                 .setTitle(R.string.config_password_protected)
                 .setMessage(R.string.please_enter_password)
-                .setNegativeButton(R.string.cancel)
-                .setPositiveButton(R.string.okay_confirmation)
-                .setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        dialog.setCancelable(false);
-        dialog.show(getSupportFragmentManager(), "input dialog");
-    }
-
-    @Override
-    public void onPositive(String tag, String input) {
-        new DecryptConfig().execute(input);
-    }
-
-    @Override
-    public void onNegative(String tag) {
-        findViewById(R.id.locked_config).setVisibility(View.GONE);
-        restoreConfigBackup();
-        startRemotesFragment();
+                .setView(container)
+                .setCancelable(false)
+                .setPositiveButton(R.string.okay_confirmation, (dialog, which) -> {
+                    new DecryptConfig().execute(editText.getText().toString());
+                })
+                .setNegativeButton(R.string.cancel, (dialog, which) -> {
+                    findViewById(R.id.locked_config).setVisibility(View.GONE);
+                    restoreConfigBackup();
+                    startRemotesFragment();
+                })
+                .show();
     }
 
     private void backupCurrentConfig() {
@@ -499,6 +504,26 @@ public class MainActivity extends AppCompatActivity
         AppShortcutsHelper.reportAppShortcutUsage(this, remote.getName());
     }
 
+    private android.app.Dialog createLoadingDialog(int titleResId) {
+        android.widget.ProgressBar progressBar = new android.widget.ProgressBar(this);
+        int padding = (int) (24 * getResources().getDisplayMetrics().density);
+        android.widget.FrameLayout container = new android.widget.FrameLayout(this);
+        container.setPadding(padding, padding, padding, padding);
+        container.addView(progressBar);
+
+        return new MaterialAlertDialogBuilder(this, R.style.RoundedCornersDialog)
+                .setTitle(titleResId)
+                .setView(container)
+                .setCancelable(false)
+                .create();
+    }
+
+    private static void dismissLoadingDialog(android.app.Dialog dialog) {
+        if (dialog != null && dialog.isShowing()) {
+            dialog.dismiss();
+        }
+    }
+
     @SuppressLint("StaticFieldLeak")
     private class CopyConfigFile extends AsyncTask<Uri, Void, Boolean> {
 
@@ -511,17 +536,15 @@ public class MainActivity extends AppCompatActivity
         private final int FAILURE_ZIP_MISSING_CONF = 6;
 
         private int statusCode = FAILURE_UNSPECIFIED;
-        private LoadingDialog loadingDialog;
+        private android.app.Dialog loadingDialog;
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
             findViewById(R.id.locked_config).setVisibility(View.GONE);
             backupCurrentConfig();
-            loadingDialog = new LoadingDialog()
-                    .setTitle(R.string.copying_rclone_config)
-                    .setCanCancel(false);
-            loadingDialog.show(getSupportFragmentManager(), "loading dialog");
+            loadingDialog = createLoadingDialog(R.string.copying_rclone_config);
+            loadingDialog.show();
         }
 
         @Override
@@ -574,7 +597,7 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onPostExecute(Boolean success) {
             super.onPostExecute(success);
-            Dialogs.dismissSilently(loadingDialog);
+            dismissLoadingDialog(loadingDialog);
 
             String errorMessage = getString(R.string.copying_rclone_config_fail);
             if (!success) {
@@ -622,7 +645,7 @@ public class MainActivity extends AppCompatActivity
     private class RefreshLocalAliases extends AsyncTask<Void, Void, Boolean> {
 
         private String EMULATED = "5d44cd8d-397c-4107-b79b-17f2b6a071e8";
-        private LoadingDialog loadingDialog;
+        private android.app.Dialog loadingDialog;
 
         private boolean isPermissable(File file) {
             if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
@@ -673,10 +696,8 @@ public class MainActivity extends AppCompatActivity
             if (v != null) {
                 v.setVisibility(View.GONE);
             }
-            loadingDialog = new LoadingDialog()
-                    .setTitle(R.string.refreshing_local_alias_remotes)
-                    .setCanCancel(false);
-            loadingDialog.show(getSupportFragmentManager(), "loading dialog");
+            loadingDialog = createLoadingDialog(R.string.refreshing_local_alias_remotes);
+            loadingDialog.show();
         }
 
         @Override
@@ -798,7 +819,7 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onPostExecute(Boolean success) {
             super.onPostExecute(success);
-            Dialogs.dismissSilently(loadingDialog);
+            dismissLoadingDialog(loadingDialog);
             AppShortcutsHelper.removeAllAppShortcuts(context);
             AppShortcutsHelper.populateAppShortcuts(context, rclone.getRemotes());
 
@@ -809,15 +830,13 @@ public class MainActivity extends AppCompatActivity
     @SuppressLint("StaticFieldLeak")
     private class DecryptConfig extends AsyncTask<String, Void, Boolean> {
 
-        private LoadingDialog loadingDialog;
+        private android.app.Dialog loadingDialog;
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            loadingDialog = new LoadingDialog()
-                    .setTitle(R.string.working)
-                    .setCanCancel(false);
-            loadingDialog.show(getSupportFragmentManager(), "loading dialog");
+            loadingDialog = createLoadingDialog(R.string.working);
+            loadingDialog.show();
         }
 
         @Override
@@ -828,7 +847,7 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onPostExecute(Boolean success) {
             super.onPostExecute(success);
-            Dialogs.dismissSilently(loadingDialog);
+            dismissLoadingDialog(loadingDialog);
             if (!success) {
                 Toasty.error(context, getString(R.string.error_unlocking_config), Toast.LENGTH_LONG, true).show();
                 askForConfigPassword();

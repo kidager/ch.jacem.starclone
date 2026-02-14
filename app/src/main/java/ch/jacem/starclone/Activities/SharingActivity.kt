@@ -3,15 +3,14 @@ package ch.jacem.starclone.Activities
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.platform.ComposeView
-import ch.jacem.starclone.Fragments.ShareFragment
 import ch.jacem.starclone.Items.RemoteItem
 import ch.jacem.starclone.R
 import ch.jacem.starclone.Rclone
@@ -32,14 +31,23 @@ import java.io.IOException
 import java.util.Collections
 import java.util.HashSet
 
-class SharingActivity : AppCompatActivity(),
-    ShareFragment.OnShareDestinationSelected {
+class SharingActivity : AppCompatActivity() {
 
-    private var fragment: androidx.fragment.app.Fragment? = null
     private val uploadList = ArrayList<String>()
     @Volatile
     private var isDataReady = false
     private var remotes: List<RemoteItem> = emptyList()
+    private var selectedRemote: RemoteItem? = null
+
+    private val folderPickerLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        val remote = selectedRemote ?: return@registerForActivityResult
+        if (result.resultCode == RESULT_OK) {
+            val path = result.data?.getStringExtra(FolderPickerActivity.RESULT_PATH) ?: "/"
+            onShareDestinationSelected(remote, path)
+        }
+    }
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(RuntimeConfiguration.attach(this, newBase))
@@ -48,8 +56,9 @@ class SharingActivity : AppCompatActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ActivityHelper.applyTheme(this)
-        setContentView(R.layout.activity_sharing)
+        setContentView(R.layout.activity_compose_shell)
         setSupportActionBar(findViewById(R.id.toolbar))
+        supportActionBar?.title = getString(R.string.remotes_toolbar_title)
 
         val rclone = Rclone(this)
         val action = intent.action
@@ -87,25 +96,7 @@ class SharingActivity : AppCompatActivity(),
     }
 
     private fun showRemotesList() {
-        // Hide the fragment container and show Compose remotes list
-        val fragmentContainer = findViewById<android.widget.FrameLayout>(R.id.flFragment)
-        fragmentContainer.visibility = android.view.View.GONE
-
-        // Add ComposeView dynamically
-        val coordinatorLayout = findViewById<androidx.coordinatorlayout.widget.CoordinatorLayout>(R.id.cl_activity_settings)
-        val composeView = ComposeView(this).apply {
-            id = android.view.View.generateViewId()
-            layoutParams = androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams(
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-            ).apply {
-                behavior = com.google.android.material.appbar.AppBarLayout.ScrollingViewBehavior()
-            }
-        }
-        coordinatorLayout.addView(composeView)
-
-        title = getString(R.string.remotes_toolbar_title)
-        composeView.setContent {
+        findViewById<ComposeView>(R.id.compose_view).setContent {
             StarCloneTheme {
                 ShareRemotesScreen(
                     remotes = remotes,
@@ -116,40 +107,16 @@ class SharingActivity : AppCompatActivity(),
     }
 
     private fun onRemoteClick(remote: RemoteItem) {
-        // Remove the dynamically added ComposeView
-        val coordinatorLayout = findViewById<androidx.coordinatorlayout.widget.CoordinatorLayout>(R.id.cl_activity_settings)
-        // Remove any ComposeView children (the one we dynamically added)
-        for (i in coordinatorLayout.childCount - 1 downTo 0) {
-            val child = coordinatorLayout.getChildAt(i)
-            if (child is ComposeView) {
-                coordinatorLayout.removeView(child)
-            }
+        selectedRemote = remote
+        val intent = Intent(this, FolderPickerActivity::class.java).apply {
+            putExtra(FolderPickerActivity.EXTRA_REMOTE_NAME, remote.name)
         }
-
-        // Show fragment container and start ShareFragment
-        val fragmentContainer = findViewById<android.widget.FrameLayout>(R.id.flFragment)
-        fragmentContainer.visibility = android.view.View.VISIBLE
-
-        fragment = ShareFragment.newInstance(remote)
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.flFragment, fragment!!)
-            .addToBackStack(null)
-            .commit()
+        folderPickerLauncher.launch(intent)
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        val f = fragment
-        if (f is ShareFragment && f.onBackButtonPressed()) {
-            return
-        }
-        super.onBackPressed()
-    }
-
-    override fun onShareDestinationSelected(remote: RemoteItem, path: String) {
+    private fun onShareDestinationSelected(remote: RemoteItem, path: String) {
         val context = this
         CoroutineScope(Dispatchers.IO).launch {
-            // Wait for copy to finish
             while (!isDataReady) {
                 kotlinx.coroutines.delay(500)
             }

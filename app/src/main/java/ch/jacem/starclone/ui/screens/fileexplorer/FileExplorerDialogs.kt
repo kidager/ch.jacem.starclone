@@ -9,10 +9,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AudioFile
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.Tag
 import androidx.compose.material.icons.outlined.VideoFile
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,7 +40,6 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import ch.jacem.starclone.Dialogs.SortDialog
 import ch.jacem.starclone.Items.FileItem
 import ch.jacem.starclone.Items.RemoteItem
 import ch.jacem.starclone.Items.SyncDirectionObject
@@ -55,12 +57,12 @@ fun SortDialog(
 ) {
     // Derive initial sort by and order from current sort order
     val initialSortBy = when (currentSortOrder) {
-        SortDialog.MOD_TIME_DESCENDING, SortDialog.MOD_TIME_ASCENDING -> 1
-        SortDialog.SIZE_DESCENDING, SortDialog.SIZE_ASCENDING -> 2
+        FileExplorerViewModel.MOD_TIME_DESCENDING, FileExplorerViewModel.MOD_TIME_ASCENDING -> 1
+        FileExplorerViewModel.SIZE_DESCENDING, FileExplorerViewModel.SIZE_ASCENDING -> 2
         else -> 0 // name
     }
     val initialAscending = when (currentSortOrder) {
-        SortDialog.ALPHA_ASCENDING, SortDialog.MOD_TIME_ASCENDING, SortDialog.SIZE_ASCENDING -> true
+        FileExplorerViewModel.ALPHA_ASCENDING, FileExplorerViewModel.MOD_TIME_ASCENDING, FileExplorerViewModel.SIZE_ASCENDING -> true
         else -> false
     }
 
@@ -107,9 +109,9 @@ fun SortDialog(
         confirmLabel = stringResource(R.string.ok),
         onConfirm = {
             val order = when (sortBy) {
-                1 -> if (ascending) SortDialog.MOD_TIME_ASCENDING else SortDialog.MOD_TIME_DESCENDING
-                2 -> if (ascending) SortDialog.SIZE_ASCENDING else SortDialog.SIZE_DESCENDING
-                else -> if (ascending) SortDialog.ALPHA_ASCENDING else SortDialog.ALPHA_DESCENDING
+                1 -> if (ascending) FileExplorerViewModel.MOD_TIME_ASCENDING else FileExplorerViewModel.MOD_TIME_DESCENDING
+                2 -> if (ascending) FileExplorerViewModel.SIZE_ASCENDING else FileExplorerViewModel.SIZE_DESCENDING
+                else -> if (ascending) FileExplorerViewModel.ALPHA_ASCENDING else FileExplorerViewModel.ALPHA_DESCENDING
             }
             onConfirm(order)
         },
@@ -527,6 +529,105 @@ fun ServeDialog(
         dismissLabel = stringResource(R.string.cancel),
         onDismiss = onDismiss,
     )
+}
+
+// --- Loading Dialog ---
+
+@Composable
+fun LoadingDialog(
+    title: String,
+    onDismiss: () -> Unit,
+) {
+    StarCloneDialog(
+        onDismissRequest = {},
+        title = title,
+        text = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                androidx.compose.material3.CircularProgressIndicator()
+            }
+        },
+        dismissLabel = stringResource(R.string.cancel),
+        onDismiss = onDismiss,
+    )
+}
+
+// --- Go To Dialog (SFTP) ---
+
+@Composable
+fun GoToDialog(
+    onDismiss: () -> Unit,
+    onRoot: (setAsDefault: Boolean) -> Unit,
+    onHome: (setAsDefault: Boolean) -> Unit,
+) {
+    var setAsDefault by remember { mutableStateOf(false) }
+
+    StarCloneDialog(
+        onDismissRequest = onDismiss,
+        title = stringResource(R.string.dialog_go_to_title),
+        text = {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                ) {
+                    GoToOption(
+                        icon = Icons.Outlined.Tag,
+                        label = stringResource(R.string.sftp_root),
+                        onClick = { onRoot(setAsDefault) },
+                    )
+                    GoToOption(
+                        icon = Icons.Outlined.Home,
+                        label = stringResource(R.string.sftp_home),
+                        onClick = { onHome(setAsDefault) },
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .selectable(
+                            selected = setAsDefault,
+                            onClick = { setAsDefault = !setAsDefault },
+                        )
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Checkbox(checked = setAsDefault, onCheckedChange = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        stringResource(R.string.set_default_for_all_sftp_ssh_remotes),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+        },
+        dismissLabel = stringResource(R.string.cancel),
+        onDismiss = onDismiss,
+    )
+}
+
+@Composable
+private fun GoToOption(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(onClick = onClick),
+    ) {
+        FilledTonalButton(onClick = onClick) {
+            Icon(icon, contentDescription = label)
+        }
+        Text(label, style = MaterialTheme.typography.labelSmall)
+    }
 }
 
 @Composable

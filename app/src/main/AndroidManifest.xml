@@ -26,6 +26,8 @@
 
     <application
         android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="${appIcon}"
         android:label="@string/app_name"
         android:networkSecurityConfig="@xml/network_security_config"
@@ -130,6 +132,9 @@
             android:name=".Activities.BackupActivity"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
+            android:name=".Activities.FolderPickerActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
             android:name=".Activities.AboutActivity"
             android:label="@string/title_activity_about"
             android:theme="@style/AppTheme.NoActionBar" />
@@ -152,8 +157,7 @@
             android:name=".Activities.SettingsActivity"
             android:exported="false"
             android:label="@string/title_activity_settings"
-            android:theme="@style/AppTheme.NoActionBar"
-            tools:ignore="InnerclassSeparator">
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
             </intent-filter>

@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -84,6 +85,15 @@ fun SettingsScreen(
         }
         item {
             StarCloneListItem(
+                headlineText = stringResource(R.string.cloud_backup_title),
+                supportingText = stringResource(R.string.cloud_backup_description),
+                leadingIcon = Icons.Outlined.CloudUpload,
+                leadingIconTint = Color(0xFF8E24AA),
+                onClick = { onCategoryClick(CLOUD_BACKUP_SETTINGS) },
+            )
+        }
+        item {
+            StarCloneListItem(
                 headlineText = stringResource(R.string.import_rclone_config),
                 supportingText = stringResource(R.string.importSettingsDescription),
                 leadingIcon = Icons.Outlined.FileDownload,
@@ -140,3 +150,8 @@ const val FILE_ACCESS_SETTINGS = 2
 const val LOOK_AND_FEEL_SETTINGS = 3
 const val LOGGING_SETTINGS = 4
 const val NOTIFICATION_SETTINGS = 5
+const val CLOUD_BACKUP_SETTINGS = 6
+
+interface OnSettingCategorySelectedListener {
+    fun onSettingCategoryClicked(category: Int)
+}

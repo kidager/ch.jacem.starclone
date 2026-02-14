@@ -9,18 +9,16 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import ch.jacem.starclone.Activities.BackupActivity
 import ch.jacem.starclone.R
-import ch.jacem.starclone.Settings.SettingsFragment as OldSettingsFragment
 import ch.jacem.starclone.ui.theme.StarCloneTheme
 
 class SettingsFragment : Fragment() {
 
-    private var clickListener: OldSettingsFragment.OnSettingCategorySelectedListener? = null
+    private var clickListener: OnSettingCategorySelectedListener? = null
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        // Prefer parent fragment (SettingsContainerFragment) over activity
-        clickListener = parentFragment as? OldSettingsFragment.OnSettingCategorySelectedListener
-            ?: context as? OldSettingsFragment.OnSettingCategorySelectedListener
+        clickListener = parentFragment as? OnSettingCategorySelectedListener
+            ?: context as? OnSettingCategorySelectedListener
     }
 
     override fun onCreateView(

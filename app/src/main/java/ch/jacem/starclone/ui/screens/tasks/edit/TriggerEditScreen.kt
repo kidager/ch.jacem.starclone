@@ -13,8 +13,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Save
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -30,7 +34,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TimeInput
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,16 +64,7 @@ fun TriggerEditScreen(
         }
     }
 
-    val timePickerState = rememberTimePickerState(
-        initialHour = viewModel.timeHour,
-        initialMinute = viewModel.timeMinute,
-    )
-
-    // Sync time picker state back to viewmodel
-    LaunchedEffect(timePickerState.hour, timePickerState.minute) {
-        viewModel.timeHour = timePickerState.hour
-        viewModel.timeMinute = timePickerState.minute
-    }
+    var showTimePicker by remember { mutableStateOf(false) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -146,13 +142,30 @@ fun TriggerEditScreen(
                         }
                     }
 
-                    Text(
-                        text = stringResource(R.string.time),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
+                    val formattedTime = remember(viewModel.timeHour, viewModel.timeMinute) {
+                        String.format("%02d:%02d", viewModel.timeHour, viewModel.timeMinute)
+                    }
 
-                    TimeInput(state = timePickerState)
+                    val timeInteractionSource = remember { MutableInteractionSource() }
+                    LaunchedEffect(timeInteractionSource) {
+                        timeInteractionSource.interactions.collect { interaction ->
+                            if (interaction is PressInteraction.Release) {
+                                showTimePicker = true
+                            }
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = formattedTime,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(stringResource(R.string.time)) },
+                        trailingIcon = {
+                            Icon(Icons.Outlined.AccessTime, contentDescription = null)
+                        },
+                        interactionSource = timeInteractionSource,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
             }
 
@@ -186,6 +199,31 @@ fun TriggerEditScreen(
             }
 
             Spacer(Modifier.height(80.dp))
+        }
+
+        if (showTimePicker) {
+            val timePickerState = rememberTimePickerState(
+                initialHour = viewModel.timeHour,
+                initialMinute = viewModel.timeMinute,
+            )
+            AlertDialog(
+                onDismissRequest = { showTimePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.timeHour = timePickerState.hour
+                        viewModel.timeMinute = timePickerState.minute
+                        showTimePicker = false
+                    }) {
+                        Text(stringResource(android.R.string.ok))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showTimePicker = false }) {
+                        Text(stringResource(android.R.string.cancel))
+                    }
+                },
+                text = { TimePicker(state = timePickerState) },
+            )
         }
     }
 }

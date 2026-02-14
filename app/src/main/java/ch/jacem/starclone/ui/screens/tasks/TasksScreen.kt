@@ -132,6 +132,7 @@ fun TasksScreen(
                                     trigger = trigger,
                                     isEnabled = trigger.isEnabled,
                                     targetTask = targetTask,
+                                    onClick = { onEditTrigger(trigger) },
                                     onToggle = { viewModel.toggleTrigger(trigger) },
                                     onOptionsClick = { selectedTrigger = trigger },
                                 )

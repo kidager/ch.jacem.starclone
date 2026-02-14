@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.ElevatedCard
@@ -30,6 +31,7 @@ fun TriggerCard(
     trigger: Trigger,
     isEnabled: Boolean,
     targetTask: Task?,
+    onClick: () -> Unit,
     onToggle: () -> Unit,
     onOptionsClick: () -> Unit,
 ) {
@@ -37,7 +39,9 @@ fun TriggerCard(
     val is24Hour = DateFormat.is24HourFormat(context)
 
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
     ) {
         Row(
             modifier = Modifier

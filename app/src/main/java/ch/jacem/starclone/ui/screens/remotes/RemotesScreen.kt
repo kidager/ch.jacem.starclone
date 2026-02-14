@@ -45,12 +45,13 @@ fun RemotesScreen(
     onRemoteClick: (RemoteItem) -> Unit,
     onAddRemote: () -> Unit,
     onEditRemote: (RemoteItem) -> Unit,
-    onShowProperties: (RemoteItem) -> Unit,
+    onReconnectRemote: (RemoteItem) -> Unit = {},
     onAddToHomeScreen: ((RemoteItem) -> Unit)?,
 ) {
     var selectedRemote by remember { mutableStateOf<RemoteItem?>(null) }
     var showDeleteDialog by remember { mutableStateOf<RemoteItem?>(null) }
     var showRenameDialog by remember { mutableStateOf<RemoteItem?>(null) }
+    var showPropertiesDialog by remember { mutableStateOf<RemoteItem?>(null) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         StarCloneTopBar(title = stringResource(R.string.remotes))
@@ -123,7 +124,7 @@ fun RemotesScreen(
             remote = remote,
             onDismiss = { selectedRemote = null },
             onProperties = {
-                onShowProperties(remote)
+                showPropertiesDialog = remote
                 selectedRemote = null
             },
             onEdit = {
@@ -194,6 +195,15 @@ fun RemotesScreen(
             },
             dismissLabel = "Cancel",
             onDismiss = { showRenameDialog = null },
+        )
+    }
+
+    // Remote properties dialog
+    showPropertiesDialog?.let { remote ->
+        RemotePropertiesDialog(
+            remote = remote,
+            onDismiss = { showPropertiesDialog = null },
+            onReconnect = onReconnectRemote,
         )
     }
 }

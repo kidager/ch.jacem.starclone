@@ -11,8 +11,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import ch.jacem.starclone.Activities.MainActivity
 import ch.jacem.starclone.R
-import ch.jacem.starclone.util.ActivityHelper
-import ch.jacem.starclone.Dialogs.RemotePropertiesDialog
 import ch.jacem.starclone.Items.RemoteItem
 import ch.jacem.starclone.RemoteConfig.RemoteConfig
 import ch.jacem.starclone.ui.theme.StarCloneTheme
@@ -55,8 +53,8 @@ class RemotesFragment : Fragment() {
                             },
                         )
                     },
-                    onShowProperties = { remote ->
-                        showRemotePropertiesDialog(remote)
+                    onReconnectRemote = { remote ->
+                        reconnectRemote(remote)
                     },
                     onAddToHomeScreen = if (AppShortcutsHelper.isRequestPinShortcutSupported(requireContext())) {
                         { remote -> AppShortcutsHelper.addRemoteToHomeScreen(requireContext(), remote) }
@@ -71,12 +69,38 @@ class RemotesFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         activity?.title = getString(R.string.remotes)
+        viewModel.loadRemotes()
     }
 
-    private fun showRemotePropertiesDialog(remote: RemoteItem) {
-        val isDark = ActivityHelper.isDarkTheme(requireActivity())
-        val dialog = RemotePropertiesDialog.newInstance(remote, isDark)
-        dialog.show(childFragmentManager, "remote_properties")
+    private fun reconnectRemote(remote: RemoteItem) {
+        val rclone = ch.jacem.starclone.Rclone(requireContext())
+        val context = requireContext()
+        Thread {
+            val process = rclone.reconnectRemote(remote)
+            if (process != null) {
+                val start = ch.jacem.starclone.InteractiveRunner.Step("y/n> ", ch.jacem.starclone.InteractiveRunner.StringAction("y"))
+                val postOauth = start.addFollowing("y/n> ", "y")
+                    .addFollowing(ch.jacem.starclone.RemoteConfig.OauthHelper.InitOauthStep(context))
+                    .addFollowing(ch.jacem.starclone.RemoteConfig.OauthHelper.OauthFinishStep())
+
+                if (RemoteItem.ONEDRIVE == remote.type) {
+                    postOauth.addFollowing("OneDrive Personal or Business", "onedrive")
+                        .addFollowing("Chose drive to use:> ", "0")
+                        .addFollowing("y/n> ", "y")
+                }
+
+                val errorHandler = ch.jacem.starclone.InteractiveRunner.ErrorHandler { e ->
+                    ch.jacem.starclone.util.FLog.e("RemotesFragment", "onError: recipe for %s is probably bad", e, remote.typeReadable)
+                    process.destroy()
+                }
+
+                val runner = ch.jacem.starclone.InteractiveRunner(start, errorHandler, process)
+                ch.jacem.starclone.RemoteConfig.OauthHelper.registerRunner(runner)
+                runner.runSteps()
+
+                try { process.waitFor() } catch (_: InterruptedException) {}
+            }
+        }.start()
     }
 
     companion object {

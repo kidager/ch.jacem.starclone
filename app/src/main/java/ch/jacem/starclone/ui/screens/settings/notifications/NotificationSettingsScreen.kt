@@ -28,7 +28,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import ch.jacem.starclone.extract.updates.UpdateChecker
+import ch.jacem.starclone.core.updates.UpdateChecker
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

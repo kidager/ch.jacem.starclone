@@ -5,7 +5,7 @@ import android.content.Intent
 import android.util.Log
 import ch.jacem.starclone.Database.DatabaseHandler
 import ch.jacem.starclone.workmanager.SyncManager
-import ch.jacem.starclone.extract.extensions.tag
+import ch.jacem.starclone.core.extensions.tag
 
 
 /**

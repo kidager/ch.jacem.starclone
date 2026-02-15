@@ -1,1 +1,1 @@
-Round Sync - Rclone per a Android
+StarClone - Rclone per a Android

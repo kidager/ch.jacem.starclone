@@ -8,10 +8,10 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import ch.jacem.starclone.Items.FileItem
 import ch.jacem.starclone.Items.RemoteItem
-import ch.jacem.starclone.extract.notifications.implementations.DeleteWorkerNotification
-import ch.jacem.starclone.extract.notifications.implementations.DownloadWorkerNotification
-import ch.jacem.starclone.extract.notifications.implementations.MoveWorkerNotification
-import ch.jacem.starclone.extract.notifications.implementations.UploadWorkerNotification
+import ch.jacem.starclone.core.notifications.implementations.DeleteWorkerNotification
+import ch.jacem.starclone.core.notifications.implementations.DownloadWorkerNotification
+import ch.jacem.starclone.core.notifications.implementations.MoveWorkerNotification
+import ch.jacem.starclone.core.notifications.implementations.UploadWorkerNotification
 
 class EphemeralTaskManager(private var mContext: Context) {
 

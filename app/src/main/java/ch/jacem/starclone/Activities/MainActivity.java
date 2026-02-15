@@ -64,7 +64,7 @@ import ch.jacem.starclone.ui.screens.settings.SettingsContainerFragment;
 import ch.jacem.starclone.util.ActivityHelper;
 import ch.jacem.starclone.util.FLog;
 import ch.jacem.starclone.util.PermissionManager;
-import ch.jacem.starclone.extract.updates.UpdateChecker;
+import ch.jacem.starclone.core.updates.UpdateChecker;
 import es.dmoral.toasty.Toasty;
 import java9.util.stream.Stream;
 

@@ -20,7 +20,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import ch.jacem.starclone.BuildConfig
-import ch.jacem.starclone.extract.extensions.tag
+import ch.jacem.starclone.core.extensions.tag
 
 
 class PermissionManager(private var mContext: Context) {

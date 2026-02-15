@@ -1,7 +1,7 @@
 package ch.jacem.starclone.rclone
 
 import android.util.Log
-import ch.jacem.starclone.extract.extensions.tag
+import ch.jacem.starclone.core.extensions.tag
 import org.json.JSONObject
 import java.util.Objects
 

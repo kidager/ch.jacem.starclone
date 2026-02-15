@@ -186,6 +186,7 @@ class RemoteConfig : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menu?.clear()
         menuInflater.inflate(R.menu.remote_config_menu, menu)
         mSearchIcon = menu?.findItem(R.id.app_bar_search)
 

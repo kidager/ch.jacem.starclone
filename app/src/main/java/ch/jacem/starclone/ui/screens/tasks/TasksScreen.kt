@@ -52,6 +52,7 @@ fun TasksScreen(
     val taskList = viewModel.tasks
     val triggerList = viewModel.triggers
     val isLoading = viewModel.isLoading
+    val taskMap = remember(taskList) { taskList.associateBy { it.id } }
 
     var selectedTask by remember { mutableStateOf<Task?>(null) }
     var showDeleteTaskDialog by remember { mutableStateOf<Task?>(null) }
@@ -95,6 +96,7 @@ fun TasksScreen(
                             items(
                                 items = taskList,
                                 key = { "task_${it.id}" },
+                                contentType = { "task" },
                             ) { task ->
                                 TaskCard(
                                     task = task,
@@ -126,8 +128,9 @@ fun TasksScreen(
                             items(
                                 items = triggerList,
                                 key = { "trigger_${it.id}" },
+                                contentType = { "trigger" },
                             ) { trigger ->
-                                val targetTask = taskList.find { it.id == trigger.triggerTarget }
+                                val targetTask = taskMap[trigger.triggerTarget]
                                 TriggerCard(
                                     trigger = trigger,
                                     isEnabled = trigger.isEnabled,

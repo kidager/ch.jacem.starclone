@@ -97,8 +97,15 @@ class TasksViewModel(application: Application) : AndroidViewModel(application) {
         // Persist in background
         viewModelScope.launch(Dispatchers.IO) {
             val dbHandler = DatabaseHandler(context)
-            trigger.isEnabled = newEnabled
-            dbHandler.updateTrigger(trigger)
+            val dbTrigger = Trigger(trigger.id).apply {
+                title = trigger.title
+                isEnabled = newEnabled
+                setWeekdays(trigger.getWeekdays().toByte())
+                time = trigger.time
+                triggerTarget = trigger.triggerTarget
+                type = trigger.type
+            }
+            dbHandler.updateTrigger(dbTrigger)
 
             val triggerService = TriggerService(context)
             if (newEnabled) {

@@ -114,7 +114,7 @@ fun FolderPickerScreen(
                     ) {
                         items(
                             items = viewModel.files,
-                            key = { it.path },
+                            contentType = { if (it.isDir) "dir" else "file" },
                         ) { fileItem ->
                             val isDir = fileItem.isDir
                             ListItem(

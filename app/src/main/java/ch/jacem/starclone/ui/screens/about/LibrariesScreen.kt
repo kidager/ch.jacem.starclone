@@ -39,7 +39,7 @@ fun LibrariesScreen() {
     LazyColumn(
         contentPadding = PaddingValues(vertical = 8.dp),
     ) {
-        items(libraries, key = { it.name }) { lib ->
+        items(libraries, key = { it.name }, contentType = { "library" }) { lib ->
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

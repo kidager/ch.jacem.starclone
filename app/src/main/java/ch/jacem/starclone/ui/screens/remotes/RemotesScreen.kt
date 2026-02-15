@@ -93,6 +93,7 @@ fun RemotesScreen(
                     items(
                         items = viewModel.remotes,
                         key = { it.name },
+                        contentType = { "remote" },
                     ) { remote ->
                         RemoteCard(
                             remote = remote,

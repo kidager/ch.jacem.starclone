@@ -34,6 +34,7 @@ fun ShareRemotesScreen(
         items(
             items = remotes,
             key = { it.name },
+            contentType = { "remote" },
         ) { remote ->
             Row(
                 modifier = Modifier

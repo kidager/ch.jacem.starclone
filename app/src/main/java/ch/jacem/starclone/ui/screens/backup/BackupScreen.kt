@@ -902,7 +902,7 @@ private fun ImportRemoteFileSelectionStep(
             )
         } else {
             LazyColumn(modifier = Modifier.weight(1f)) {
-                items(state.files) { fileName ->
+                items(state.files, key = { it }, contentType = { "backup" }) { fileName ->
                     ElevatedCard(
                         modifier = Modifier
                             .fillMaxWidth()

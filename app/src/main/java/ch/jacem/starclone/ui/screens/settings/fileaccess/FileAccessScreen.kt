@@ -111,6 +111,7 @@ fun FileAccessScreen(
             items(
                 items = permissions,
                 key = { it.uri.toString() },
+                contentType = { "permission" },
             ) { permission ->
                 PermissionRow(
                     permission = permission,

@@ -85,6 +85,7 @@ fun ProviderListScreen(
             items(
                 items = filteredProviders,
                 key = { it.name },
+                contentType = { "provider" },
             ) { provider ->
                 ProviderItem(
                     provider = provider,

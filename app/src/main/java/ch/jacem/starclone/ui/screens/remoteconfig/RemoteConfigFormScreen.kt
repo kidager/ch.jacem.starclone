@@ -143,6 +143,7 @@ fun RemoteConfigFormScreen(
             items(
                 items = filteredOptions,
                 key = { it.name },
+                contentType = { "option" },
             ) { option ->
                 OptionCard(
                     option = option,

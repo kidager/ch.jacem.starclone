@@ -89,6 +89,7 @@
     <string name="cloud_backup_age_key_saved">Age key saved</string>
     <string name="cloud_backup_age_copy_secret">Copy secret key</string>
     <string name="cloud_backup_age_copy_secret_warning">Save your secret key securely. You will need it to restore backups.</string>
+    <string name="cloud_backup_age_invalid_key">Invalid key. Age public keys start with \"age1\".</string>
     <string name="cloud_backup_backup_now">Backup now</string>
     <string name="cloud_backup_last_backup">Last backup</string>
     <string name="cloud_backup_last_backup_never">Never</string>

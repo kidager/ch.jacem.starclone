@@ -39,7 +39,7 @@ class CloudBackupWorker(
         val rclone = Rclone(context)
 
         val remoteName = prefs.getString(context.getString(R.string.pref_key_cloud_backup_remote), "") ?: ""
-        val backupPath = prefs.getString(context.getString(R.string.pref_key_cloud_backup_path), "StarClone-Backups") ?: "StarClone-Backups"
+        val backupPath = prefs.getString(context.getString(R.string.pref_key_cloud_backup_path), "starclone-backups") ?: "starclone-backups"
         val encryption = prefs.getString(context.getString(R.string.pref_key_cloud_backup_encryption), ENCRYPTION_NONE) ?: ENCRYPTION_NONE
         val retention = prefs.getInt(context.getString(R.string.pref_key_cloud_backup_retention), 5)
 

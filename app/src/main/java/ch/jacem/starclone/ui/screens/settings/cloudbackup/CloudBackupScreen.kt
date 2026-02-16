@@ -84,7 +84,7 @@ fun CloudBackupScreen(onNavigateBack: () -> Unit = {}) {
     var enabled by remember { mutableStateOf(prefs.getBoolean(enabledKey, false)) }
     var destination by remember { mutableStateOf(prefs.getString(destinationKey, DEST_CUSTOM_REMOTE) ?: DEST_CUSTOM_REMOTE) }
     var selectedRemote by remember { mutableStateOf(prefs.getString(remoteKey, "") ?: "") }
-    var backupPath by remember { mutableStateOf(prefs.getString(pathKey, "StarClone-Backups") ?: "StarClone-Backups") }
+    var backupPath by remember { mutableStateOf(prefs.getString(pathKey, "starclone-backups") ?: "starclone-backups") }
     var frequency by remember { mutableIntStateOf(prefs.getInt(frequencyKey, CloudBackupScheduler.FREQUENCY_DAILY)) }
     var timeMinutes by remember { mutableIntStateOf(prefs.getInt(timeKey, 3 * 60)) }
     var wifiOnly by remember { mutableStateOf(prefs.getBoolean(wifiOnlyKey, true)) }
@@ -108,6 +108,7 @@ fun CloudBackupScreen(onNavigateBack: () -> Unit = {}) {
     var showRetentionDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showEncryptionDialog by remember { mutableStateOf(false) }
+    var previousEncryption by remember { mutableStateOf(encryption) }
     var showAgeKeyDialog by remember { mutableStateOf(false) }
     var showPathDialog by remember { mutableStateOf(false) }
     var showKeyLossWarning by remember { mutableStateOf(false) }
@@ -545,6 +546,8 @@ fun CloudBackupScreen(onNavigateBack: () -> Unit = {}) {
     }
 
     if (showEncryptionDialog) {
+        var pendingEncryption by remember { mutableStateOf(encryption) }
+
         StarCloneDialog(
             onDismissRequest = { showEncryptionDialog = false },
             title = stringResource(R.string.cloud_backup_encryption),
@@ -552,35 +555,30 @@ fun CloudBackupScreen(onNavigateBack: () -> Unit = {}) {
                 Column {
                     RadioItem(
                         label = stringResource(R.string.cloud_backup_encryption_none),
-                        selected = encryption == ENCRYPTION_NONE,
-                        onClick = {
-                            encryption = ENCRYPTION_NONE
-                            prefs.edit().putString(encryptionKey, ENCRYPTION_NONE).apply()
-                            showEncryptionDialog = false
-                        },
+                        selected = pendingEncryption == ENCRYPTION_NONE,
+                        onClick = { pendingEncryption = ENCRYPTION_NONE },
                     )
                     RadioItem(
                         label = stringResource(R.string.cloud_backup_encryption_password),
-                        selected = encryption == ENCRYPTION_PASSWORD,
-                        onClick = {
-                            encryption = ENCRYPTION_PASSWORD
-                            prefs.edit().putString(encryptionKey, ENCRYPTION_PASSWORD).apply()
-                            showEncryptionDialog = false
-                            if (!hasPassword.value) showPasswordDialog = true
-                        },
+                        selected = pendingEncryption == ENCRYPTION_PASSWORD,
+                        onClick = { pendingEncryption = ENCRYPTION_PASSWORD },
                     )
                     RadioItem(
                         label = stringResource(R.string.cloud_backup_encryption_age),
                         description = stringResource(R.string.cloud_backup_encryption_age_desc),
-                        selected = encryption == ENCRYPTION_AGE,
-                        onClick = {
-                            encryption = ENCRYPTION_AGE
-                            prefs.edit().putString(encryptionKey, ENCRYPTION_AGE).apply()
-                            showEncryptionDialog = false
-                            if (agePublicKey.isBlank()) showAgeKeyDialog = true
-                        },
+                        selected = pendingEncryption == ENCRYPTION_AGE,
+                        onClick = { pendingEncryption = ENCRYPTION_AGE },
                     )
                 }
+            },
+            confirmLabel = stringResource(android.R.string.ok),
+            onConfirm = {
+                previousEncryption = encryption
+                encryption = pendingEncryption
+                prefs.edit().putString(encryptionKey, pendingEncryption).apply()
+                showEncryptionDialog = false
+                if (pendingEncryption == ENCRYPTION_PASSWORD && !hasPassword.value) showPasswordDialog = true
+                if (pendingEncryption == ENCRYPTION_AGE && agePublicKey.isBlank()) showAgeKeyDialog = true
             },
             dismissLabel = stringResource(android.R.string.cancel),
             onDismiss = { showEncryptionDialog = false },
@@ -646,7 +644,11 @@ fun CloudBackupScreen(onNavigateBack: () -> Unit = {}) {
                 }
             },
             dismissLabel = stringResource(android.R.string.cancel),
-            onDismiss = { showPasswordDialog = false },
+            onDismiss = {
+                showPasswordDialog = false
+                encryption = previousEncryption
+                prefs.edit().putString(encryptionKey, previousEncryption).apply()
+            },
         )
     }
 
@@ -656,8 +658,11 @@ fun CloudBackupScreen(onNavigateBack: () -> Unit = {}) {
             mutableStateOf(importedAgePublicKey.ifBlank { agePublicKey })
         }
         var secretKeyInput by remember { mutableStateOf(importedAgeSecretKey) }
+        var showSecretField by remember { mutableStateOf(importedAgeSecretKey.isNotBlank()) }
         var generatedSecret by remember { mutableStateOf<String?>(null) }
+        var publicKeyError by remember { mutableStateOf<String?>(null) }
         val clipboardManager = LocalClipboardManager.current
+        val invalidKeyError = stringResource(R.string.cloud_backup_age_invalid_key)
 
         // Clear imported values so they don't persist for next open
         importedAgePublicKey = ""
@@ -670,25 +675,34 @@ fun CloudBackupScreen(onNavigateBack: () -> Unit = {}) {
                 Column {
                     OutlinedTextField(
                         value = publicKeyInput,
-                        onValueChange = { publicKeyInput = it },
+                        onValueChange = { publicKeyInput = it; publicKeyError = null },
                         label = { Text(stringResource(R.string.cloud_backup_age_public_key)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
+                        isError = publicKeyError != null,
+                        supportingText = if (publicKeyError != null) {
+                            { Text(publicKeyError!!) }
+                        } else null,
                     )
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = secretKeyInput,
-                        onValueChange = { secretKeyInput = it },
-                        label = { Text(stringResource(R.string.cloud_backup_age_secret_key)) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                    if (showSecretField) {
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = secretKeyInput,
+                            onValueChange = { secretKeyInput = it },
+                            label = { Text(stringResource(R.string.cloud_backup_age_secret_key)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            readOnly = true,
+                        )
+                    }
                     Spacer(Modifier.height(12.dp))
                     Button(
                         onClick = {
                             val keyPair = AgeEncryption.generateKeyPair()
                             publicKeyInput = keyPair.publicKey
                             secretKeyInput = keyPair.secretKey
+                            publicKeyError = null
+                            showSecretField = true
                             generatedSecret = keyPair.secretKey
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -731,9 +745,12 @@ fun CloudBackupScreen(onNavigateBack: () -> Unit = {}) {
             },
             confirmLabel = stringResource(android.R.string.ok),
             onConfirm = {
-                if (publicKeyInput.isNotBlank()) {
+                val trimmed = publicKeyInput.trim()
+                if (trimmed.isBlank() || !trimmed.startsWith("age1")) {
+                    publicKeyError = invalidKeyError
+                } else {
                     showAgeKeyDialog = false
-                    pendingAgeSave = publicKeyInput to secretKeyInput
+                    pendingAgeSave = trimmed to secretKeyInput
                     if (isUpdatingExistingKey()) {
                         showKeyChangeWarning = true
                     } else {
@@ -742,7 +759,11 @@ fun CloudBackupScreen(onNavigateBack: () -> Unit = {}) {
                 }
             },
             dismissLabel = stringResource(android.R.string.cancel),
-            onDismiss = { showAgeKeyDialog = false },
+            onDismiss = {
+                showAgeKeyDialog = false
+                encryption = previousEncryption
+                prefs.edit().putString(encryptionKey, previousEncryption).apply()
+            },
         )
     }
 
@@ -753,6 +774,8 @@ fun CloudBackupScreen(onNavigateBack: () -> Unit = {}) {
                 showKeyLossWarning = false
                 pendingPasswordSave = null
                 pendingAgeSave = null
+                encryption = previousEncryption
+                prefs.edit().putString(encryptionKey, previousEncryption).apply()
             },
             title = stringResource(R.string.cloud_backup_warning_key_loss_title),
             text = {
@@ -774,6 +797,8 @@ fun CloudBackupScreen(onNavigateBack: () -> Unit = {}) {
                 showKeyLossWarning = false
                 pendingPasswordSave = null
                 pendingAgeSave = null
+                encryption = previousEncryption
+                prefs.edit().putString(encryptionKey, previousEncryption).apply()
             },
         )
     }
@@ -785,6 +810,8 @@ fun CloudBackupScreen(onNavigateBack: () -> Unit = {}) {
                 showKeyChangeWarning = false
                 pendingPasswordSave = null
                 pendingAgeSave = null
+                encryption = previousEncryption
+                prefs.edit().putString(encryptionKey, previousEncryption).apply()
             },
             title = stringResource(R.string.cloud_backup_warning_key_change_title),
             text = {
@@ -811,6 +838,8 @@ fun CloudBackupScreen(onNavigateBack: () -> Unit = {}) {
                 showKeyChangeWarning = false
                 pendingPasswordSave = null
                 pendingAgeSave = null
+                encryption = previousEncryption
+                prefs.edit().putString(encryptionKey, previousEncryption).apply()
             },
             isDestructive = true,
         )

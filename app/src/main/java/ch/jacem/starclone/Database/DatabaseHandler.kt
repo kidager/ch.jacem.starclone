@@ -567,7 +567,7 @@ class DatabaseHandler(context: Context?) :
         )
     }
 
-    fun deleteEveryting() {
+    fun deleteEverything() {
         for (trigger in allTrigger) {
             deleteTrigger(trigger.id)
         }

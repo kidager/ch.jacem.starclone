@@ -92,14 +92,22 @@ class EphemeralTaskManager(private var mContext: Context) {
 
         private fun addFileItemToData(key: String, fileItem: FileItem, data: Data.Builder){
             val parcel = Parcel.obtain()
-            fileItem.writeToParcel(parcel, 0)
-            data.putByteArray(key, parcel.marshall())
+            try {
+                fileItem.writeToParcel(parcel, 0)
+                data.putByteArray(key, parcel.marshall())
+            } finally {
+                parcel.recycle()
+            }
         }
 
         private fun addRemoteItemToData(key: String, remote: RemoteItem, data: Data.Builder){
             val parcel = Parcel.obtain()
-            remote.writeToParcel(parcel, 0)
-            data.putByteArray(key, parcel.marshall())
+            try {
+                remote.writeToParcel(parcel, 0)
+                data.putByteArray(key, parcel.marshall())
+            } finally {
+                parcel.recycle()
+            }
         }
     }
 

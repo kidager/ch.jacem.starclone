@@ -18,7 +18,7 @@ public class Importer {
 
     public static void importJson(String json, Context context) throws JSONException {
         DatabaseHandler dbHandler = new DatabaseHandler(context);
-        dbHandler.deleteEveryting();
+        dbHandler.deleteEverything();
         for(Trigger trigger : createTriggerlist(json)){
             dbHandler.createTrigger(trigger, true);
         }

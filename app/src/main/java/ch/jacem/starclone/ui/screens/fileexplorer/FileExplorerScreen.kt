@@ -307,6 +307,7 @@ fun FileExplorerScreen(
                         ) {
                             items(
                                 items = allFiles,
+                                key = { it.path },
                                 contentType = { if (it.isDir) "dir" else "file" },
                             ) { fileItem ->
                                 FileListItem(

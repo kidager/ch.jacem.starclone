@@ -104,9 +104,9 @@ public class SyncLog {
         File log = new File(c.getFilesDir().getPath() + "/sync.log");
         if (log.exists()) {
             if (log.delete()) {
-                System.out.println("file Deleted");
+                Log.d("SyncLog", "Sync log file deleted");
             } else {
-                System.out.println("file not Deleted");
+                Log.w("SyncLog", "Failed to delete sync log file");
             }
         }
     }

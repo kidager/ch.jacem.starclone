@@ -194,19 +194,6 @@ public class MainActivity extends AppCompatActivity {
 
         (new UpdateChecker(this)).schedule();
 
-        // First-load: offer import if no config exists
-        if (!rclone.isConfigFileCreated() && savedInstanceState == null) {
-            new MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.no_config_title)
-                .setMessage(R.string.no_config_message)
-                .setPositiveButton(R.string.import_rclone_config, (dialog, which) -> {
-                    Intent importIntent = new Intent(this, BackupActivity.class);
-                    importIntent.putExtra(BackupActivity.EXTRA_MODE, "import");
-                    startActivity(importIntent);
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
-        }
     }
 
     @Override

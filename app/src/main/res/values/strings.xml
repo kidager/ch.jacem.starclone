@@ -610,6 +610,8 @@
     <string name="description_sync_direction_copy_remote_to_remote">Copy new or modified files from one remote to another. No files are deleted, existing files on the destination may be overwritten.</string>
     <string name="filter_type_include">Include</string>
     <string name="filter_type_exclude">Exclude</string>
+    <string name="intro_import_config_title">Import existing config</string>
+    <string name="intro_import_config_description">Already using rclone? Import your remotes from a backup file. You can also do this later from Settings.</string>
     <string name="intro_success">Success!</string>
     <string name="intro_successful_setup">You are now ready to start!</string>
     <string name="status_offendingfile">"The offending File: "</string>

@@ -16,13 +16,15 @@ import ch.jacem.starclone.R
 import ch.jacem.starclone.util.PermissionManager
 import com.github.appintro.AppIntro2
 import ch.jacem.starclone.core.onboarding.IdentifiableAppIntroFragment
+import ch.jacem.starclone.core.onboarding.IdentifiableButtonAppIntroFragment
 import ch.jacem.starclone.core.onboarding.IdentifiableSwitchAppIntroFragment
+import ch.jacem.starclone.core.onboarding.SlideButtonCallback
 import ch.jacem.starclone.core.onboarding.SlideLeaveInterface
 import ch.jacem.starclone.core.onboarding.SlideSwitchCallback
 import ch.jacem.starclone.core.updates.UpdateChecker
 
 
-class OnboardingActivity : AppIntro2(), SlideLeaveInterface, SlideSwitchCallback {
+class OnboardingActivity : AppIntro2(), SlideLeaveInterface, SlideSwitchCallback, SlideButtonCallback {
 
     companion object {
         private const val intro_v1_12_0_completed = "intro_v1_12_0_completed"
@@ -38,6 +40,7 @@ class OnboardingActivity : AppIntro2(), SlideLeaveInterface, SlideSwitchCallback
         private const val SLIDE_ID_NOTIFICATIONS = "SLIDE_ID_NOTIFICATIONS"
         private const val SLIDE_ID_BATTERY_OPTIMIZATION = "SLIDE_ID_BATTERY_OPTIMIZATION"
         private const val SLIDE_ID_ALARMS = "SLIDE_ID_ALARMS"
+        private const val SLIDE_ID_IMPORT_CONFIG = "SLIDE_ID_IMPORT_CONFIG"
         private const val SLIDE_ID_SUCCESS = "SLIDE_ID_SUCCESS"
         private const val SLIDE_ID_UPDATECHECK = "SLIDE_ID_UPDATECHECK"
 
@@ -194,11 +197,25 @@ class OnboardingActivity : AppIntro2(), SlideLeaveInterface, SlideSwitchCallback
             switchColor()
         }
 
+        if (!v1_12_0) {
+            addSlide(
+                IdentifiableButtonAppIntroFragment.createInstance(
+                    title = getString(R.string.intro_import_config_title),
+                    description = getString(R.string.intro_import_config_description),
+                    imageDrawable = R.drawable.undraw_sync,
+                    backgroundColorRes = color,
+                    id = SLIDE_ID_IMPORT_CONFIG,
+                    callback = this,
+                    buttonCallback = this,
+                ))
+            switchColor()
+        }
+
         addSlide(
             IdentifiableAppIntroFragment.createInstance(
                 title = getString(R.string.intro_success),
                 description = getString(R.string.intro_successful_setup),
-                imageDrawable = R.drawable.undraw_sync,
+                imageDrawable = R.drawable.undraw_completion,
                 backgroundColorRes = color,
                 id = SLIDE_ID_SUCCESS,
                 callback = this
@@ -270,6 +287,16 @@ class OnboardingActivity : AppIntro2(), SlideLeaveInterface, SlideSwitchCallback
                 mPreferences.edit().putBoolean(getString(R.string.pref_key_app_updates), isChecked).apply()
             }
             else -> {}
+        }
+    }
+
+    override fun onButtonClicked(id: String) {
+        when(id) {
+            SLIDE_ID_IMPORT_CONFIG -> {
+                val importIntent = Intent(this, BackupActivity::class.java)
+                importIntent.putExtra(BackupActivity.EXTRA_MODE, "import")
+                startActivity(importIntent)
+            }
         }
     }
 }

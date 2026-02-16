@@ -6,7 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.ElevatedCard
@@ -26,6 +27,7 @@ import ch.jacem.starclone.Items.Task
 import ch.jacem.starclone.Items.Trigger
 import ch.jacem.starclone.R
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TriggerCard(
     trigger: Trigger,
@@ -41,7 +43,10 @@ fun TriggerCard(
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onOptionsClick,
+            ),
     ) {
         Row(
             modifier = Modifier

@@ -105,6 +105,11 @@
     <string name="cloud_backup_warning_key_change_title">Changing encryption key</string>
     <string name="cloud_backup_warning_key_change">This will only apply to future backups. Old backups encrypted with the previous key will no longer be restorable. A new backup will be created immediately.</string>
     <string name="cloud_backup_age_not_supported_auto">Age encryption requires a custom remote destination. Switch to custom remote to use age keys.</string>
+    <string name="cloud_backup_encryption_none_warning">Warning: Your access tokens and passwords will be included unencrypted in device backups. It is highly recommended to enable encryption.</string>
+    <string name="backup_restore_title">Restore Backup</string>
+    <string name="backup_restore_password_prompt">A backup was restored. Enter your backup password to decrypt your configuration.</string>
+    <string name="backup_restore_age_prompt">A backup was restored. Enter your age secret key to decrypt your configuration.</string>
+    <string name="backup_restore_failed">Decryption failed. Please check your password or key and try again.</string>
 
     <!-- Import source selection -->
     <string name="import_source_title">Import from</string>

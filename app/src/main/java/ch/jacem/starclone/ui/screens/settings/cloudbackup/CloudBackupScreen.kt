@@ -334,6 +334,17 @@ fun CloudBackupScreen(onNavigateBack: () -> Unit = {}) {
                     )
                 }
 
+                if (encryption == ENCRYPTION_NONE) {
+                    item {
+                        Text(
+                            text = stringResource(R.string.cloud_backup_encryption_none_warning),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        )
+                    }
+                }
+
                 // Password setup (if password encryption selected)
                 if (encryption == ENCRYPTION_PASSWORD) {
                     item {

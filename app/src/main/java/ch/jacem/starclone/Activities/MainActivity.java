@@ -49,6 +49,9 @@ import ch.jacem.starclone.BuildConfig;
 import ch.jacem.starclone.Database.json.Importer;
 import ch.jacem.starclone.Database.json.SharedPreferencesBackup;
 
+import ch.jacem.starclone.backup.AgeEncryption;
+import ch.jacem.starclone.backup.BackupCrypto;
+import ch.jacem.starclone.backup.EncryptedBackupAgent;
 import ch.jacem.starclone.Items.RemoteItem;
 import ch.jacem.starclone.R;
 import ch.jacem.starclone.Rclone;
@@ -172,6 +175,8 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             }
         }
+
+        checkPendingBackupRestore(sharedPreferences);
 
         if (MAIN_ACTIVITY_START_LOG.equals(intent.getAction())) {
             viewPager.setCurrentItem(BottomNavTab.LOGS.ordinal(), false);
@@ -404,6 +409,68 @@ public class MainActivity extends AppCompatActivity {
                     restoreConfigBackup();
                     startRemotesFragment();
                 })
+                .show();
+    }
+
+    private void checkPendingBackupRestore(SharedPreferences prefs) {
+        if (!prefs.getBoolean(EncryptedBackupAgent.PREF_PENDING_BACKUP_RESTORE, false)) {
+            return;
+        }
+        File encFile = new File(getFilesDir(), "rclone.conf.enc");
+        if (!encFile.exists()) {
+            prefs.edit().remove(EncryptedBackupAgent.PREF_PENDING_BACKUP_RESTORE).apply();
+            return;
+        }
+        String encryption = prefs.getString(getString(R.string.pref_key_cloud_backup_encryption), "none");
+        boolean isAge = "age".equals(encryption);
+        askForBackupRestoreKey(isAge);
+    }
+
+    private void askForBackupRestoreKey(boolean isAge) {
+        android.widget.EditText editText = new android.widget.EditText(this);
+        editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        android.widget.FrameLayout container = new android.widget.FrameLayout(this);
+        int padding = (int) (24 * getResources().getDisplayMetrics().density);
+        container.setPadding(padding, 0, padding, 0);
+        container.addView(editText);
+
+        int promptRes = isAge ? R.string.backup_restore_age_prompt : R.string.backup_restore_password_prompt;
+        new MaterialAlertDialogBuilder(this, R.style.RoundedCornersDialog)
+                .setTitle(R.string.backup_restore_title)
+                .setMessage(promptRes)
+                .setView(container)
+                .setCancelable(true)
+                .setPositiveButton(R.string.okay_confirmation, (dialog, which) -> {
+                    String key = editText.getText().toString();
+                    new Thread(() -> {
+                        try {
+                            File encFile = new File(getFilesDir(), "rclone.conf.enc");
+                            byte[] encrypted = java.nio.file.Files.readAllBytes(encFile.toPath());
+                            byte[] decrypted;
+                            if (isAge) {
+                                decrypted = AgeEncryption.INSTANCE.decrypt(key, encrypted);
+                            } else {
+                                decrypted = BackupCrypto.INSTANCE.decrypt(key, encrypted);
+                            }
+                            File configFile = new File(getFilesDir(), "rclone.conf");
+                            java.nio.file.Files.write(configFile.toPath(), decrypted);
+                            encFile.delete();
+                            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+                            prefs.edit().remove(EncryptedBackupAgent.PREF_PENDING_BACKUP_RESTORE).apply();
+                            runOnUiThread(() ->
+                                AppShortcutsHelper.populateAppShortcuts(this, rclone.getRemotes())
+                            );
+                        } catch (Exception e) {
+                            FLog.e(TAG, "Backup restore decryption failed", e);
+                            runOnUiThread(() -> {
+                                Toasty.error(this, getString(R.string.backup_restore_failed),
+                                        Toast.LENGTH_LONG, true).show();
+                                askForBackupRestoreKey(isAge);
+                            });
+                        }
+                    }).start();
+                })
+                .setNegativeButton(R.string.cancel, null)
                 .show();
     }
 

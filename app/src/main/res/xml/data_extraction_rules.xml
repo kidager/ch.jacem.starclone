@@ -3,11 +3,13 @@
 <data-extraction-rules>
     <cloud-backup>
         <include domain="file" path="rclone.conf" />
+        <include domain="file" path="rclone.conf.enc" />
         <include domain="database" path="." />
         <include domain="sharedpref" path="." />
     </cloud-backup>
     <device-transfer>
         <include domain="file" path="rclone.conf" />
+        <include domain="file" path="rclone.conf.enc" />
         <include domain="database" path="." />
         <include domain="sharedpref" path="." />
     </device-transfer>

@@ -2,6 +2,7 @@
 <!-- For API < 31: controls what Android Auto Backup includes -->
 <full-backup-content>
     <include domain="file" path="rclone.conf" />
+    <include domain="file" path="rclone.conf.enc" />
     <include domain="database" path="." />
     <include domain="sharedpref" path="." />
 </full-backup-content>

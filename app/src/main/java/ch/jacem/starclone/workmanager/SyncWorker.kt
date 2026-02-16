@@ -229,6 +229,7 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
             try {
                 val reader = BufferedReader(InputStreamReader(localProcessReference.errorStream))
                 val iterator = reader.lineSequence().iterator()
+                var lastNotificationUpdate = 0L
                 while(iterator.hasNext()) {
                     val line = iterator.next()
                     try {
@@ -244,29 +245,33 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
                             statusObject.parseLoglineToStatusObject(logline)
                         }
 
-                        updateForegroundNotification(mNotificationManager.updateSyncNotification(
-                            title,
-                            statusObject.notificationContent,
-                            statusObject.notificationBigText,
-                            statusObject.notificationPercent,
-                            ongoingNotificationID
-                        ))
-
-                        val currentFileName = statusObject.mStats.optJSONArray("transferring")
-                            ?.optJSONObject(0)?.optString("name", "") ?: ""
-                        setProgressAsync(Data.Builder()
-                            .putInt(PROGRESS_PERCENT, statusObject.notificationPercent)
-                            .putString(PROGRESS_CONTENT, statusObject.notificationContent)
-                            .putString(PROGRESS_SPEED, statusObject.getSpeed())
-                            .putString(PROGRESS_FILENAME, currentFileName)
-                            .putString(PROGRESS_TITLE, mTitle)
-                            .putString(PROGRESS_SOURCE, mSource)
-                            .putString(PROGRESS_DEST, mDest)
-                            .build())
+                        val now = System.currentTimeMillis()
+                        if (statusObject.notificationContent.isNotBlank() && now - lastNotificationUpdate >= 1000) {
+                            lastNotificationUpdate = now
+                            updateForegroundNotification(mNotificationManager.updateSyncNotification(
+                                title,
+                                statusObject.notificationContent,
+                                statusObject.notificationBigText,
+                                statusObject.notificationPercent,
+                                ongoingNotificationID
+                            ))
+                            val currentFileName = statusObject.mStats.optJSONArray("transferring")
+                                ?.optJSONObject(0)?.optString("name", "") ?: ""
+                            setProgressAsync(Data.Builder()
+                                .putInt(PROGRESS_PERCENT, statusObject.notificationPercent)
+                                .putString(PROGRESS_CONTENT, statusObject.notificationContent)
+                                .putString(PROGRESS_SPEED, statusObject.getSpeed())
+                                .putString(PROGRESS_FILENAME, currentFileName)
+                                .putString(PROGRESS_TITLE, mTitle)
+                                .putString(PROGRESS_SOURCE, mSource)
+                                .putString(PROGRESS_DEST, mDest)
+                                .build())
+                        }
                     } catch (e: JSONException) {
-                        FLog.e(TAG, "SyncService-Error: the offending line: $line")
-                        if (line.isNotBlank()) {
-                            statusObject.mErrorList.add(ErrorObject("rclone", line.trim()))
+                        val trimmed = line.trim()
+                        if (trimmed.isNotBlank() && !trimmed.contains("DEBUG")) {
+                            FLog.e(TAG, "SyncService-Error: the offending line: $line")
+                            statusObject.mErrorList.add(ErrorObject("rclone", trimmed))
                         }
                     }
                 }
@@ -378,8 +383,6 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
     }
 
     private fun showSuccessNotification(notificationId: Int) {
-        //Todo: Show sync-errors in notification. Also see line 169
-
         var message = generateSuccessMessage(statusObject)
         mNotificationManager.showSuccessNotificationOrReport(
             mTitle,
@@ -388,11 +391,16 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
         )
 
         message += """
-                        
+
         Est. Speed: ${statusObject.getEstimatedAverageSpeed()}
         Avg. Speed: ${statusObject.getLastItemAverageSpeed()}
                         """.trimIndent()
+
+        if (statusObject.mErrorList.isNotEmpty()) {
+            message += "\n\n${statusObject.mErrorList.size} error(s) — see individual entries below"
+        }
         SyncLog.info(mContext, mContext.getString(R.string.operation_success, mTitle), message)
+        logIndividualErrors()
     }
 
     // this is currently only a useless mapper. It is supposed to keep this worker in sync with the ephemeral one.
@@ -424,16 +432,8 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
 
     private fun showFailNotification(notificationId: Int, content: String, wasCancelled: Boolean = false) {
         var text = content
-        //Todo: check if we should also add errors on success
-        statusObject.printErrors()
-        val errors = statusObject.getAllErrorMessages()
-        if (errors.isNotEmpty()) {
-            text += """
-                        
-                        
-                        
-                        ${statusObject.getAllErrorMessages()}
-                        """.trimIndent()
+        if (statusObject.mErrorList.isNotEmpty()) {
+            text += "\n\n${statusObject.mErrorList.size} error(s) — see individual entries below"
         }
 
         var notifyTitle = mContext.getString(R.string.operation_failed)
@@ -441,12 +441,23 @@ class SyncWorker (private var mContext: Context, workerParams: WorkerParameters)
             notifyTitle = mContext.getString(R.string.operation_failed_cancelled)
         }
         SyncLog.error(mContext, notifyTitle, "$mTitle: $text")
+        logIndividualErrors()
         mNotificationManager.showFailedNotificationOrReport(
             mTitle,
             text,
             notificationId,
             mTask.id
         )
+    }
+
+    private fun logIndividualErrors() {
+        val deduplicated = statusObject.mErrorList
+            .map { it.mErrorMessage to it.mErrorObject }
+            .distinct()
+        for ((message, file) in deduplicated) {
+            val entry = if (file.isNotBlank()) "$message\nFile: $file" else message
+            SyncLog.error(mContext, "$mTitle — error", entry)
+        }
     }
 
     private fun arePreconditionsMet(): Boolean {

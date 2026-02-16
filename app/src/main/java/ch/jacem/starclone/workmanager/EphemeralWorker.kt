@@ -248,6 +248,7 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
             try {
                 val reader = BufferedReader(InputStreamReader(localProcessReference.errorStream))
                 val iterator = reader.lineSequence().iterator()
+                var lastNotificationUpdate = 0L
                 while(iterator.hasNext()) {
                     val line = iterator.next()
                     try {
@@ -263,30 +264,34 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
                             statusObject.parseLoglineToStatusObject(logline)
                         }
 
-                        updateForegroundNotification(mNotificationManager?.updateNotification(
-                            title,
-                            statusObject.notificationContent,
-                            statusObject.notificationBigText,
-                            statusObject.notificationPercent,
-                            ongoingNotificationID
-                        ))
-
-                        val currentFileName = statusObject.mStats.optJSONArray("transferring")
-                            ?.optJSONObject(0)?.optString("name", "") ?: ""
-                        setProgressAsync(Data.Builder()
-                            .putInt(PROGRESS_PERCENT, statusObject.notificationPercent)
-                            .putString(PROGRESS_CONTENT, statusObject.notificationContent)
-                            .putString(PROGRESS_SPEED, statusObject.getSpeed())
-                            .putString(PROGRESS_FILENAME, currentFileName)
-                            .putString(PROGRESS_TYPE, inputData.getString(EPHEMERAL_TYPE) ?: "")
-                            .putString(PROGRESS_REMOTE, mRemoteName)
-                            .putString(PROGRESS_SOURCE, mSource)
-                            .putString(PROGRESS_DEST, mDest)
-                            .build())
+                        val now = System.currentTimeMillis()
+                        if (statusObject.notificationContent.isNotBlank() && now - lastNotificationUpdate >= 1000) {
+                            lastNotificationUpdate = now
+                            updateForegroundNotification(mNotificationManager?.updateNotification(
+                                title,
+                                statusObject.notificationContent,
+                                statusObject.notificationBigText,
+                                statusObject.notificationPercent,
+                                ongoingNotificationID
+                            ))
+                            val currentFileName = statusObject.mStats.optJSONArray("transferring")
+                                ?.optJSONObject(0)?.optString("name", "") ?: ""
+                            setProgressAsync(Data.Builder()
+                                .putInt(PROGRESS_PERCENT, statusObject.notificationPercent)
+                                .putString(PROGRESS_CONTENT, statusObject.notificationContent)
+                                .putString(PROGRESS_SPEED, statusObject.getSpeed())
+                                .putString(PROGRESS_FILENAME, currentFileName)
+                                .putString(PROGRESS_TYPE, inputData.getString(EPHEMERAL_TYPE) ?: "")
+                                .putString(PROGRESS_REMOTE, mRemoteName)
+                                .putString(PROGRESS_SOURCE, mSource)
+                                .putString(PROGRESS_DEST, mDest)
+                                .build())
+                        }
                     } catch (e: JSONException) {
-                        Log.e(tag(), "Error: the offending line: $line")
-                        if (line.isNotBlank()) {
-                            statusObject.mErrorList.add(ErrorObject("rclone", line.trim()))
+                        val trimmed = line.trim()
+                        if (trimmed.isNotBlank() && !trimmed.contains("DEBUG")) {
+                            Log.e(tag(), "Error: the offending line: $line")
+                            statusObject.mErrorList.add(ErrorObject("rclone", trimmed))
                         }
                     }
                 }
@@ -398,11 +403,7 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
     }
 
     private fun showSuccessNotification(notificationId: Int) {
-        //Todo: Show sync-errors in notification. Also see line 169
-        //Todo: This should be context dependend on the type. It is currently not!
-
-
-        var message = mNotificationManager?.generateSuccessMessage(statusObject, getCurrentFile())?: "error"
+        var message = mNotificationManager?.generateSuccessMessage(statusObject, getCurrentFile()) ?: "error"
 
         mNotificationManager?.showSuccessNotification(
             mTitle,
@@ -411,25 +412,22 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
         )
 
         message += """
-                        
+
         Est. Speed: ${statusObject.getEstimatedAverageSpeed()}
         Avg. Speed: ${statusObject.getLastItemAverageSpeed()}
                         """.trimIndent()
-        //SyncLog.info(mContext, mContext.getString(R.string.operation_success, mTitle), message)
+
+        if (statusObject.mErrorList.isNotEmpty()) {
+            message += "\n\n${statusObject.mErrorList.size} error(s) — see individual entries below"
+        }
+        SyncLog.info(mContext, mContext.getString(R.string.operation_success, mTitle), message)
+        logIndividualErrors()
     }
 
     private fun showFailNotification(notificationId: Int, content: String, wasCancelled: Boolean = false) {
         var text = content
-        //Todo: check if we should also add errors on success
-        statusObject.printErrors()
-        val errors = statusObject.getAllErrorMessages()
-        if (errors.isNotEmpty()) {
-            text += """
-                        
-                        
-                        
-                        ${statusObject.getAllErrorMessages()}
-                        """.trimIndent()
+        if (statusObject.mErrorList.isNotEmpty()) {
+            text += "\n\n${statusObject.mErrorList.size} error(s) — see individual entries below"
         }
 
         var notifyTitle = mContext.getString(R.string.operation_failed)
@@ -437,12 +435,23 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
             notifyTitle = mContext.getString(R.string.operation_failed_cancelled)
         }
         SyncLog.error(mContext, notifyTitle, "$mTitle: $text")
+        logIndividualErrors()
         mNotificationManager?.showFailedNotification(
             mTitle,
             text,
             notificationId,
            0
         )
+    }
+
+    private fun logIndividualErrors() {
+        val deduplicated = statusObject.mErrorList
+            .map { it.mErrorMessage to it.mErrorObject }
+            .distinct()
+        for ((message, file) in deduplicated) {
+            val entry = if (file.isNotBlank()) "$message\nFile: $file" else message
+            SyncLog.error(mContext, "$mTitle — error", entry)
+        }
     }
 
     private fun preconditionsMet(): Boolean {

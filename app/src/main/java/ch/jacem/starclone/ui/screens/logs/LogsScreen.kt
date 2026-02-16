@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.History
@@ -187,7 +189,15 @@ fun LogsScreen(viewModel: LogsViewModel) {
             onDismissRequest = { selectedEntry = null },
             title = entry.title,
             text = {
-                Text("$typeLabel \u2022 $fullDate\n\n${entry.content}")
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    Text(
+                        text = "$typeLabel \u2022 $fullDate",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(text = entry.content)
+                }
             },
             confirmLabel = "Close",
             onConfirm = { selectedEntry = null },

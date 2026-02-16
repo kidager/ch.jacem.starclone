@@ -146,6 +146,17 @@ public class Rclone {
         command.add("--config");
         command.add(rcloneConf);
 
+        // Resource limits to prevent phone freezes
+        command.add("--checkers");
+        command.add("2");
+        command.add("--buffer-size");
+        command.add("4M");
+        command.add("--multi-thread-streams");
+        command.add("0");
+        command.add("--use-mmap");
+        // Allow downloading files flagged by Google Drive
+        command.add("--drive-acknowledge-abuse");
+
         if(loggingEnabled) {
             command.add("-vvv");
         }

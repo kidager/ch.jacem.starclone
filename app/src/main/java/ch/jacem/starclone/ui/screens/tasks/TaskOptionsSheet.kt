@@ -50,6 +50,7 @@ fun TaskOptionsSheet(
             leadingIcon = Icons.Outlined.Delete,
             headlineText = stringResource(R.string.task_option_delete),
             supportingText = stringResource(R.string.task_option_delete_desc),
+            isDestructive = true,
             onClick = onDelete,
         )
     }

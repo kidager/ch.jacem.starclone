@@ -21,10 +21,14 @@ fun StarCloneListItem(
     leadingIcon: ImageVector? = null,
     leadingIconTint: Color = MaterialTheme.colorScheme.primary,
     trailingContent: @Composable (() -> Unit)? = null,
+    isDestructive: Boolean = false,
     onClick: () -> Unit = {},
 ) {
+    val iconTint = if (isDestructive) MaterialTheme.colorScheme.error else leadingIconTint
+    val textColor = if (isDestructive) MaterialTheme.colorScheme.error else Color.Unspecified
+
     ListItem(
-        headlineContent = { Text(headlineText) },
+        headlineContent = { Text(headlineText, color = textColor) },
         modifier = modifier.clickable(onClick = onClick),
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         supportingContent = if (supportingText != null) {
@@ -36,7 +40,7 @@ fun StarCloneListItem(
                     imageVector = leadingIcon,
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
-                    tint = leadingIconTint,
+                    tint = iconTint,
                 )
             }
         } else null,

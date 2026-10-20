@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import ch.jacem.starclone.RuntimeConfiguration
 import ch.jacem.starclone.ui.screens.settings.OnSettingCategorySelectedListener
@@ -20,6 +21,14 @@ class SettingsActivity : AppCompatActivity(), OnSettingCategorySelectedListener 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Back gestures don't call onBackPressed from API 36 on
+        onBackPressedDispatcher.addCallback(this) {
+            if (!container.onBackPressed()) {
+                isEnabled = false
+                onBackPressedDispatcher.onBackPressed()
+                isEnabled = true
+            }
+        }
         ActivityHelper.applyTheme(this)
 
         val frameLayout = FrameLayout(this).apply {
@@ -44,13 +53,6 @@ class SettingsActivity : AppCompatActivity(), OnSettingCategorySelectedListener 
 
     override fun onSettingCategoryClicked(category: Int) {
         container.onSettingCategoryClicked(category)
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        if (!container.onBackPressed()) {
-            super.onBackPressed()
-        }
     }
 
     companion object {

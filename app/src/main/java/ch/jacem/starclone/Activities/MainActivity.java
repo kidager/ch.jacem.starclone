@@ -22,6 +22,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -89,6 +90,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Back gestures don't call onBackPressed from API 36 on
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (handleBack()) return;
+                setEnabled(false);
+                getOnBackPressedDispatcher().onBackPressed();
+                setEnabled(true);
+            }
+        });
 
         ActivityHelper.applyTheme(this);
 
@@ -311,25 +322,25 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public void onBackPressed() {
+    // True when the back press was handled here
+    private boolean handleBack() {
         int currentPage = viewPager.getCurrentItem();
         Fragment page = getPageFragment(currentPage);
 
         // Try delegating to the current page's container
         if (page instanceof RemotesContainerFragment) {
-            if (((RemotesContainerFragment) page).onBackPressed()) return;
+            if (((RemotesContainerFragment) page).onBackPressed()) return true;
         } else if (page instanceof SettingsContainerFragment) {
-            if (((SettingsContainerFragment) page).onBackPressed()) return;
+            if (((SettingsContainerFragment) page).onBackPressed()) return true;
         }
 
         // If not on Remotes, go to Remotes
         if (currentPage != BottomNavTab.REMOTES.ordinal()) {
             viewPager.setCurrentItem(BottomNavTab.REMOTES.ordinal(), true);
-            return;
+            return true;
         }
 
-        super.onBackPressed();
+        return false;
     }
 
     public void startConfigExportFlow() {

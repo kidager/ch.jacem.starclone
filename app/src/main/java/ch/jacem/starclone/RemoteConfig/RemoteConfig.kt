@@ -8,6 +8,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.SearchView
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.compose.runtime.getValue
@@ -59,6 +60,8 @@ class RemoteConfig : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Back gestures don't call onBackPressed from API 36 on
+        onBackPressedDispatcher.addCallback(this) { handleBackAction() }
         ActivityHelper.applyTheme(this)
         setContentView(R.layout.activity_remote_config)
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
@@ -230,11 +233,6 @@ class RemoteConfig : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         handleBackAction()
         return true
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        handleBackAction()
     }
 
     private fun handleBackAction() {

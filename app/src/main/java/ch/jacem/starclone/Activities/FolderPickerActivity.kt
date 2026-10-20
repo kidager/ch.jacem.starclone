@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.addCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.platform.ComposeView
@@ -31,6 +32,14 @@ class FolderPickerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Back gestures don't call onBackPressed from API 36 on
+        onBackPressedDispatcher.addCallback(this) {
+            if (!viewModel.navigateUp()) {
+                isEnabled = false
+                onBackPressedDispatcher.onBackPressed()
+                isEnabled = true
+            }
+        }
         ActivityHelper.applyTheme(this)
         setContentView(R.layout.activity_compose_shell)
         setSupportActionBar(findViewById(R.id.toolbar))
@@ -68,12 +77,5 @@ class FolderPickerActivity : AppCompatActivity() {
         if (viewModel.navigateUp()) return true
         finish()
         return true
-    }
-
-    @Deprecated("Use onBackPressedDispatcher")
-    override fun onBackPressed() {
-        if (!viewModel.navigateUp()) {
-            super.onBackPressed()
-        }
     }
 }

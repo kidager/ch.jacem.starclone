@@ -4,10 +4,35 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 10
+    commit-message:
+      prefix: deps
+    ignore:
+      # Lock out major bumps for the Android/Kotlin toolchain. Minors and
+      # patches still flow; majors are reviewed and bumped manually because
+      # they typically require source changes (deprecated APIs, build script
+      # syntax, target SDK alignment, etc.).
+      - dependency-name: "com.android.tools.build:gradle"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "com.android.application*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "com.android.library*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "org.jetbrains.kotlin*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "com.google.devtools.ksp*"
+        update-types: ["version-update:semver-major"]
+      # Gradle wrapper itself.
+      - dependency-name: "gradle"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+    commit-message:
+      prefix: deps
+    ignore:
+      # gradle/actions tracks the Gradle build invocation in CI; treat its
+      # major bumps the same as the toolchain itself.
+      - dependency-name: "gradle/actions"
+        update-types: ["version-update:semver-major"]

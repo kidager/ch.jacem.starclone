@@ -1,6 +1,16 @@
+import com.android.build.api.variant.FilterConfiguration
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply plugin: 'kotlinx-serialization'
+
+// Bumped by release-please (kidager-bot) on each release
+def appVersion = '1.0.0' // x-release-please-version
+
+base {
+    archivesName = "starclone_v" + appVersion
+}
 
 android {
     signingConfigs {
@@ -21,16 +31,14 @@ android {
             }
         }
     }
+    compileSdk 37
     ndkVersion project.properties['starclone.ndkVersion']
     defaultConfig {
         generatedDensities = []
         vectorDrawables.generatedDensities = []
         applicationId 'ch.jacem.starclone'
-        minSdkVersion 24
-        compileSdk 35
-        targetSdkVersion 35
-        // Bumped by release-please (kidager-bot) on each release
-        def appVersion = '1.0.0' // x-release-please-version
+        minSdk 29
+        targetSdk 36
         def (major, minor, patch) = appVersion.tokenize('.').collect { it.toInteger() }
         // Last digit is reserved for the ABI of split APKs (see versionCodes below): always ends on 0
         versionCode(Math.max(10, (major * 1000000 + minor * 1000 + patch) * 10))
@@ -38,7 +46,6 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "java.lang.String", "CLI", System.getenv('RCX_BUILD_CLI') ? System.getenv('RCX_BUILD_CLI') : "\"c03129b6-b09f-9cb4-8fcd-7f143b8f94ef\""
         buildConfigField "java.lang.String", "VCP_AUTHORITY", "\"" + applicationId + ".vcp\"";
-        setProperty("archivesBaseName",  "starclone_v"+versionName)
 
         externalNativeBuild {
             ndkBuild {
@@ -50,9 +57,8 @@ android {
     buildFeatures {
         viewBinding true
         compose true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
+        buildConfig true
+        resValues true
     }
 
     buildTypes {
@@ -67,7 +73,7 @@ android {
         release {
             minifyEnabled true
             shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             manifestPlaceholders = [
                     appIcon: "@mipmap/ic_launcher",
                     appIconRound: "@mipmap/ic_launcher_round"
@@ -96,7 +102,8 @@ android {
 
     splits {
         abi {
-            enable true
+            // AGP 9 can't build split APKs and an App Bundle in the same run: bundles are built in their own Gradle run
+            enable !gradle.startParameter.taskNames.any { it.toLowerCase().contains('bundle') }
             reset()
             include 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
             universalApk true
@@ -110,18 +117,9 @@ android {
         'x86_64'     : 9
     ]
 
-    android.applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            output.versionCodeOverride =
-                    project.ext.versionCodes.get(output.getFilter(com.android.build.OutputFile.ABI), 0) + android.defaultConfig.versionCode
-        }
-    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
-    }
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17
     }
     packagingOptions {
         jniLibs {
@@ -167,6 +165,21 @@ android {
     }
 }
 
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        variant.outputs.each { output ->
+            def abi = output.filters.find { it.filterType == FilterConfiguration.FilterType.ABI }?.identifier
+            output.versionCode.set(project.ext.versionCodes.get(abi, 0) + android.defaultConfig.versionCode)
+        }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+    }
+}
+
 repositories {
     mavenCentral()
     google()
@@ -205,7 +218,7 @@ dependencies {
     implementation 'androidx.preference:preference-ktx:1.2.1'
     implementation 'androidx.datastore:datastore-preferences:1.1.2'
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
 
 
     // Thumbnails

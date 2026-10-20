@@ -21,6 +21,15 @@
 import groovy.json.JsonSlurper
 
 import java.nio.file.Paths
+import javax.inject.Inject
+
+// Gradle 9 has no Project.exec: run commands through an injected ExecOperations
+interface InjectedExecOps {
+    @Inject
+    ExecOperations getExecOps()
+}
+
+ext.execOps = project.objects.newInstance(InjectedExecOps).execOps
 
 ext {
     NDK_VERSION = project.properties['starclone.ndkVersion']
@@ -75,7 +84,7 @@ def findNdkDir() {
             sdkManagerPath += '.bat'
         }
         try {
-            exec {
+            execOps.exec {
                 commandLine sdkManagerPath, "--install", "ndk;${NDK_VERSION}"
             }
         } catch (exc) {
@@ -141,7 +150,7 @@ def buildRclone(abi) {
 
     return {
         doLast {
-            exec {
+            execOps.exec {
                 environment 'GOPATH', GOPATH
                 def crossCompiler = getCrossCompiler(abi)
                 environment 'CC', crossCompiler
@@ -184,19 +193,21 @@ task checkoutRclone(type: Exec, dependsOn: createRcloneModule) {
     workingDir CACHE_PATH
     environment 'GOPATH', GOPATH
 
-    def goVersionOutput = new ByteArrayOutputStream()
-    exec{
-        commandLine 'go', 'version'
-        standardOutput = goVersionOutput;
-    }
+    doFirst {
+        def goVersionOutput = new ByteArrayOutputStream()
+        execOps.exec {
+            commandLine 'go', 'version'
+            standardOutput = goVersionOutput
+        }
 
-    if (goVersionOutput.toString().contains(GO_REQ_VERSION)) {
-        println "You are running the required go version."
-    } else {
-        logger.error("The requred go version is: ${GO_REQ_VERSION}")
-        logger.error( "You are running: ${goVersionOutput}")
+        if (goVersionOutput.toString().contains(GO_REQ_VERSION)) {
+            println "You are running the required go version."
+        } else {
+            logger.error("The requred go version is: ${GO_REQ_VERSION}")
+            logger.error( "You are running: ${goVersionOutput}")
+        }
+        println "You are building rclone v${RCLONE_VERSION}"
     }
-    println "You are building rclone v${RCLONE_VERSION}"
 
     commandLine 'go', 'get', '-v', '-d', "${RCLONE_MODULE}@v${RCLONE_VERSION}"
 }
@@ -223,7 +234,7 @@ task buildAll {
 
 task clean {
     doLast {
-        exec {
+        execOps.exec {
             environment 'GOPATH', GOPATH
             commandLine 'go', 'clean', '-cache', '-testcache', '-modcache', '-fuzzcache'
         }

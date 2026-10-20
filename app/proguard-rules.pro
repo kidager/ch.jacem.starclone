@@ -38,3 +38,6 @@
 -dontwarn org.openjsse.javax.net.ssl.SSLParameters
 -dontwarn org.openjsse.javax.net.ssl.SSLSocket
 -dontwarn org.openjsse.net.ssl.OpenJSSE
+
+# Same as before AGP 9 (proguard-android.txt): no R8 optimizations until they are tested
+-dontoptimize

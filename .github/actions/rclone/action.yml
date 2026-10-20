@@ -1,0 +1,41 @@
+name: rclone for Android
+description: >-
+  The Android SDK and NDK, and the rclone libraries (app/lib/*/librclone.so) the app packages: restored from the
+  cache when rclone, Go, the NDK and rclone/build.gradle are unchanged, else Go is set up to build them
+outputs:
+  cache-hit:
+    description: "'true' when the rclone libraries came from the cache: pass -x :rclone:buildAll to Gradle"
+    value: ${{ steps.cache.outputs.cache-hit }}
+runs:
+  using: composite
+  steps:
+    - name: Read the versions from gradle.properties
+      id: versions
+      shell: bash
+      run: |
+        for key in goVersion rCloneVersion ndkVersion; do
+          echo "$key=$(grep -E "^starclone\.$key=" gradle.properties | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+        done
+
+    # Compiling rclone for the four ABIs is the slowest part of a build: only when something it depends on changes
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      id: cache
+      with:
+        path: app/lib/*/librclone.so
+        key: rclone-${{ steps.versions.outputs.rCloneVersion }}-go${{ steps.versions.outputs.goVersion }}-ndk${{ steps.versions.outputs.ndkVersion }}-${{ hashFiles('rclone/build.gradle') }}
+
+    - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      if: steps.cache.outputs.cache-hit != 'true'
+      with:
+        go-version: ${{ steps.versions.outputs.goVersion }}
+        # No go.sum at the root: rclone's module is fetched by the Gradle build
+        cache: false
+
+    - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+
+    # The app build needs it too (ndkVersion), cached or not
+    - name: Install the NDK
+      shell: bash
+      env:
+        NDK_VERSION: ${{ steps.versions.outputs.ndkVersion }}
+      run: yes | sdkmanager --install "ndk;${NDK_VERSION}" > /dev/null

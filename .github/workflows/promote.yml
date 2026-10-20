@@ -1,0 +1,59 @@
+name: Promote to Production
+
+# Manual: every release goes to Play internal on its own (release.yml), this moves it to production.
+# Actions > Promote to Production > Run workflow.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release to promote, e.g. v1.4.2 (empty for the latest release)
+        required: false
+
+permissions:
+  contents: read
+  # Signs in to Google Cloud for Play (Workload Identity Federation)
+  id-token: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Pick the release
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          latest=$(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=1" --jq '.[0].tag_name')
+          tag="${INPUT_TAG:-$latest}"
+          if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Not a release tag: $tag"
+            exit 1
+          fi
+          # The promote action moves whatever is on internal, so refuse if a newer build is there
+          if [ "$tag" != "$latest" ]; then
+            echo "::error::$tag is not the latest release ($latest is), internal holds a newer build. Promote from the Play Console instead."
+            exit 1
+          fi
+          # release.yml attaches the .aab only once Play internal has the build
+          if ! gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -q '\.aab$'; then
+            echo "::error::$tag has no .aab attached: its build never reached Play internal. Check its Release run."
+            exit 1
+          fi
+          echo "Promoting $tag"
+
+      # Keyless: GitHub's OIDC token is exchanged for the Play service account (Workload Identity Federation)
+      - name: Authenticate to Google Cloud
+        id: gcp
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: projects/426278800157/locations/global/workloadIdentityPools/github/providers/kidager
+          service_account: github-actions-play-store@jacem-chaieb.iam.gserviceaccount.com
+
+      - name: Promote internal to production
+        uses: kevin-david/promote-play-release@d1ed59ca4fd7456b9d8cae062a3684e93b412425 # v1.2.0
+        with:
+          service-account-json-file: ${{ steps.gcp.outputs.credentials_file_path }}
+          package-name: ch.jacem.starclone
+          from-track: internal
+          to-track: production

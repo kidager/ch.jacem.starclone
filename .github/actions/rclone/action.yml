@@ -38,4 +38,4 @@ runs:
       shell: bash
       env:
         NDK_VERSION: ${{ steps.versions.outputs.ndkVersion }}
-      run: yes | sdkmanager --install "ndk;${NDK_VERSION}" > /dev/null
+      run: (yes || true) | sdkmanager --install "ndk;${NDK_VERSION}" > /dev/null

@@ -3,6 +3,11 @@ on:
   workflow_dispatch:
   push:
 
+# A newer push to the same branch or PR replaces the running check
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   dependency-change-verification:
     runs-on: ubuntu-latest

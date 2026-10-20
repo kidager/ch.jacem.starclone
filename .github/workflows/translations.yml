@@ -4,6 +4,11 @@ on:
   workflow_dispatch:
   pull_request:
 
+# A newer push to the same branch or PR replaces the running check
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   string-change-verification:
     runs-on: ubuntu-latest

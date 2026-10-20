@@ -2,6 +2,8 @@ name: "Verify dependency chain"
 on:
   workflow_dispatch:
   push:
+    branches: [main]
+  pull_request:
 
 # A newer push to the same branch or PR replaces the running check
 concurrency:

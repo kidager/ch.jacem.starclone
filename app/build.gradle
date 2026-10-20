@@ -30,7 +30,7 @@ android {
         compileSdk 35
         targetSdkVersion 35
         // Bumped by release-please (kidager-bot) on each release
-        def appVersion = '0.0.0' // x-release-please-version
+        def appVersion = '1.0.0' // x-release-please-version
         def (major, minor, patch) = appVersion.tokenize('.').collect { it.toInteger() }
         // Last digit is reserved for the ABI of split APKs (see versionCodes below): always ends on 0
         versionCode(Math.max(10, (major * 1000000 + minor * 1000 + patch) * 10))

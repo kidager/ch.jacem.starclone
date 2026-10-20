@@ -26,7 +26,7 @@ android {
         generatedDensities = []
         vectorDrawables.generatedDensities = []
         applicationId 'ch.jacem.starclone'
-        minSdkVersion 23
+        minSdkVersion 24
         compileSdk 35
         targetSdkVersion 35
         // Bumped by release-please (kidager-bot) on each release

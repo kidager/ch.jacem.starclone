@@ -89,7 +89,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # The release PR's CI already built this exact code (ci.yml release-build): reuse its AAB and APKs.
+      # The release PR's CI already built this exact code (release-build.yml): reuse its AAB and APKs.
       # Anything else (code changed since, no successful run, artifact gone) builds it here instead.
       - name: Get the release PR build
         id: prebuilt
@@ -104,7 +104,7 @@ jobs:
             echo "::notice::$TAG isn't the code the release PR built, building it"
             exit 0
           fi
-          run=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow ci.yml --commit "$head" --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+          run=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow release-build.yml --commit "$head" --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')
           if [ -z "$run" ] || ! gh run download "$run" --repo "$GITHUB_REPOSITORY" --name release-build --dir prebuilt; then
             echo "::notice::No release PR build found for $TAG, building it"
             exit 0

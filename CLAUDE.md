@@ -46,7 +46,8 @@ Package: `ch.jacem.starclone` (applicationId + namespace).
 - **kidager-bot** (release-please as a GitHub App, `release-please-config.json`, `version.txt`, the
   `x-release-please-version` marker in `app/build.gradle`) opens the release PR on every push to `main`; merging it
   creates the release. versionCode = `(major·1000000 + minor·1000 + patch)·10`, the last digit for the split APKs' ABI.
-- The release PR's CI builds the signed rs AAB and the universal rs/oss APKs (`ci.yml` release-build); `release.yml`
+- The `build` label on the release PR builds the signed rs AAB and the universal rs/oss APKs (`release-build.yml`, its
+  `release-build` check blocks the merge until then); `release.yml`
   reuses them: APKs on the GitHub release, the AAB to Play internal (keyless: Workload Identity Federation), notes
   from the release PR's comment (Gemini writes them, editable). `promote.yml` (manual) moves internal to production.
 - `apk-debug` / `apk-release` labels on a PR build its rs universal APK and link it in a comment.

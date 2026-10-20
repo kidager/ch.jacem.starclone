@@ -11,9 +11,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Closed PRs are left out: kidager-bot relabels the release PR once merged (autorelease: tagged)
 jobs:
   build:
-    if: github.head_ref == 'release-please--branches--main' && contains(github.event.pull_request.labels.*.name, 'build')
+    if: github.event.pull_request.state == 'open' && github.head_ref == 'release-please--branches--main' && contains(github.event.pull_request.labels.*.name, 'build')
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -57,7 +58,7 @@ jobs:
   # Required check: skipped on other PRs (counts as passed), blocks the release PR until the build ran and passed
   release-build:
     needs: build
-    if: always() && github.head_ref == 'release-please--branches--main'
+    if: always() && github.event.pull_request.state == 'open' && github.head_ref == 'release-please--branches--main'
     runs-on: ubuntu-26.04
     steps:
       - name: Check the release build

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/kidager/ch.jacem.starclone/compare/v1.0.1...v1.0.2) (2026-10-21)
+
+
+### Code Refactoring
+
+* **build:** rs flavor renamed playstore, update check only in the OSS build without a third-party library ([66ba293](https://github.com/kidager/ch.jacem.starclone/commit/66ba2933d5523126b36b02eff5f63343d99f5f61))
+
 ## [1.0.1](https://github.com/kidager/ch.jacem.starclone/compare/v1.0.0...v1.0.1) (2026-10-21)
 
 

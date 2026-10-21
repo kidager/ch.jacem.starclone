@@ -40,39 +40,25 @@ class UpdateUserchoiceReceiver : BroadcastReceiver() {
             val versionKey = context.getString(R.string.pref_key_app_updates_found_update_for_version)
             val version = preferenceManager.getString(versionKey,"")?: ""
 
-            // the following might be superfluous. keep it for universal fallback.
-            var abi = when(Build.CPU_ABI) {
-                "x86" -> "x86"
-                "x86_64" -> "x86_64"
-                "arm64-v8a" -> "arm64-v8a"
-                "armeabi-v7a" -> "armeabi-v7a"
-                else -> {
-                    Log.e(tag(), "Unknown ABI, trying unviversal!")
-                    "unviversal"
-                }
-            }
-
             if(version.isNotEmpty()) {
-                if (Build.VERSION.SDK_INT >= VERSION_CODES.N) {
-                    downloadAndInstall(
-                        URL("https://github.com/kidager/starclone/releases/download/$version/starclone_$version-oss-$abi-release.apk"),
-                        context,
-                        version,
-                        abi
-                    )
-                }
+                // Releases are tagged vX.Y.Z and carry the universal APK as starclone-vX.Y.Z.apk (release.yml)
+                val tag = if (version.startsWith("v")) version else "v$version"
+                downloadAndInstall(
+                    URL("https://github.com/kidager/ch.jacem.starclone/releases/download/$tag/starclone-$tag.apk"),
+                    context,
+                    tag
+                )
             }
             AppUpdateNotification(context).cancelNotification()
         }
     }
 
-    @RequiresApi(VERSION_CODES.N)
-    private fun downloadAndInstall(url: URL, context: Context, version: String, abi: String) {
+    private fun downloadAndInstall(url: URL, context: Context, tag: String) {
         Log.e(tag(), "Download url: $url")
         Thread {
             val dir = context.externalCacheDir?.absolutePath ?: ""
             Log.e(tag(), "Download dir: $dir")
-            val target = File(dir, "starclone_$version-oss-$abi-release.apk")
+            val target = File(dir, "starclone-$tag.apk")
             url.openStream()
                 .use { input ->
                 FileOutputStream(target).use {
@@ -80,10 +66,7 @@ class UpdateUserchoiceReceiver : BroadcastReceiver() {
                 }
             }
 
-            var fileUri = Uri.fromFile(target)
-            if (Build.VERSION.SDK_INT >= VERSION_CODES.N) {
-                fileUri = FileProvider.getUriForFile(context,BuildConfig.APPLICATION_ID + ".fileprovider", target)
-            }
+            val fileUri = FileProvider.getUriForFile(context,BuildConfig.APPLICATION_ID + ".fileprovider", target)
 
             val intent = Intent(Intent.ACTION_VIEW)
             intent.setDataAndType(fileUri, "application/vnd.android.package-archive")

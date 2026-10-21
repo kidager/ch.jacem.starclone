@@ -49,7 +49,7 @@ class UpdateWorker (private var mContext: Context, workerParams: WorkerParameter
 
         val source =  GithubTagSource(
             ownerUsername = "kidager",
-            repoName = "starclone",
+            repoName = "ch.jacem.starclone",
             currentVersion = BuildConfig.VERSION_NAME
         )
 

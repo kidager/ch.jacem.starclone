@@ -115,8 +115,8 @@ public class AppShortcutsHelper {
         }
 
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        appShortcutIds.remove(id);
         Set<String> updateAppShortcutIds = new HashSet<>(appShortcutIds);
+        updateAppShortcutIds.remove(id);
         editor.putStringSet(context.getString(R.string.shared_preferences_app_shortcuts), updateAppShortcutIds);
         editor.apply();
     }

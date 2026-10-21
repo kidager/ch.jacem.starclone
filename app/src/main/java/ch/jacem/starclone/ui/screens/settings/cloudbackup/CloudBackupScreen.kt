@@ -1,5 +1,6 @@
 package ch.jacem.starclone.ui.screens.settings.cloudbackup
 
+import java.util.Locale
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -281,7 +282,7 @@ fun CloudBackupScreen(onNavigateBack: () -> Unit = {}) {
                         val minutes = timeMinutes % 60
                         StarCloneListItem(
                             headlineText = stringResource(R.string.cloud_backup_time),
-                            supportingText = String.format("%02d:%02d", hours, minutes),
+                            supportingText = String.format(Locale.ROOT, "%02d:%02d", hours, minutes),
                             onClick = { showTimeDialog = true },
                         )
                     }
@@ -509,7 +510,7 @@ fun CloudBackupScreen(onNavigateBack: () -> Unit = {}) {
                     )
                     Text(":", modifier = Modifier.padding(horizontal = 8.dp))
                     OutlinedTextField(
-                        value = String.format("%02d", minutes),
+                        value = String.format(Locale.ROOT, "%02d", minutes),
                         onValueChange = { minutes = it.toIntOrNull()?.coerceIn(0, 59) ?: minutes },
                         label = { Text("MM") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),

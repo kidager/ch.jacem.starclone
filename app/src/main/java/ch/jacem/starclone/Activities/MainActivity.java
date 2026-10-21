@@ -772,7 +772,7 @@ public class MainActivity extends AppCompatActivity {
             }
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
             Set<String> generated = pref.getStringSet(getString(R.string.pref_key_local_alias_remotes), new HashSet<>());
-            Set<String> renamed = pref.getStringSet(getString(R.string.pref_key_renamed_remotes), new HashSet<>());
+            Set<String> renamed = new HashSet<>(pref.getStringSet(getString(R.string.pref_key_renamed_remotes), new HashSet<>()));
             SharedPreferences.Editor editor = pref.edit();
             for (String remote : generated) {
                 rclone.deleteRemote(remote);
@@ -864,10 +864,10 @@ public class MainActivity extends AppCompatActivity {
                 FLog.e(TAG, "addLocalRemote: process error", e);
                 return;
             }
-            Set<String> renamedRemotes = pref.getStringSet(getString(R.string.pref_key_renamed_remotes), new HashSet<>());
-            Set<String> drawerPinned = pref.getStringSet(getString(R.string.shared_preferences_drawer_pinned_remotes), new HashSet<>());
-            Set<String> topPinned = pref.getStringSet(getString(R.string.shared_preferences_pinned_remotes), new HashSet<>());
-            Set<String> generatedRemotes = pref.getStringSet(getString(R.string.pref_key_local_alias_remotes), new HashSet<>());
+            Set<String> renamedRemotes = new HashSet<>(pref.getStringSet(getString(R.string.pref_key_renamed_remotes), new HashSet<>()));
+            Set<String> drawerPinned = new HashSet<>(pref.getStringSet(getString(R.string.shared_preferences_drawer_pinned_remotes), new HashSet<>()));
+            Set<String> topPinned = new HashSet<>(pref.getStringSet(getString(R.string.shared_preferences_pinned_remotes), new HashSet<>()));
+            Set<String> generatedRemotes = new HashSet<>(pref.getStringSet(getString(R.string.pref_key_local_alias_remotes), new HashSet<>()));
             renamedRemotes.add(id);
             drawerPinned.add(id);
             topPinned.add(id);

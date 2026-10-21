@@ -35,7 +35,7 @@ enum class LogFilter(val label: String) {
 
 class LogsViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val context: Context = application
+    private val context: Context get() = getApplication()
 
     var logs by mutableStateOf<List<LogEntry>>(emptyList())
         private set

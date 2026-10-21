@@ -1,5 +1,6 @@
 package ch.jacem.starclone.ui.screens.tasks.edit
 
+import java.util.Locale
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -143,7 +144,7 @@ fun TriggerEditScreen(
                     }
 
                     val formattedTime = remember(viewModel.timeHour, viewModel.timeMinute) {
-                        String.format("%02d:%02d", viewModel.timeHour, viewModel.timeMinute)
+                        String.format(Locale.ROOT, "%02d:%02d", viewModel.timeHour, viewModel.timeMinute)
                     }
 
                     val timeInteractionSource = remember { MutableInteractionSource() }

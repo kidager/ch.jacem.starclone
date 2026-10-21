@@ -41,7 +41,7 @@
         <receiver
             android:name="ch.jacem.starclone.core.updates.UpdateUserchoiceReceiver"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="false" />
 
         <activity android:name=".Activities.OnboardingActivity" />
         <activity
@@ -88,14 +88,15 @@
             android:foregroundServiceType="dataSync" />
         <service
             android:name=".Services.TriggerService"
-            android:exported="true"
+            android:exported="false"
             android:foregroundServiceType="dataSync" />
         <service
             android:name=".Services.RcdService"
             android:foregroundServiceType="dataSync" /> <!-- Used to expose tasks to other apps, no other functionality -->
         <service
             android:name=".Services.SyncService"
-            android:exported="true" /> <!-- This is a default service required for any and all Workers. Do not remove. -->
+            android:exported="true"
+            tools:ignore="ExportedService" /> <!-- This is a default service required for any and all Workers. Do not remove. -->
         <service
             android:name="androidx.work.impl.foreground.SystemForegroundService"
             android:foregroundServiceType="dataSync" />
@@ -111,13 +112,13 @@
         </receiver>
         <receiver
             android:name=".BroadcastReceivers.TriggerReciever"
-            android:exported="true" />
+            android:exported="false" />
         <receiver
             android:name=".BroadcastReceivers.ClearReportBroadcastReciever"
             android:exported="false" />
         <receiver
             android:name=".BroadcastReceivers.SyncRestartAction"
-            android:exported="true" />
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

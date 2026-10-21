@@ -150,7 +150,7 @@ fun GeneralSettingsScreen(onNavigateBack: () -> Unit = {}) {
                 val sizeMb = thumbnailSize / 1024.0 / 1024.0
                 StarCloneListItem(
                     headlineText = stringResource(R.string.pref_thumbnails_dlg_title),
-                    supportingText = String.format("%.1f MB", sizeMb),
+                    supportingText = String.format(Locale.getDefault(), "%.1f MB", sizeMb),
                     onClick = { showThumbnailSizeDialog = true },
                 )
             }
@@ -430,7 +430,7 @@ private fun ThumbnailSizeDialog(
     onDismiss: () -> Unit,
     onConfirm: (Long) -> Unit,
 ) {
-    var text by remember { mutableStateOf(String.format("%.1f", currentSize / 1024.0 / 1024.0)) }
+    var text by remember { mutableStateOf(String.format(Locale.ROOT, "%.1f", currentSize / 1024.0 / 1024.0)) }
 
     StarCloneDialog(
         onDismissRequest = onDismiss,

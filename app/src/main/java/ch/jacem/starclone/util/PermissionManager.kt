@@ -107,6 +107,8 @@ class PermissionManager(private var mContext: Context) {
     }
 
     fun requestAlarms() {
+        // Exact alarms need no permission before Android 12, and the settings screen doesn't exist there
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
         val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
         intent.data = Uri.parse("package:" + mContext.packageName)
         mContext.startActivity(intent)

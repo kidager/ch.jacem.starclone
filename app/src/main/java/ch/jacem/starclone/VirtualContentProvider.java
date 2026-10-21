@@ -1,5 +1,6 @@
 package ch.jacem.starclone;
 
+import java.util.Locale;
 import static android.provider.DocumentsContract.Document.COLUMN_DISPLAY_NAME;
 import static android.provider.DocumentsContract.Document.COLUMN_LAST_MODIFIED;
 import static android.provider.DocumentsContract.Document.COLUMN_SIZE;
@@ -1456,7 +1457,7 @@ public class VirtualContentProvider extends SingleRootProvider {
             List<String> documentIds = new ArrayList<>();
             Map<String, ListItem> map = snapshot();
             Set<String> paths = map.keySet();
-            String[] terms = search.toLowerCase().split(" ");
+            String[] terms = search.toLowerCase(Locale.ROOT).split(" ");
             for (String path : paths) {
                 // filter by remote
                 if (!path.startsWith(remote)) {
@@ -1465,7 +1466,7 @@ public class VirtualContentProvider extends SingleRootProvider {
                 // filter by terms
                 for (int i = 0; i < terms.length; i++) {
                     // a path must contain all terms in the path, the order does not matter
-                    if (path.toLowerCase().contains(terms[i])) {
+                    if (path.toLowerCase(Locale.ROOT).contains(terms[i])) {
                         if (terms.length - 1 == i) {
                             results.add(map.get(path));
                             documentIds.add(path);
@@ -1520,7 +1521,7 @@ public class VirtualContentProvider extends SingleRootProvider {
 
         public Map<String, FsStateNode> search(String searchTerm) {
             FLog.v(TAG, "searching: %s", searchTerm);
-            String normalizedSearch = searchTerm.toLowerCase().trim();
+            String normalizedSearch = searchTerm.toLowerCase(Locale.ROOT).trim();
             Map<String, FsStateNode> results = new HashMap<>();
             for (Map.Entry<String, FsStateNode> entry : stickyMap.entrySet()) {
                 if (entry.getValue().item.name.contains(normalizedSearch)) {

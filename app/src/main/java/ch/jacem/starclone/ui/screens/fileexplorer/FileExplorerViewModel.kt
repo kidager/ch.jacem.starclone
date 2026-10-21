@@ -30,7 +30,7 @@ import kotlinx.coroutines.withContext
 
 class FileExplorerViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val context: Context = application
+    private val context: Context get() = getApplication()
     private val rclone = Rclone(application)
     private val prefs = PreferenceManager.getDefaultSharedPreferences(application)
     private val directoryObject = DirectoryObject()

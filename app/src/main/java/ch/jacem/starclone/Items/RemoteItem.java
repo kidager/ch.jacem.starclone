@@ -1,5 +1,6 @@
 package ch.jacem.starclone.Items;
 
+import java.util.Locale;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Parcel;
@@ -431,7 +432,7 @@ public class RemoteItem implements Comparable<RemoteItem>, Parcelable {
         } else if (!this.isPinned && remoteItem.isPinned) {
             return 1;
         }
-        return getDisplayName().toLowerCase().compareTo(remoteItem.getDisplayName().toLowerCase());
+        return getDisplayName().toLowerCase(Locale.ROOT).compareTo(remoteItem.getDisplayName().toLowerCase(Locale.ROOT));
     }
 
     @Override

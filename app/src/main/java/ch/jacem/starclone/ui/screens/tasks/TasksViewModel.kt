@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 
 class TasksViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val context: Context = application
+    private val context: Context get() = getApplication()
 
     var tasks by mutableStateOf<List<Task>>(emptyList(), referentialEqualityPolicy())
         private set

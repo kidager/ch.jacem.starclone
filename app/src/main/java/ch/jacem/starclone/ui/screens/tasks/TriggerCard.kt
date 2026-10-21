@@ -1,5 +1,6 @@
 package ch.jacem.starclone.ui.screens.tasks
 
+import java.util.Locale
 import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -114,7 +115,7 @@ private fun formatSchedule(trigger: Trigger, is24Hour: Boolean): String {
     val hours = totalMinutes / 60
     val minutes = totalMinutes % 60
     return if (is24Hour) {
-        String.format("%02d:%02d", hours, minutes)
+        String.format(Locale.ROOT, "%02d:%02d", hours, minutes)
     } else {
         val displayHour = when {
             hours == 0 -> 12
@@ -122,7 +123,7 @@ private fun formatSchedule(trigger: Trigger, is24Hour: Boolean): String {
             else -> hours
         }
         val amPm = if (hours < 12) "AM" else "PM"
-        String.format("%d:%02d %s", displayHour, minutes, amPm)
+        String.format(Locale.ROOT, "%d:%02d %s", displayHour, minutes, amPm)
     }
 }
 

@@ -262,5 +262,6 @@ dependencies {
     implementation 'com.exceptionfactory.jagged:jagged-x25519:1.0.0'
 
     //Updates
-    implementation 'com.github.Sharkaboi:AppUpdateChecker:v1.0.5'
+    // rs flavor only: flagged NonFreeNet, kept out of the OSS build
+    rsImplementation 'com.github.Sharkaboi:AppUpdateChecker:v1.0.5'
 }

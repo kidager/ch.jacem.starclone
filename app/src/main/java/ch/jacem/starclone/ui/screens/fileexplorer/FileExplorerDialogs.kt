@@ -185,8 +185,7 @@ fun DeleteConfirmDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val title = context.resources.getQuantityString(
+    val title = androidx.compose.ui.platform.LocalResources.current.getQuantityString(
         R.plurals.delete_x_items,
         files.size,
         files.size,

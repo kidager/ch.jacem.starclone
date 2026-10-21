@@ -1,6 +1,5 @@
 package ch.jacem.starclone.ui.screens.settings.general
 
-import android.os.Build
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,6 +17,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -73,8 +74,8 @@ fun GeneralSettingsScreen(onNavigateBack: () -> Unit = {}) {
 
     // State
     var showThumbnails by remember { mutableStateOf(prefs.getBoolean(showThumbnailsKey, true)) }
-    val defaultThumbnailSize = remember { context.resources.getInteger(R.integer.default_thumbnail_size_limit).toLong() }
-    var thumbnailSize by remember { mutableStateOf(prefs.getLong(thumbnailSizeKey, defaultThumbnailSize)) }
+    val defaultThumbnailSize = remember { resources.getInteger(R.integer.default_thumbnail_size_limit).toLong() }
+    var thumbnailSize by remember { mutableLongStateOf(prefs.getLong(thumbnailSizeKey, defaultThumbnailSize)) }
     var allowIdle by remember { mutableStateOf(prefs.getBoolean(idleKey, true)) }
     var wifiOnly by remember { mutableStateOf(prefs.getBoolean(wifiKey, false)) }
     var useProxy by remember { mutableStateOf(prefs.getBoolean(proxyKey, false)) }
@@ -86,7 +87,7 @@ fun GeneralSettingsScreen(onNavigateBack: () -> Unit = {}) {
         mutableStateOf(validated)
     }
     var proxyHost by remember { mutableStateOf(prefs.getString(proxyHostKey, "example.com") ?: "example.com") }
-    var proxyPort by remember { mutableStateOf(prefs.getInt(proxyPortKey, 8080)) }
+    var proxyPort by remember { mutableIntStateOf(prefs.getInt(proxyPortKey, 8080)) }
     var proxyUser by remember { mutableStateOf(prefs.getString(proxyUserKey, "") ?: "") }
     var proxyPassword by remember { mutableStateOf(prefs.getString(proxyPasswordKey, "") ?: "") }
 
@@ -109,14 +110,12 @@ fun GeneralSettingsScreen(onNavigateBack: () -> Unit = {}) {
         modifier = Modifier.weight(1f),
     ) {
         // App shortcuts
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            item {
-                StarCloneListItem(
-                    headlineText = stringResource(R.string.app_shortcuts_settings),
-                    supportingText = "Select shortcuts that you can pin on your homescreen",
-                    onClick = { showShortcutDialog = true },
-                )
-            }
+        item {
+            StarCloneListItem(
+                headlineText = stringResource(R.string.app_shortcuts_settings),
+                supportingText = "Select shortcuts that you can pin on your homescreen",
+                onClick = { showShortcutDialog = true },
+            )
         }
 
         // Language
@@ -150,7 +149,7 @@ fun GeneralSettingsScreen(onNavigateBack: () -> Unit = {}) {
                 val sizeMb = thumbnailSize / 1024.0 / 1024.0
                 StarCloneListItem(
                     headlineText = stringResource(R.string.pref_thumbnails_dlg_title),
-                    supportingText = String.format(Locale.getDefault(), "%.1f MB", sizeMb),
+                    supportingText = String.format(configuration.locales.get(0), "%.1f MB", sizeMb),
                     onClick = { showThumbnailSizeDialog = true },
                 )
             }
@@ -333,7 +332,7 @@ fun GeneralSettingsScreen(onNavigateBack: () -> Unit = {}) {
 
     // Language dialog
     if (showLanguageDialog) {
-        val localeTags = remember { context.resources.getStringArray(R.array.locales).toList() }
+        val localeTags = remember { resources.getStringArray(R.array.locales).toList() }
         val locales = remember { localeTags.map { Locale.forLanguageTag(it) } }
         val currentLocale = configuration.locales.get(0)
 
@@ -536,7 +535,6 @@ private fun setAppShortcuts(
     remoteItems: List<RemoteItem>,
     selected: List<String>,
 ) {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N_MR1) return
 
     val limitedSelected = if (selected.size > 4) selected.subList(0, 4) else selected
     val savedIds = prefs.getStringSet(shortcutsKey, emptySet()) ?: emptySet()

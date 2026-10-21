@@ -2,6 +2,7 @@ package ch.jacem.starclone.ui.screens.tasks.edit
 
 import android.app.Application
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
@@ -22,7 +23,7 @@ class TaskEditViewModel(application: Application) : AndroidViewModel(application
     private val dbHandler = DatabaseHandler(context)
 
     var title by mutableStateOf("")
-    var direction by mutableStateOf(SyncDirectionObject.SYNC_LOCAL_TO_REMOTE)
+    var direction by mutableIntStateOf(SyncDirectionObject.SYNC_LOCAL_TO_REMOTE)
     var localPath by mutableStateOf("")
     var remoteId by mutableStateOf("")
     var remotePath by mutableStateOf("")

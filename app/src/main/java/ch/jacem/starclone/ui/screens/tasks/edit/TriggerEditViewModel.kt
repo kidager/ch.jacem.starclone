@@ -2,6 +2,8 @@ package ch.jacem.starclone.ui.screens.tasks.edit
 
 import android.app.Application
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
@@ -22,12 +24,12 @@ class TriggerEditViewModel(application: Application) : AndroidViewModel(applicat
 
     var title by mutableStateOf("")
     var isEnabled by mutableStateOf(true)
-    var type by mutableStateOf(Trigger.TRIGGER_TYPE_SCHEDULE)
-    var weekdays by mutableStateOf(0b01111111) // all days enabled
-    var timeHour by mutableStateOf(0)
-    var timeMinute by mutableStateOf(0)
-    var intervalMinutes by mutableStateOf(60)
-    var targetTaskId by mutableStateOf(0L)
+    var type by mutableIntStateOf(Trigger.TRIGGER_TYPE_SCHEDULE)
+    var weekdays by mutableIntStateOf(0b01111111) // all days enabled
+    var timeHour by mutableIntStateOf(0)
+    var timeMinute by mutableIntStateOf(0)
+    var intervalMinutes by mutableIntStateOf(60)
+    var targetTaskId by mutableLongStateOf(0L)
 
     var taskList by mutableStateOf<List<Task>>(emptyList())
         private set

@@ -1,5 +1,50 @@
 # Changelog
 
+## [1.0.1](https://github.com/kidager/ch.jacem.starclone/compare/v1.0.0...v1.0.1) (2026-10-21)
+
+
+### Bug Fixes
+
+* **app:** back handled by OnBackPressedCallback, back gestures skip onBackPressed from API 36 ([c108c8c](https://github.com/kidager/ch.jacem.starclone/commit/c108c8cd4ea21170e2d189a35056fe7df945abef))
+* **app:** internal components not exported, preference sets copied, explicit locales, exact alarm screen only on Android 12+ ([8969dde](https://github.com/kidager/ch.jacem.starclone/commit/8969ddea7fecdcc0fd12beeb8f167a84aa30aeb3))
+* **app:** minimum SDK 24, required by Play automatic protection ([88f198b](https://github.com/kidager/ch.jacem.starclone/commit/88f198b1bbf4e3375fac8a5639eb9e84a45ae4a2))
+* **ci:** apktool wrapper fetched from the pinned release tag ([62af2b4](https://github.com/kidager/ch.jacem.starclone/commit/62af2b4b5a0c4f729ef071a28d9caad3f727c03c))
+* **i18n:** typos and typography, Chinese cancelled-sync text without a missing argument ([d10ce67](https://github.com/kidager/ch.jacem.starclone/commit/d10ce6789bf651e9e56c6d32c4caf1188711c29c))
+* **ui:** primitive Compose state, resources and locale read from the composition ([cbcf9cb](https://github.com/kidager/ch.jacem.starclone/commit/cbcf9cb4aaf58e1e2936f089a6ddc7a193789aab))
+* **ui:** resources and locale read through LocalResources and LocalConfiguration ([0dcb898](https://github.com/kidager/ch.jacem.starclone/commit/0dcb8989eb370ba26da8fc60f6df1f6588724f96))
+* **updates:** update check and download point at ch.jacem.starclone and its release APK name ([358deac](https://github.com/kidager/ch.jacem.starclone/commit/358deac263fc1e543a0e17ecc48f187100fe868f))
+* **updates:** update checker in the rs flavor only, OSS build without the NonFreeNet library ([a1b6f39](https://github.com/kidager/ch.jacem.starclone/commit/a1b6f391a1cb3848cfb5b188ba5e24cea3d2d33d))
+
+
+### Miscellaneous Chores
+
+* **lint:** baseline regenerated ([8e1fed8](https://github.com/kidager/ch.jacem.starclone/commit/8e1fed8d2871293b2feb3869945448d7dc8a3bb9))
+* **lint:** baseline regenerated without the fixed and stale entries ([c6452eb](https://github.com/kidager/ch.jacem.starclone/commit/c6452eb9bba389e5bf7dc85e6c93a453ccf8cc12))
+
+
+### Code Refactoring
+
+* **app:** version checks below Android 10 removed, FlagsUtil combines FLAG_IMMUTABLE with OR ([68df4f1](https://github.com/kidager/ch.jacem.starclone/commit/68df4f1ff288bd355c628cf5c401b84d6d6b1e33))
+
+
+### Dependencies
+
+* **app:** Jackson 2.22.3 with annotations 2.22, LocalBroadcastManager declared ([c62d3f8](https://github.com/kidager/ch.jacem.starclone/commit/c62d3f8eef41629a4d87e7f9866bcc024ece289b))
+* bump androidx.appcompat:appcompat from 1.6.1 to 1.8.0 ([52e13b1](https://github.com/kidager/ch.jacem.starclone/commit/52e13b1bf41d83ec79efa8c6cf7521066a3d77b9))
+* bump androidx.compose:compose-bom from 2024.12.01 to 2026.09.00 ([e097ff4](https://github.com/kidager/ch.jacem.starclone/commit/e097ff41cadf7ea0e4b68546c937181fbcc083fe))
+* bump androidx.documentfile:documentfile from 1.0.1 to 1.1.0 ([03d3bea](https://github.com/kidager/ch.jacem.starclone/commit/03d3beadfcfff6b04af43286293dd6cd69041ef7))
+* bump androidx.navigation:navigation-compose from 2.8.5 to 2.10.2 ([d9546db](https://github.com/kidager/ch.jacem.starclone/commit/d9546dbaaf02905f1c88f4c86436f11f7be435f7))
+* bump androidx.work:work-runtime-ktx from 2.10.0 to 2.12.0 ([67b4706](https://github.com/kidager/ch.jacem.starclone/commit/67b4706505f7630484f0e2c9db8a1fa7b58ac85a))
+* bump com.google.android.material:material from 1.12.0 to 1.14.0 ([d31990c](https://github.com/kidager/ch.jacem.starclone/commit/d31990cac87fecb74a6f110c063231cfa242740f))
+* bump com.squareup.okhttp3:okhttp from 4.12.0 to 5.5.0 ([48f5493](https://github.com/kidager/ch.jacem.starclone/commit/48f5493cd0d32cde9517e270779822685685e363))
+* bump org.jetbrains.kotlinx:kotlinx-coroutines-test ([1517ad9](https://github.com/kidager/ch.jacem.starclone/commit/1517ad9467d4cd46bda988297a166e16a6e2e970))
+* update Kotlin to 2.4.21 and Gradle to 9.8.1 ([e679120](https://github.com/kidager/ch.jacem.starclone/commit/e67912086da050591081045ba61e550588ba545f))
+
+
+### Build System
+
+* Gradle 9.8, AGP 9.4, Kotlin 2.4, JDK 25 and SDK 29/36/37 as in id3 ([e1b4e32](https://github.com/kidager/ch.jacem.starclone/commit/e1b4e32e23e3711e3ed4f187a590cc51699d2763))
+
 ## 1.0.0 (2026-10-20)
 
 

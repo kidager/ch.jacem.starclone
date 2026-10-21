@@ -298,7 +298,7 @@
     <string name="no_search_results">No search results</string>
     <string name="nothing_selected">Nothing selected</string>
     <string name="file_picker_root_title">Device storage</string>
-    <string name="remote_name_hint">Name (a–z, 0-9 only)</string>
+    <string name="remote_name_hint">Name (a–z, 0–9 only)</string>
     <string name="waiting_for_code">Waiting for code</string>
     <string name="open_browser">Open browser</string>
     <string name="provider_ftp">FTP</string>
@@ -691,7 +691,7 @@
     <string name="intro_battery_optimizations_description">If this app is optimized for battery savings, syncs might not run on time. Please grant us an exception if you need syncs to be on time!</string>
     <string name="permissions_batteryoptimizations_label">Battery Optimizations</string>
     <string name="permissions_batteryoptimizations_description">If the device is asleep, your tasks might be delayed when this permission is not granted.</string>
-    <string name="sync_service_notification_startingsync">Starting Sync...</string>
+    <string name="sync_service_notification_startingsync">Starting Sync…</string>
     <string name="sync_service_notification_group">Group for Sync</string>
     <string name="workernotification_group_description">Task Notifications</string>
     <string name="download_service_ongoing_notification_title">Active Downloads</string>
@@ -751,7 +751,7 @@
     <string name="pref_proxy_user">Username</string>
     <string name="pref_proxy_password">Password</string>
     <string name="intro_update_checks_title">Update Notifications</string>
-    <string name="intro_update_checks_description">If you want to recieve updates, you can enable the switch below! We will notify if an update is available, and you can then choose to apply it.</string>
+    <string name="intro_update_checks_description">If you want to receive updates, you can enable the switch below! We will notify if an update is available, and you can then choose to apply it.</string>
 
     <!-- Processes screen -->
     <string name="processes">Processes</string>

@@ -90,13 +90,15 @@ android {
 
     flavorDimensions += 'edition'
     productFlavors {
-        // Default GitHub and Google Play build
-        rs {
+        // Google Play build: Play handles the updates
+        playstore {
             dimension 'edition'
+            buildConfigField "boolean", "SELF_UPDATES", "false"
         }
-        // OSS build
+        // OSS build (GitHub releases, F-Droid style repositories): optional update check against GitHub releases
         oss {
             dimension 'edition'
+            buildConfigField "boolean", "SELF_UPDATES", "true"
         }
     }
 
@@ -261,8 +263,4 @@ dependencies {
     // Age encryption
     implementation 'com.exceptionfactory.jagged:jagged-framework:1.0.0'
     implementation 'com.exceptionfactory.jagged:jagged-x25519:1.0.0'
-
-    //Updates
-    // rs flavor only: flagged NonFreeNet, kept out of the OSS build
-    rsImplementation 'com.github.Sharkaboi:AppUpdateChecker:v1.0.5'
 }

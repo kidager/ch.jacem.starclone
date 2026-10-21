@@ -41,10 +41,10 @@ You can then build the app from Android Studio or from CLI:
 
 ```sh
 # Debug build
-./gradlew assembleRsDebug
+./gradlew assemblePlaystoreDebug
 
 # Install on connected device
-./gradlew app:installRsDebug
+./gradlew app:installPlaystoreDebug
 ```
 
 

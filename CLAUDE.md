@@ -9,17 +9,19 @@ Package: `ch.jacem.starclone` (applicationId + namespace).
 
 ```bash
 # Kotlin compilation check
-./gradlew app:compileRsDebugKotlin
+./gradlew app:compilePlaystoreDebugKotlin
 
 # Java compilation check
-./gradlew app:compileRsDebugJavaWithJavac
+./gradlew app:compilePlaystoreDebugJavaWithJavac
 
 # Install on connected device
-./gradlew app:installRsDebug
+./gradlew app:installPlaystoreDebug
 ```
 
-- Product flavors: `rs` (default), `oss`
-- rclone v1.71.0 compiled as native .so via Go+NDK
+- Product flavors: `playstore` (Google Play AAB, no self-update), `oss` (GitHub releases and F-Droid style repositories,
+  optional update check against GitHub releases, `REQUEST_INSTALL_PACKAGES` only here). Same applicationId and version
+  codes. `BuildConfig.SELF_UPDATES` tells them apart.
+- rclone compiled as native .so via Go+NDK (version in `gradle.properties`)
 
 ## Architecture
 
@@ -46,11 +48,11 @@ Package: `ch.jacem.starclone` (applicationId + namespace).
 - **kidager-bot** (release-please as a GitHub App, `release-please-config.json`, `version.txt`, the
   `x-release-please-version` marker in `app/build.gradle`) opens the release PR on every push to `main`; merging it
   creates the release. versionCode = `(major·1000000 + minor·1000 + patch)·10`, the last digit for the split APKs' ABI.
-- The `build` label on the release PR builds the signed rs AAB and the universal rs/oss APKs (`release-build.yml`, its
+- The `build` label on the release PR builds the signed playstore AAB and the universal playstore/oss APKs (`release-build.yml`, its
   `release-build` check blocks the merge until then); `release.yml`
   reuses them: APKs on the GitHub release, the AAB to Play internal (keyless: Workload Identity Federation), notes
   from the release PR's comment (Gemini writes them, editable). `promote.yml` (manual) moves internal to production.
-- `apk-debug` / `apk-release` labels on a PR build its rs universal APK and link it in a comment.
+- `apk-debug` / `apk-release` labels on a PR build its playstore universal APK and link it in a comment.
 - rclone is compiled only when its version, Go, the NDK or `rclone/build.gradle` change (`.github/actions/rclone`,
   cached; `-x :rclone:buildAll` on a cache hit).
 - Upload key: Actions secrets `UPLOAD_KEYSTORE_BASE64`, `KEY_PASSWORD`, `STORE_PASSWORD`, variable `KEY_ALIAS`; local

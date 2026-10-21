@@ -3,6 +3,7 @@ package ch.jacem.starclone.core.updates
 import android.content.Context
 import android.os.Build
 import androidx.preference.PreferenceManager
+import ch.jacem.starclone.BuildConfig
 import ch.jacem.starclone.R
 import ch.jacem.starclone.core.updates.workmanager.UpdateManager
 
@@ -32,6 +33,9 @@ class UpdateChecker(private var mContext: Context) {
     }
 
     fun isManagedInstallation(): Boolean {
+        // The Play Store build never updates itself
+        if (!BuildConfig.SELF_UPDATES) return true
+
         val storeApps = mutableListOf(
             "com.android.vending",
             "com.google.android.feedback",
@@ -44,6 +48,7 @@ class UpdateChecker(private var mContext: Context) {
         val sourcePackage = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             mContext.packageManager.getInstallSourceInfo(mContext.packageName).installingPackageName
         } else {
+            @Suppress("DEPRECATION")
             mContext.packageManager.getInstallerPackageName(mContext.packageName)
         }
 

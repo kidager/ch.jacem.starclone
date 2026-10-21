@@ -41,10 +41,10 @@ class UpdateUserchoiceReceiver : BroadcastReceiver() {
             val version = preferenceManager.getString(versionKey,"")?: ""
 
             if(version.isNotEmpty()) {
-                // Releases are tagged vX.Y.Z and carry the universal APK as starclone-vX.Y.Z.apk (release.yml)
+                // Releases are tagged vX.Y.Z and carry the OSS universal APK as starclone-vX.Y.Z-oss.apk (release.yml)
                 val tag = if (version.startsWith("v")) version else "v$version"
                 downloadAndInstall(
-                    URL("https://github.com/kidager/ch.jacem.starclone/releases/download/$tag/starclone-$tag.apk"),
+                    URL("https://github.com/kidager/ch.jacem.starclone/releases/download/$tag/starclone-$tag-oss.apk"),
                     context,
                     tag
                 )

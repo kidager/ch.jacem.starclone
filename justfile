@@ -6,26 +6,26 @@ default:
 
 # Compile Kotlin sources (debug)
 build-kotlin:
-    ./gradlew app:compileRsDebugKotlin
+    ./gradlew app:compilePlaystoreDebugKotlin
 
 # Compile Java sources (debug)
 build-java:
-    ./gradlew app:compileRsDebugJavaWithJavac
+    ./gradlew app:compilePlaystoreDebugJavaWithJavac
 
 # Compile both Kotlin and Java
 build:
-    ./gradlew app:compileRsDebugKotlin app:compileRsDebugJavaWithJavac
+    ./gradlew app:compilePlaystoreDebugKotlin app:compilePlaystoreDebugJavaWithJavac
 
 # Assemble per-ABI debug APKs
 apk:
-    ./gradlew app:assembleRsDebug
+    ./gradlew app:assemblePlaystoreDebug
 
 # Install debug APK matching connected device's ABI (~64MB instead of ~174MB universal)
 install:
     #!/usr/bin/env bash
     set -euo pipefail
     ABI=$(adb shell getprop ro.product.cpu.abi | tr -d '\r')
-    APK=$(find app/build/outputs/apk/rs/debug -name "*-${ABI}-debug.apk" | head -1)
+    APK=$(find app/build/outputs/apk/playstore/debug -name "*-${ABI}-debug.apk" | head -1)
     if [ -z "$APK" ]; then
         echo "No APK found for ABI $ABI — run 'just apk' first"
         exit 1

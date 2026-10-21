@@ -33,7 +33,7 @@ jobs:
         run: ./gradlew lint -x :rclone:buildAll
 
       - name: Test
-        run: ./gradlew testRsDebugUnitTest -x :rclone:buildAll
+        run: ./gradlew testPlaystoreDebugUnitTest -x :rclone:buildAll
 
       - name: Test Play Store release notes scripts
         run: .github/scripts/test-play-notes.sh

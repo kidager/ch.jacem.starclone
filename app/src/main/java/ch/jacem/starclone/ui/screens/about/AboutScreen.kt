@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ch.jacem.starclone.Activities.AboutLibsActivity
@@ -35,6 +36,7 @@ import ch.jacem.starclone.util.ActivityHelper
 @Composable
 fun AboutScreen() {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val rcloneVersion = remember { Rclone(context).rcloneVersion }
 
     LazyColumn(
@@ -98,7 +100,7 @@ fun AboutScreen() {
                 onClick = {
                     ActivityHelper.tryStartActivity(
                         context,
-                        Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.github_app_url))),
+                        Intent(Intent.ACTION_VIEW, Uri.parse(resources.getString(R.string.github_app_url))),
                     )
                 },
             )
@@ -110,7 +112,7 @@ fun AboutScreen() {
                 onClick = {
                     ActivityHelper.tryStartActivity(
                         context,
-                        Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.github_issue_url))),
+                        Intent(Intent.ACTION_VIEW, Uri.parse(resources.getString(R.string.github_issue_url))),
                     )
                 },
             )
@@ -126,7 +128,7 @@ fun AboutScreen() {
                 onClick = {
                     ActivityHelper.tryStartActivity(
                         context,
-                        Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.github_maintainer_url))),
+                        Intent(Intent.ACTION_VIEW, Uri.parse(resources.getString(R.string.github_maintainer_url))),
                     )
                 },
             )
@@ -139,7 +141,7 @@ fun AboutScreen() {
                 onClick = {
                     ActivityHelper.tryStartActivity(
                         context,
-                        Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.github_maintainer_url))),
+                        Intent(Intent.ACTION_VIEW, Uri.parse(resources.getString(R.string.github_maintainer_url))),
                     )
                 },
             )
@@ -152,7 +154,7 @@ fun AboutScreen() {
                 onClick = {
                     ActivityHelper.tryStartActivity(
                         context,
-                        Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.github_author_url))),
+                        Intent(Intent.ACTION_VIEW, Uri.parse(resources.getString(R.string.github_author_url))),
                     )
                 },
             )

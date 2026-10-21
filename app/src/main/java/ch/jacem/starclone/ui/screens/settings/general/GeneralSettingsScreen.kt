@@ -24,7 +24,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -53,6 +55,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 @Composable
 fun GeneralSettingsScreen(onNavigateBack: () -> Unit = {}) {
     val context = LocalContext.current
+    val resources = LocalResources.current
+    val configuration = LocalConfiguration.current
     val prefs = remember { PreferenceManager.getDefaultSharedPreferences(context) }
 
     // Keys
@@ -117,14 +121,7 @@ fun GeneralSettingsScreen(onNavigateBack: () -> Unit = {}) {
 
         // Language
         item {
-            val currentLocale = remember {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    context.resources.configuration.locales.get(0)
-                } else {
-                    @Suppress("DEPRECATION")
-                    context.resources.configuration.locale
-                }
-            }
+            val currentLocale = configuration.locales.get(0)
             StarCloneListItem(
                 headlineText = stringResource(R.string.pref_locale),
                 supportingText = currentLocale?.displayLanguage ?: "System",
@@ -221,7 +218,7 @@ fun GeneralSettingsScreen(onNavigateBack: () -> Unit = {}) {
                     supportingText = proxyHost,
                     onClick = {
                         showEditDialog = EditDialogConfig(
-                            title = context.getString(R.string.pref_proxy_host_dlg_title),
+                            title = resources.getString(R.string.pref_proxy_host_dlg_title),
                             value = proxyHost,
                             keyboardType = KeyboardType.Uri,
                         ) { newValue ->
@@ -237,7 +234,7 @@ fun GeneralSettingsScreen(onNavigateBack: () -> Unit = {}) {
                     supportingText = proxyPort.toString(),
                     onClick = {
                         showEditDialog = EditDialogConfig(
-                            title = context.getString(R.string.pref_proxy_port_dlg_title),
+                            title = resources.getString(R.string.pref_proxy_port_dlg_title),
                             value = proxyPort.toString(),
                             keyboardType = KeyboardType.Number,
                         ) { newValue ->
@@ -254,7 +251,7 @@ fun GeneralSettingsScreen(onNavigateBack: () -> Unit = {}) {
                     supportingText = proxyUser.ifEmpty { "(not set)" },
                     onClick = {
                         showEditDialog = EditDialogConfig(
-                            title = context.getString(R.string.pref_proxy_user),
+                            title = resources.getString(R.string.pref_proxy_user),
                             value = proxyUser,
                         ) { newValue ->
                             proxyUser = newValue
@@ -269,7 +266,7 @@ fun GeneralSettingsScreen(onNavigateBack: () -> Unit = {}) {
                     supportingText = if (proxyPassword.isEmpty()) "(not set)" else "\u2022".repeat(proxyPassword.length.coerceAtMost(8)),
                     onClick = {
                         showEditDialog = EditDialogConfig(
-                            title = context.getString(R.string.pref_proxy_password),
+                            title = resources.getString(R.string.pref_proxy_password),
                             value = proxyPassword,
                             isPassword = true,
                         ) { newValue ->
@@ -338,14 +335,7 @@ fun GeneralSettingsScreen(onNavigateBack: () -> Unit = {}) {
     if (showLanguageDialog) {
         val localeTags = remember { context.resources.getStringArray(R.array.locales).toList() }
         val locales = remember { localeTags.map { Locale.forLanguageTag(it) } }
-        val currentLocale = remember {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                context.resources.configuration.locales.get(0)
-            } else {
-                @Suppress("DEPRECATION")
-                context.resources.configuration.locale
-            }
-        }
+        val currentLocale = configuration.locales.get(0)
 
         StarCloneDialog(
             onDismissRequest = { showLanguageDialog = false },
@@ -473,6 +463,7 @@ private fun AppShortcutDialog(
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val prefs = remember { PreferenceManager.getDefaultSharedPreferences(context) }
     val shortcutsKey = stringResource(R.string.shared_preferences_app_shortcuts)
@@ -510,7 +501,7 @@ private fun AppShortcutDialog(
                                 if (checked && selectedCount >= 4) {
                                     scope.launch {
                                         snackbarHostState.showSnackbar(
-                                            message = context.getString(R.string.app_shortcuts_max_toast),
+                                            message = resources.getString(R.string.app_shortcuts_max_toast),
                                             duration = SnackbarDuration.Short,
                                         )
                                     }

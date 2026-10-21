@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ch.jacem.starclone.Items.FilterEntry
@@ -57,6 +58,7 @@ fun FilterScreen(
     onSave: (String, List<FilterEntryState>) -> Unit,
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var filterTitle by remember { mutableStateOf(title) }
@@ -70,7 +72,7 @@ fun FilterScreen(
                     if (filterTitle.isBlank()) {
                         scope.launch {
                             snackbarHostState.showSnackbar(
-                                message = context.getString(R.string.filter_data_validation_error_no_title),
+                                message = resources.getString(R.string.filter_data_validation_error_no_title),
                                 duration = SnackbarDuration.Short,
                             )
                         }

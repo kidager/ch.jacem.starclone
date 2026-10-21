@@ -74,7 +74,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/ch/jacem/starclone/RuntimeConfiguration.java"
-            line="57"
+            line="49"
             column="9"/>
     </issue>
 
@@ -98,17 +98,6 @@
             file="src/main/AndroidManifest.xml"
             line="12"
             column="5"/>
-    </issue>
-
-    <issue
-        id="NonObservableLocale"
-        message="Reading locale in a non-observable way in a composable function"
-        errorLine1="                    supportingText = String.format(Locale.getDefault(), &quot;%.1f MB&quot;, sizeMb),"
-        errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="153"
-            column="52"/>
     </issue>
 
     <issue
@@ -208,39 +197,6 @@
             file="$HOME/repositories/kidager/ch.jacem.starclone/gradle/wrapper/gradle-wrapper.properties"
             line="3"
             column="17"/>
-    </issue>
-
-    <issue
-        id="LocalContextResourcesRead"
-        message="Reading Resources using LocalContext.current.resources is not configuration-aware and may return stale values if the Configuration changes"
-        errorLine1="    val title = context.resources.getQuantityString("
-        errorLine2="                ~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/ui/screens/fileexplorer/FileExplorerDialogs.kt"
-            line="189"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="LocalContextResourcesRead"
-        message="Reading Resources using LocalContext.current.resources is not configuration-aware and may return stale values if the Configuration changes"
-        errorLine1="    val defaultThumbnailSize = remember { context.resources.getInteger(R.integer.default_thumbnail_size_limit).toLong() }"
-        errorLine2="                                          ~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="76"
-            column="43"/>
-    </issue>
-
-    <issue
-        id="LocalContextResourcesRead"
-        message="Reading Resources using LocalContext.current.resources is not configuration-aware and may return stale values if the Configuration changes"
-        errorLine1="        val localeTags = remember { context.resources.getStringArray(R.array.locales).toList() }"
-        errorLine2="                                    ~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="336"
-            column="37"/>
     </issue>
 
     <issue
@@ -2325,7 +2281,7 @@
     <issue
         id="MissingTranslation"
         message="&quot;sync_service_notification_startingsync&quot; is not translated in &quot;de&quot; (German)"
-        errorLine1="    &lt;string name=&quot;sync_service_notification_startingsync&quot;>Starting Sync...&lt;/string>"
+        errorLine1="    &lt;string name=&quot;sync_service_notification_startingsync&quot;>Starting Sync…&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
@@ -2919,7 +2875,7 @@
     <issue
         id="MissingTranslation"
         message="&quot;intro_update_checks_description&quot; is not translated in &quot;de&quot; (German) or &quot;zh&quot; (Chinese)"
-        errorLine1="    &lt;string name=&quot;intro_update_checks_description&quot;>If you want to recieve updates, you can enable the switch below! We will notify if an update is available, and you can then choose to apply it.&lt;/string>"
+        errorLine1="    &lt;string name=&quot;intro_update_checks_description&quot;>If you want to receive updates, you can enable the switch below! We will notify if an update is available, and you can then choose to apply it.&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
@@ -3863,17 +3819,6 @@
     </issue>
 
     <issue
-        id="Typos"
-        message="&quot;recieve&quot; is a common misspelling; did you mean &quot;receive&quot;?"
-        errorLine1="    &lt;string name=&quot;intro_update_checks_description&quot;>If you want to recieve updates, you can enable the switch below! We will notify if an update is available, and you can then choose to apply it.&lt;/string>"
-        errorLine2="                                                                  ~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="754"
-            column="67"/>
-    </issue>
-
-    <issue
         id="PluralsCandidate"
         message="Formatting %d followed by words (&quot;tasks&quot;): This should probably be a plural rather than a string"
         errorLine1="    &lt;string name=&quot;backup_n_tasks&quot;>%d tasks&lt;/string>"
@@ -3992,22 +3937,6 @@
             file="src/main/res/values/strings.xml"
             line="773"
             column="5"/>
-    </issue>
-
-    <issue
-        id="StringFormatCount"
-        message="Inconsistent number of arguments in formatting string `operation_failed_cancelled`; found both 1 here and 0 in values/strings.xml"
-        errorLine1="    &lt;string name=&quot;operation_failed_cancelled&quot;>%1$s 被取消&lt;/string>"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-zh-rCN/strings.xml"
-            line="151"
-            column="5"/>
-        <location
-            file="src/main/res/values/strings.xml"
-            line="291"
-            column="5"
-            message="Conflicting number of arguments (0) here"/>
     </issue>
 
     <issue
@@ -4221,468 +4150,6 @@
 
     <issue
         id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/notifications/AppErrorNotificationManager.kt"
-            line="27"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is never &lt; 29"
-        errorLine1="        if (android.os.Build.VERSION.SDK_INT &lt; android.os.Build.VERSION_CODES.N_MR1) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/AppShortcutsHelper.java"
-            line="31"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is never &lt; 29"
-        errorLine1="        if (android.os.Build.VERSION.SDK_INT &lt; android.os.Build.VERSION_CODES.N_MR1) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/AppShortcutsHelper.java"
-            line="74"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is never &lt; 29"
-        errorLine1="        if (android.os.Build.VERSION.SDK_INT &lt; android.os.Build.VERSION_CODES.N_MR1) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/AppShortcutsHelper.java"
-            line="92"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is never &lt; 29"
-        errorLine1="        if (android.os.Build.VERSION.SDK_INT &lt; android.os.Build.VERSION_CODES.N_MR1) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/AppShortcutsHelper.java"
-            line="125"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is never &lt; 29"
-        errorLine1="        if (android.os.Build.VERSION.SDK_INT &lt; android.os.Build.VERSION_CODES.N_MR1) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/AppShortcutsHelper.java"
-            line="138"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 25"
-        errorLine1="    @RequiresApi(api = Build.VERSION_CODES.N_MR1)"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/AppShortcutsHelper.java"
-            line="156"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/core/notifications/AppUpdateNotification.kt"
-            line="64"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/core/notifications/DiscardChannels.kt"
-            line="11"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/workmanager/EphemeralWorker.kt"
-            line="483"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {"
-        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/util/FlagsUtil.kt"
-            line="11"
-            column="24"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {"
-        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/util/FlagsUtil.kt"
-            line="19"
-            column="24"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="112"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is never &lt; 29"
-        errorLine1="    if (Build.VERSION.SDK_INT &lt; Build.VERSION_CODES.N_MR1) return"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="539"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/notifications/GenericSyncNotification.kt"
-            line="77"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {"
-        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/core/settings/language/LanguagePicker.kt"
-            line="35"
-            column="20"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 30"
-        errorLine1="            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {"
-        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/Activities/MainActivity.java"
-            line="718"
-            column="24"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/Activities/MainActivity.java"
-            line="835"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `Build.VERSION.SDK_INT == 23` is never true here"
-        errorLine1="        if (Build.VERSION.SDK_INT == 22 || Build.VERSION.SDK_INT == 23) {"
-        errorLine2="                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/util/MarkdownView.java"
-            line="46"
-            column="44"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is never &lt; 29"
-        errorLine1="        if (Build.VERSION.SDK_INT == 22 || Build.VERSION.SDK_INT == 23) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/util/MarkdownView.java"
-            line="46"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/util/NotificationUtils.kt"
-            line="46"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/util/NotificationUtils.kt"
-            line="46"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/Activities/OnboardingActivity.kt"
-            line="63"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/Services/RcdService.java"
-            line="82"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/Services/RcdService.java"
-            line="190"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/Services/RcdService.java"
-            line="296"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/Services/RcdService.java"
-            line="338"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/RuntimeConfiguration.java"
-            line="37"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 24"
-        errorLine1="    @RequiresApi(api = Build.VERSION_CODES.N)"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/RuntimeConfiguration.java"
-            line="52"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP"
-        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/RuntimeConfiguration.java"
-            line="65"
-            column="16"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `Build.VERSION.SDK_INT &lt;= Build.VERSION_CODES.N_MR1` is never true here"
-        errorLine1="                &amp;&amp; Build.VERSION.SDK_INT &lt;= Build.VERSION_CODES.N_MR1;"
-        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/RuntimeConfiguration.java"
-            line="66"
-            column="20"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/RuntimeConfiguration.java"
-            line="93"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/Services/StreamingService.java"
-            line="72"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/BroadcastReceivers/TriggerReciever.java"
-            line="29"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/Services/TriggerService.java"
-            line="202"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/Services/TriggerService.java"
-            line="219"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="                if (Build.VERSION.SDK_INT >= VERSION_CODES.N) {"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/core/updates/UpdateUserchoiceReceiver.kt"
-            line="56"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 24"
-        errorLine1="    @RequiresApi(VERSION_CODES.N)"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/core/updates/UpdateUserchoiceReceiver.kt"
-            line="69"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="            if (Build.VERSION.SDK_INT >= VERSION_CODES.N) {"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/core/updates/UpdateUserchoiceReceiver.kt"
-            line="84"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/VirtualContentProvider.java"
-            line="169"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 26"
-        errorLine1="    @RequiresApi(api = Build.VERSION_CODES.O)"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/VirtualContentProvider.java"
-            line="1347"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 29"
-        errorLine1="            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/util/WifiConnectivitiyUtil.kt"
-            line="43"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
         message="This folder configuration (`v26`) is unnecessary; `minSdkVersion` is 29. Merge all the resources in this folder into `mipmap-anydpi`.">
         <location
             file="src/main/res/mipmap-anydpi-v26"/>
@@ -4706,7 +4173,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/ch/jacem/starclone/util/MarkdownView.java"
-            line="60"
+            line="53"
             column="9"/>
     </issue>
 
@@ -4752,105 +4219,6 @@
             file="src/main/res/drawable/ic_webdav.xml"
             line="6"
             column="27"/>
-    </issue>
-
-    <issue
-        id="AutoboxingStateCreation"
-        message="Prefer `mutableLongStateOf` instead of `mutableStateOf`"
-        errorLine1="    var thumbnailSize by remember { mutableStateOf(prefs.getLong(thumbnailSizeKey, defaultThumbnailSize)) }"
-        errorLine2="                                    ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="77"
-            column="37"/>
-    </issue>
-
-    <issue
-        id="AutoboxingStateCreation"
-        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
-        errorLine1="    var proxyPort by remember { mutableStateOf(prefs.getInt(proxyPortKey, 8080)) }"
-        errorLine2="                                ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="89"
-            column="33"/>
-    </issue>
-
-    <issue
-        id="AutoboxingStateCreation"
-        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
-        errorLine1="    var direction by mutableStateOf(SyncDirectionObject.SYNC_LOCAL_TO_REMOTE)"
-        errorLine2="                     ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/ui/screens/tasks/edit/TaskEditViewModel.kt"
-            line="25"
-            column="22"/>
-    </issue>
-
-    <issue
-        id="AutoboxingStateCreation"
-        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
-        errorLine1="    var type by mutableStateOf(Trigger.TRIGGER_TYPE_SCHEDULE)"
-        errorLine2="                ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/ui/screens/tasks/edit/TriggerEditViewModel.kt"
-            line="25"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="AutoboxingStateCreation"
-        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
-        errorLine1="    var weekdays by mutableStateOf(0b01111111) // all days enabled"
-        errorLine2="                    ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/ui/screens/tasks/edit/TriggerEditViewModel.kt"
-            line="26"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="AutoboxingStateCreation"
-        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
-        errorLine1="    var timeHour by mutableStateOf(0)"
-        errorLine2="                    ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/ui/screens/tasks/edit/TriggerEditViewModel.kt"
-            line="27"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="AutoboxingStateCreation"
-        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
-        errorLine1="    var timeMinute by mutableStateOf(0)"
-        errorLine2="                      ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/ui/screens/tasks/edit/TriggerEditViewModel.kt"
-            line="28"
-            column="23"/>
-    </issue>
-
-    <issue
-        id="AutoboxingStateCreation"
-        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
-        errorLine1="    var intervalMinutes by mutableStateOf(60)"
-        errorLine2="                           ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/ui/screens/tasks/edit/TriggerEditViewModel.kt"
-            line="29"
-            column="28"/>
-    </issue>
-
-    <issue
-        id="AutoboxingStateCreation"
-        message="Prefer `mutableLongStateOf` instead of `mutableStateOf`"
-        errorLine1="    var targetTaskId by mutableStateOf(0L)"
-        errorLine2="                        ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ch/jacem/starclone/ui/screens/tasks/edit/TriggerEditViewModel.kt"
-            line="30"
-            column="25"/>
     </issue>
 
     <issue
@@ -8007,17 +7375,6 @@
     </issue>
 
     <issue
-        id="TypographyDashes"
-        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
-        errorLine1="    &lt;string name=&quot;remote_name_hint&quot;>Name (a–z, 0-9 only)&lt;/string>"
-        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="301"
-            column="37"/>
-    </issue>
-
-    <issue
         id="TypographyEllipsis"
         message="Replace &quot;...&quot; with ellipsis character (…, &amp;#8230;) ?"
         errorLine1="    &lt;string name=&quot;sync_service_notification_startingsync&quot;>正在开始同步...&lt;/string>"
@@ -8036,17 +7393,6 @@
         <location
             file="src/main/res/values-ca/strings.xml"
             line="539"
-            column="59"/>
-    </issue>
-
-    <issue
-        id="TypographyEllipsis"
-        message="Replace &quot;...&quot; with ellipsis character (…, &amp;#8230;) ?"
-        errorLine1="    &lt;string name=&quot;sync_service_notification_startingsync&quot;>Starting Sync...&lt;/string>"
-        errorLine2="                                                          ~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="694"
             column="59"/>
     </issue>
 
@@ -8495,7 +7841,7 @@
         errorLine2="                                ~~~~~~~~~~~~">
         <location
             file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="85"
+            line="86"
             column="33"/>
     </issue>
 
@@ -8506,7 +7852,7 @@
         errorLine2="                    ~~~~~~~~~~~~">
         <location
             file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="144"
+            line="143"
             column="21"/>
     </issue>
 
@@ -8517,7 +7863,7 @@
         errorLine2="                    ~~~~~~~~~~~~">
         <location
             file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="172"
+            line="171"
             column="21"/>
     </issue>
 
@@ -8528,7 +7874,7 @@
         errorLine2="                    ~~~~~~~~~~~~">
         <location
             file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="185"
+            line="184"
             column="21"/>
     </issue>
 
@@ -8539,7 +7885,7 @@
         errorLine2="                    ~~~~~~~~~~~~">
         <location
             file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="203"
+            line="202"
             column="21"/>
     </issue>
 
@@ -8550,7 +7896,7 @@
         errorLine2="                            ~~~~~~~~~~~~">
         <location
             file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="226"
+            line="225"
             column="29"/>
     </issue>
 
@@ -8561,7 +7907,7 @@
         errorLine2="                            ~~~~~~~~~~~~">
         <location
             file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="243"
+            line="242"
             column="29"/>
     </issue>
 
@@ -8572,7 +7918,7 @@
         errorLine2="                            ~~~~~~~~~~~~">
         <location
             file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="258"
+            line="257"
             column="29"/>
     </issue>
 
@@ -8583,7 +7929,7 @@
         errorLine2="                            ~~~~~~~~~~~~">
         <location
             file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="274"
+            line="273"
             column="29"/>
     </issue>
 
@@ -8594,7 +7940,7 @@
         errorLine2="                ~~~~~~~~~~~~">
         <location
             file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="298"
+            line="297"
             column="17"/>
     </issue>
 
@@ -8605,7 +7951,7 @@
         errorLine2="                                ~~~~~~~~~~~~">
         <location
             file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="322"
+            line="321"
             column="33"/>
     </issue>
 
@@ -8616,7 +7962,7 @@
         errorLine2="    ~~~~~~~~~~~~">
         <location
             file="src/main/java/ch/jacem/starclone/ui/screens/settings/general/GeneralSettingsScreen.kt"
-            line="560"
+            line="558"
             column="5"/>
     </issue>
 
@@ -8726,7 +8072,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/ch/jacem/starclone/Activities/OnboardingActivity.kt"
-            line="90"
+            line="88"
             column="13"/>
     </issue>
 
@@ -8737,7 +8083,7 @@
         errorLine2="        ^">
         <location
             file="src/main/java/ch/jacem/starclone/Activities/OnboardingActivity.kt"
-            line="227"
+            line="225"
             column="9"/>
     </issue>
 
@@ -8748,7 +8094,7 @@
         errorLine2="                ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/ch/jacem/starclone/Activities/OnboardingActivity.kt"
-            line="287"
+            line="285"
             column="17"/>
     </issue>
 

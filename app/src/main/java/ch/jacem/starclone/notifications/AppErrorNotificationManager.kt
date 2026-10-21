@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.content.Context
-import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -24,21 +23,17 @@ class AppErrorNotificationManager(var mContext: Context) {
     }
 
     init {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // Create the NotificationChannel, but only on API 26+ because
-            // the NotificationChannel class is new and not in the support library
-            val channel = NotificationChannel(
-                APP_ERROR_CHANNEL_ID,
-                mContext.getString(R.string.app_error_notification_channel_name),
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            channel.description =
-                mContext.getString(R.string.app_error_notification_channel_description)
-            // Register the channel with the system
-            val notificationManager =
-                mContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-        }
+        val channel = NotificationChannel(
+            APP_ERROR_CHANNEL_ID,
+            mContext.getString(R.string.app_error_notification_channel_name),
+            NotificationManager.IMPORTANCE_DEFAULT
+        )
+        channel.description =
+            mContext.getString(R.string.app_error_notification_channel_description)
+        // Register the channel with the system
+        val notificationManager =
+            mContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
     }
 
     @SuppressLint("MissingPermission")

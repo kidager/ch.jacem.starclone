@@ -1,7 +1,6 @@
 package ch.jacem.starclone.core.settings.language
 
 import android.content.Context
-import android.os.Build
 import android.util.Log
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AlertDialog
@@ -32,11 +31,7 @@ class LanguagePicker(private val mContext: Context) {
     }
 
     fun getCurrentLocale(): Locale? {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            mContext.resources.configuration.locales.get(0)
-        } else {
-            mContext.resources.configuration.locale
-        }
+        return mContext.resources.configuration.locales.get(0)
     }
 
     private val supportedLocales: ArrayList<Locale>

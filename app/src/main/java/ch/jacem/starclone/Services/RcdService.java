@@ -11,7 +11,6 @@ import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.content.res.Configuration;
 import android.os.Binder;
-import android.os.Build;
 import android.os.IBinder;
 import android.util.SparseArray;
 
@@ -78,12 +77,8 @@ public class RcdService extends Service implements RcloneRcd.JobsUpdateHandler {
             showNotification();
             shutdown = false;
         }
-        int flags = 0;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            flags = PendingIntent.FLAG_IMMUTABLE;
-        }
         Intent foregroundIntent = new Intent(this, RcdService.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, foregroundIntent, flags);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, foregroundIntent, PendingIntent.FLAG_IMMUTABLE);
 
         // build job statistics
         long running = 0;
@@ -187,11 +182,7 @@ public class RcdService extends Service implements RcloneRcd.JobsUpdateHandler {
                 .setContentIntent(pendingIntent)
                 .addAction(R.drawable.ic_cancel_download, getString(R.string.rcd_service_notification_btn_stop_all), stopServiceIntent());
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(PERSISTENT_NOTIFICATION_ID, builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
-        } else {
-            startForeground(PERSISTENT_NOTIFICATION_ID, builder.build());
-        }
+        startForeground(PERSISTENT_NOTIFICATION_ID, builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
     }
 
     @Override
@@ -292,11 +283,7 @@ public class RcdService extends Service implements RcloneRcd.JobsUpdateHandler {
     private PendingIntent stopServiceIntent() {
         Intent cancelIntent = new Intent(this, RcdServiceAction.class);
         cancelIntent.setAction(RcdServiceAction.ACTION_STOP_ALL);
-        int flags = 0;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            flags = PendingIntent.FLAG_IMMUTABLE;
-        }
-        return PendingIntent.getBroadcast(this, 0, cancelIntent, flags);
+        return PendingIntent.getBroadcast(this, 0, cancelIntent, PendingIntent.FLAG_IMMUTABLE);
     }
 
     public boolean waitOnline(long timeout) {
@@ -335,11 +322,9 @@ public class RcdService extends Service implements RcloneRcd.JobsUpdateHandler {
     }
 
     private void setNotificationChannel() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW);
-            channel.setDescription(getString(R.string.rcd_service_notification_channel_description));
-            notificationManager.createNotificationChannel(channel);
-        }
+        NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW);
+        channel.setDescription(getString(R.string.rcd_service_notification_channel_description));
+        notificationManager.createNotificationChannel(channel);
     }
 
     public static class RcdServiceAction extends BroadcastReceiver {

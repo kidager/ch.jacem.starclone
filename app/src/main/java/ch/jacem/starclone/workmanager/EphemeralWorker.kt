@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
 import android.net.wifi.WifiManager
-import android.os.Build
 import android.os.Parcel
 import androidx.annotation.StringRes
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -480,10 +479,8 @@ class EphemeralWorker (private var mContext: Context, workerParams: WorkerParame
     // ongoing notification.
     private fun updateForegroundNotification(notification: Notification?) {
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            notification?.let {
-                setForegroundAsync(ForegroundInfo(ongoingNotificationID, it, FOREGROUND_SERVICE_TYPE_DATA_SYNC))
-            }
+        notification?.let {
+            setForegroundAsync(ForegroundInfo(ongoingNotificationID, it, FOREGROUND_SERVICE_TYPE_DATA_SYNC))
         }
     }
 

@@ -20,7 +20,6 @@ import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.os.IBinder;
@@ -35,7 +34,6 @@ import android.util.LruCache;
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.annotation.VisibleForTesting;
 import androidx.preference.PreferenceManager;
 
@@ -166,11 +164,7 @@ public class VirtualContentProvider extends SingleRootProvider {
         Context appCtx = context.getApplicationContext();
         Intent startIntent = new Intent(context, RcdService.class);
         appCtx.bindService(startIntent, connection, Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            appCtx.startForegroundService(startIntent);
-        } else {
-            appCtx.startService(startIntent);
-        }
+        appCtx.startForegroundService(startIntent);
     }
 
     private void awaitRcdService() {
@@ -1344,7 +1338,6 @@ public class VirtualContentProvider extends SingleRootProvider {
         context.grantUriPermission(callingPackage, uri, flags);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     private void revokePermission(String documentId) {
         Context context = getContext();
         assert null != context;

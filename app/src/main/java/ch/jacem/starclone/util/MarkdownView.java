@@ -3,9 +3,7 @@ package ch.jacem.starclone.util;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetManager;
-import android.content.res.Configuration;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.webkit.WebView;
 import android.widget.Toast;
@@ -41,11 +39,6 @@ public class MarkdownView extends WebView {
     }
 
     private static Context patchContext(Context context) {
-        // TODO: Only affects appcompat 1.1.x, remove with 1.2.x
-        //       https://stackoverflow.com/questions/41025200/android-view-inflateexception-error-inflating-class-android-webkit-webview/58131421
-        if (Build.VERSION.SDK_INT == 22 || Build.VERSION.SDK_INT == 23) {
-            return context.createConfigurationContext(new Configuration());
-        }
         return context;
     }
 

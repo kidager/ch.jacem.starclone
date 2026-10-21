@@ -8,7 +8,6 @@ import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import ch.jacem.starclone.Activities.MainActivity
 import ch.jacem.starclone.R
@@ -74,17 +73,13 @@ class GenericSyncNotification(var mContext: Context) {
     }
 
     fun setNotificationChannel(channelID: String, channelName: String, description: String, groupID: String, groupDescription: String) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // Create the NotificationChannel, but only on API 26+ because
-            // the NotificationChannel class is new and not in the support library
-            val channel = NotificationChannel(channelID, channelName, NotificationManager.IMPORTANCE_LOW)
-            channel.description = description
-            // Register the channel with the system
-            val notificationManager = mContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannelGroup(NotificationChannelGroup(groupID, groupDescription))
-            channel.group = groupID
-            notificationManager.createNotificationChannel(channel)
-        }
+        val channel = NotificationChannel(channelID, channelName, NotificationManager.IMPORTANCE_LOW)
+        channel.description = description
+        // Register the channel with the system
+        val notificationManager = mContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannelGroup(NotificationChannelGroup(groupID, groupDescription))
+        channel.group = groupID
+        notificationManager.createNotificationChannel(channel)
     }
 
     companion object {

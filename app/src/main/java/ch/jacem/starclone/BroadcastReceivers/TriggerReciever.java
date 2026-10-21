@@ -3,7 +3,6 @@ package ch.jacem.starclone.BroadcastReceivers;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 
 import ch.jacem.starclone.Services.TriggerService;
 import ch.jacem.starclone.util.FLog;
@@ -26,11 +25,7 @@ public class TriggerReciever extends BroadcastReceiver {
             Intent service = new Intent(context, TriggerService.class);
             service.setAction(TriggerService.TRIGGER_RECIEVE);
             service.putExtra(TriggerService.TRIGGER_ID, i);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(service);
-            }else{
-                context.startService(service);
-            }
+            context.startForegroundService(service);
         }
     }
 

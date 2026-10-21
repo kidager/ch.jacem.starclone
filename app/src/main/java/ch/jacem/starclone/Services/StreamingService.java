@@ -7,7 +7,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
@@ -68,10 +67,7 @@ public class StreamingService extends IntentService {
         final String authenticationUsername = intent.getStringExtra(AUTHENTICATION_USERNAME);
         final String authenticationPassword = intent.getStringExtra(AUTHENTICATION_PASSWORD);
 
-        int flags = 0;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            flags = PendingIntent.FLAG_IMMUTABLE;
-        }
+        int flags = PendingIntent.FLAG_IMMUTABLE;
         Intent foregroundIntent = new Intent(this, StreamingService.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, foregroundIntent, flags);
 

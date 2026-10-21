@@ -10,12 +10,10 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
-import androidx.core.app.NotificationCompat;
 import androidx.preference.PreferenceManager;
 
 import java.util.Calendar;
@@ -198,35 +196,24 @@ public class TriggerService extends Service {
 
     private void createNotification(){
         createNotificationChannel();
-        Notification notification;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            notification = new Notification.Builder(this, CHANNEL_ID)
-                    .setContentTitle(getText(R.string.notification_triggerservice_title))
-                    .setContentText(getText(R.string.notification_triggerservice_description))
-                    .setSmallIcon(R.drawable.ic_launcher_foreground)
-                    .build();
-        } else {
-            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
-                    .setContentTitle(getText(R.string.notification_triggerservice_title))
-                    .setContentText(getText(R.string.notification_triggerservice_description))
-                    .setSmallIcon(R.drawable.ic_launcher_foreground);
-            notification = notificationBuilder.build();
-        }
+        Notification notification = new Notification.Builder(this, CHANNEL_ID)
+                .setContentTitle(getText(R.string.notification_triggerservice_title))
+                .setContentText(getText(R.string.notification_triggerservice_description))
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .build();
         startForeground(SERVICE_NOTIFICATION_ID, notification);
     }
 
     private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID,
-                    getString(R.string.notification_triggerservice_title),
-                    NotificationManager.IMPORTANCE_LOW
-            );
-            channel.setDescription(getString(R.string.notification_triggerservice_description));
+        NotificationChannel channel = new NotificationChannel(
+                CHANNEL_ID,
+                getString(R.string.notification_triggerservice_title),
+                NotificationManager.IMPORTANCE_LOW
+        );
+        channel.setDescription(getString(R.string.notification_triggerservice_description));
 
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
+        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        notificationManager.createNotificationChannel(channel);
     }
 
 }

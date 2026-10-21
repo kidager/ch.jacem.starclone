@@ -7,8 +7,6 @@ import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
-import android.os.Build;
-import androidx.annotation.RequiresApi;
 import androidx.core.content.pm.ShortcutInfoCompat;
 import androidx.core.content.pm.ShortcutManagerCompat;
 import androidx.core.graphics.drawable.IconCompat;
@@ -28,10 +26,6 @@ public class AppShortcutsHelper {
     public static final String APP_SHORTCUT_REMOTE_NAME = "arg_remote_name";
 
     public static void populateAppShortcuts(Context context, List<RemoteItem> remotes) {
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.N_MR1) {
-            return;
-        }
-
         ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
         if (shortcutManager == null) {
             return;
@@ -71,10 +65,6 @@ public class AppShortcutsHelper {
     }
 
     public static void removeAllAppShortcuts(Context context) {
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.N_MR1) {
-            return;
-        }
-
         ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
         if (shortcutManager == null) {
             return;
@@ -89,10 +79,6 @@ public class AppShortcutsHelper {
     }
 
     public static void removeAppShortcut(Context context, String remoteName) {
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.N_MR1) {
-            return;
-        }
-
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         Set<String> appShortcutIds = sharedPreferences.getStringSet(context.getString(R.string.shared_preferences_app_shortcuts), new HashSet<>());
         String id = getUniqueIdFromString(remoteName);
@@ -122,10 +108,6 @@ public class AppShortcutsHelper {
     }
 
     public static void removeAppShortcutIds(Context context, List<String> ids) {
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.N_MR1) {
-            return;
-        }
-
         ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
         if (shortcutManager == null) {
             return;
@@ -135,10 +117,6 @@ public class AppShortcutsHelper {
     }
 
     public static void reportAppShortcutUsage(Context context, String remoteName) {
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.N_MR1) {
-            return;
-        }
-
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         Set<String> appShortcutIds = sharedPreferences.getStringSet(context.getString(R.string.shared_preferences_app_shortcuts), new HashSet<>());
 
@@ -153,7 +131,6 @@ public class AppShortcutsHelper {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N_MR1)
     public static void addRemoteToAppShortcuts(Context context, RemoteItem remoteItem, String id) {
         ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
         if (shortcutManager == null) {

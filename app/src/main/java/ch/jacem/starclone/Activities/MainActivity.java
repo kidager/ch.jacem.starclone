@@ -715,10 +715,8 @@ public class MainActivity extends AppCompatActivity {
         private boolean isPermissable(File file) {
             if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
                 return Environment.isExternalStorageLegacy(file);
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                return Environment.isExternalStorageManager(file);
             } else {
-                return true;
+                return Environment.isExternalStorageManager(file);
             }
         }
 
@@ -832,14 +830,12 @@ public class MainActivity extends AppCompatActivity {
             } catch (IllegalArgumentException e) {
                 FLog.e(TAG, "RefreshLocalAliases/addLocalRemote: %s is not a valid path", e, name);
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                StorageManager storageManager = (StorageManager) getSystemService(Context.STORAGE_SERVICE);
-                StorageVolume storageVolume = storageManager.getStorageVolume(root);
-                if (null != storageVolume) {
-                    name = storageVolume.getDescription(context);
-                    if (null != storageVolume.getUuid()) {
-                        id = storageVolume.getUuid();
-                    }
+            StorageManager storageManager = (StorageManager) getSystemService(Context.STORAGE_SERVICE);
+            StorageVolume storageVolume = storageManager.getStorageVolume(root);
+            if (null != storageVolume) {
+                name = storageVolume.getDescription(context);
+                if (null != storageVolume.getUuid()) {
+                    id = storageVolume.getUuid();
                 }
             }
 
